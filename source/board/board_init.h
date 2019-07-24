@@ -22,7 +22,8 @@ void BOARD_InitBacklightPWM(void);
 void BOARD_Init(void);
 
 /*!
- * \brief 			Set LCD brightness
+ * \brief Set LCD brightness
+ *
  * \param percent : PWM duty percent (range 1-99)
  */
 void BOARD_SetBacklightPercent(uint8_t percent);

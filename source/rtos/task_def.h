@@ -6,14 +6,16 @@
 /* ----------------------------------------------------------------------------- */
 
 /*!
- * \brief 					Main emWin GUI task
- * \param pvParameters : 	Task parameter
+ * \brief Main emWin GUI task
+ *
+ * \param pvParameters : Task parameter
  */
 void vTaskGUI(void *pvParameters);
 
 /*!
- * \brief			 		Backlight task
- * @param pvParameters : 	Task parameter
+ * \brief Backlight task
+ *
+ * @param pvParameters : Task parameter
  */
 void vTaskBacklight(void *pvParameters);
 

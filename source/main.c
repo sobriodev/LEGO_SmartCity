@@ -21,9 +21,7 @@ int main(void)
     /* Start emWin library */
     GUI_Start();
 
-    bool tasksCreationSuceed = RTOS_TasksCreate();
-
-    if (!tasksCreationSuceed) {
+    if (!RTOS_TasksCreate()) {
 
     	/* Task creation failed. Make optional log message and enter infinite loop */
 		#if LOGGING_ENABLED && CORE_LOG

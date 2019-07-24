@@ -10,6 +10,7 @@
 /* ----------------------------------- MACROS ---------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+/* Maximum log length */
 #define LOGGER_SBUFF_LEN    150
 
 #define LOG_INFO            "INFO"		/* Just for information */
@@ -25,7 +26,7 @@
  * \brief Make log message using template message and optional template arguments
  *
  * \param template : Base address of template message
- * \return Base address of ready message or NULL if error occured
+ * \return Base address of ready message or NULL if error occurred
  */
 const char *LOGGER_MakeLogMsg(const char *template, ...);
 

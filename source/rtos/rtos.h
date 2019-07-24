@@ -22,6 +22,11 @@
 /* ------------------------------- API FUNCTIONS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+/*!
+ * \brief Create all application tasks
+ *
+ * \return True if tasks creation succeed, false otherwise
+ */
 bool RTOS_TasksCreate(void);
 
 

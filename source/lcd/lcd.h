@@ -33,18 +33,21 @@ typedef enum {
 
 /*!
  * \brief Get current LCD state
+ *
  * \return Instance of LCDState_t enum
  */
 LCDState_t LCD_GetState(void);
 
 /*!
- * \brief 			Set new LCD state
- * \param state :	LCD state to be set. See LCDState_t enum
+ * \brief Set new LCD state
+ *
+ * \param state : LCD state to be set. See LCDState_t enum
  */
 void LCD_SetState(LCDState_t state);
 
 /*!
- * \brief 				This is just alias for setting backlight PWM duty
+ * \brief This is just alias for setting backlight PWM duty
+ *
  * \param brightness :	Desired LCD brightness (range 1-99)
  */
 static inline void LCD_SetBrightness(uint8_t brightness)
