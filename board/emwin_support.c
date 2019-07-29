@@ -91,7 +91,7 @@ status_t APP_LCDC_Init(void)
  ******************************************************************************/
 
 /* Touch driver handle. */
-static ft5406_handle_t touch_handle;
+ft5406_handle_t touch_handle;
 
 status_t APP_Touch_Init(void)
 {
@@ -122,30 +122,6 @@ status_t APP_Touch_Init(void)
     assert(status == kStatus_Success);
 
     return kStatus_Success;
-}
-
-bool BOARD_Touch_Poll(void)
-{
-    touch_event_t touch_event;
-    int touch_x;
-    int touch_y;
-    GUI_PID_STATE pid_state;
-    int new_event;
-
-    if (kStatus_Success != FT5406_GetSingleTouch(&touch_handle, &touch_event, &touch_x, &touch_y, &new_event))
-    {
-        return 0;
-    }
-    else if (touch_event != kTouch_Reserved)
-    {
-        pid_state.x = touch_y;
-        pid_state.y = touch_x;
-        pid_state.Pressed = ((touch_event == kTouch_Down) || (touch_event == kTouch_Contact));
-        pid_state.Layer = 0;
-        GUI_TOUCH_StoreStateEx(&pid_state);
-        return (bool) new_event;
-    }
-    return 0;
 }
 
 /*******************************************************************************

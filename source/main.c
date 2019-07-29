@@ -1,10 +1,9 @@
-#include "board_init.h"
+#include <board_conf.h>
 #include "gui_conf.h"
 #include "rtos.h"
 
 /* Logger */
 #include "logger.h"
-#include "logger_def.h"
 
 /* FreeRTOS */
 #include "FreeRTOS.h"
@@ -21,20 +20,12 @@ int main(void)
     /* Start emWin library */
     GUI_Start();
 
-    if (!RTOS_TasksCreate()) {
-
-    	/* Task creation failed. Make optional log message and enter infinite loop */
-		#if LOGGING_ENABLED && CORE_LOG
-				LOGGER_LogEvent(LOG_ERROR, "Server tasks creation failed. The program will not start!\r\n");
-		#endif
-
+    if (!RTOS_TasksCreate() || !RTOS_TimersCreate()) {
+    	LOGGER_WRITELN(CRITICAL_LOG, LOG_ERROR, "FreeRTOS tasks creation failed. The program will not start!");
     	while (1) {}
     }
 
-	#if LOGGING_ENABLED && CORE_LOG
-		LOGGER_LogEvent(LOG_INFO, "Server configuration is done. Starting application\r\n");
-	#endif
-
+    LOGGER_WRITELN(CRITICAL_LOG, LOG_INFO, "Program initialization succeed. Starting...");
 
     /* FreeRTOS entry point */
     vTaskStartScheduler();

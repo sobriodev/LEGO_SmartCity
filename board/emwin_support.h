@@ -49,6 +49,4 @@
 #define VRAM_ADDR (GUI_MEMORY_ADDR + GUI_NUMBYTES)
 #define VRAM_SIZE (LCD_HEIGHT * LCD_WIDTH * LCD_BITS_PER_PIXEL / 8)
 
-bool BOARD_Touch_Poll(void);
-
 #endif
