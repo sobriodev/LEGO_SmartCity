@@ -93,6 +93,12 @@ void BOARD_TouchEvent(TouchInfo_t *touchInfo)
         pidState.Pressed = ((touchEvent == kTouch_Down) || (touchEvent == kTouch_Contact));
         pidState.Layer = 0;
 
+        /* Reset X and Y coordinates when touch screen was released */
+        if (!pidState.Pressed) {
+        	pidState.x = -1;
+        	pidState.y = -1;
+        }
+
         /* New touch event is available */
     	touchInfo->touchPanelStatus = TOUCH_PANEL_STATUS_OK;
         touchInfo->touchEvent = newEvent;

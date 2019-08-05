@@ -1,36 +1,35 @@
 #include "gui_desktop.h"
 #include "stdint.h"
+#include "validator.h"
 
-/* emWin */
-#include "emwin_support.h"
-#include "GUI.h"
-#include "WM.h"
-#include "BUTTON.h"
+#include "../virtual_keyboard/virtual_keyboard.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-uint8_t i = 64;
+EDIT_Handle e = 0;
 
-void desktopCallback(WM_MESSAGE * pMsg)
+void desktopCallback(WM_MESSAGE *pMsg)
 {
+	int widgetId;
+
 	switch (pMsg->MsgId) {
 	case WM_NOTIFY_PARENT:
-		i++;
-		WM_InvalidateWindow(WM_HBKWIN);
+		widgetId = WM_GetId(pMsg->hWinSrc);
+		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_EDIT0) {
+			VKParams_t params = {e, "Enter true/false value", 15, true , VALIDATOR_IsBool};
+			VK_GetInput(&params);
+		}
 		break;
 	case WM_SET_CALLBACK:
-	{
-		BUTTON_Handle b = BUTTON_CreateEx(10, 10, 150, 50, WM_HBKWIN, WM_CF_SHOW, 0, GUI_ID_BUTTON0);
-		BUTTON_SetText(b, "Increment counter");
-	}
+		e = EDIT_CreateEx(10, 90, 150, 40, WM_HBKWIN, WM_CF_SHOW, 0, GUI_ID_EDIT0, 20);
+		EDIT_SetText(e, "Edit me");
+
 		break;
 	case WM_PAINT:
 		GUI_SetBkColor(GUI_LIGHTBLUE);
 		GUI_Clear();
-		/* Text display */
-		GUI_DispCharAt(i, 200, 200);
 	default:
 		WM_DefaultProc(pMsg);
 	}

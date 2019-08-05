@@ -1,4 +1,4 @@
-#include <board_conf.h>
+#include "board_conf.h"
 #include "gui_conf.h"
 #include "rtos.h"
 
@@ -30,6 +30,6 @@ int main(void)
     /* FreeRTOS entry point */
     vTaskStartScheduler();
 
-    /* The program should never enter this line */
+    /* The program should never reach this line */
     while (1) {}
 }

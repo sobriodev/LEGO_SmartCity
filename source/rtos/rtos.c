@@ -91,9 +91,7 @@ void vTaskGUI(void *pvParameters)
     		}
 
         	/* emWin execute */
-            GUI_MULTIBUF_Begin();
             WM_Exec();
-            GUI_MULTIBUF_End();
     	}
     }
 }
