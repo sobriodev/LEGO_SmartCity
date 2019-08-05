@@ -13,3 +13,6 @@ params
 func
 ch
 skinflex
+str
+int
+bool

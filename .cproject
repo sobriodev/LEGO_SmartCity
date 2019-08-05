@@ -58,7 +58,7 @@
 								<option id="com.crt.advproject.cpp.config.250640656" name="Obsolete (Config)" superClass="com.crt.advproject.cpp.config"/>
 								<option id="com.crt.advproject.cpp.store.1567813766" name="Obsolete (Store)" superClass="com.crt.advproject.cpp.store"/>
 							</tool>
-							<tool id="com.crt.advproject.gcc.exe.debug.871234020" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug">
+							<tool command="arm-none-eabi-gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.crt.advproject.gcc.exe.debug.871234020" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug">
 								<option id="com.crt.advproject.gcc.thumb.2113951085" name="Thumb mode" superClass="com.crt.advproject.gcc.thumb" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.gcc.arch.399280123" name="Architecture" superClass="com.crt.advproject.gcc.arch" useByScannerDiscovery="false" value="com.crt.advproject.gcc.target.cm4" valueType="enumerated"/>
 								<option id="com.crt.advproject.c.misc.dialect.207827998" name="Language standard" superClass="com.crt.advproject.c.misc.dialect" useByScannerDiscovery="true" value="com.crt.advproject.misc.dialect.gnu99" valueType="enumerated"/>
@@ -82,6 +82,8 @@
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1922214897" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false"/>
 								<option id="gnu.c.compiler.option.include.paths.1899694851" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../amazon-freertos/include"/>
+									<listOptionValue builtIn="false" value="../source/gui/desktop"/>
+									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
 									<listOptionValue builtIn="false" value="../source/utils"/>
 									<listOptionValue builtIn="false" value="../source/rtos"/>
 									<listOptionValue builtIn="false" value="../source/lcd"/>
@@ -141,6 +143,8 @@
 								<option id="gnu.both.asm.option.flags.crt.599496046" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false" value="-c -x assembler-with-cpp -D__REDLIB__" valueType="string"/>
 								<option id="gnu.both.asm.option.include.paths.1597613527" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../amazon-freertos/include"/>
+									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
+									<listOptionValue builtIn="false" value="../source/gui/desktop"/>
 									<listOptionValue builtIn="false" value="../source/rtos"/>
 									<listOptionValue builtIn="false" value="../source/utils"/>
 									<listOptionValue builtIn="false" value="../source/board"/>
@@ -387,6 +391,8 @@
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1866767784" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false"/>
 								<option id="gnu.c.compiler.option.include.paths.1636959969" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../amazon-freertos/include"/>
+									<listOptionValue builtIn="false" value="../source/gui/desktop"/>
+									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
 									<listOptionValue builtIn="false" value="../source/utils"/>
 									<listOptionValue builtIn="false" value="../source/rtos"/>
 									<listOptionValue builtIn="false" value="../source/lcd"/>
@@ -446,6 +452,8 @@
 								<option id="gnu.both.asm.option.flags.crt.1198739183" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false" value="-c -x assembler-with-cpp -D__REDLIB__" valueType="string"/>
 								<option id="gnu.both.asm.option.include.paths.7072574" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../amazon-freertos/include"/>
+									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
+									<listOptionValue builtIn="false" value="../source/gui/desktop"/>
 									<listOptionValue builtIn="false" value="../source/rtos"/>
 									<listOptionValue builtIn="false" value="../source/utils"/>
 									<listOptionValue builtIn="false" value="../source/board"/>
@@ -751,4 +759,5 @@
 		<sdkName>SDK_2.x_LPCXpresso54628</sdkName>
 		<sdkVersion>2.5.0</sdkVersion>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

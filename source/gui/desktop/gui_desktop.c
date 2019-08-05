@@ -2,7 +2,7 @@
 #include "stdint.h"
 #include "validator.h"
 
-#include "../virtual_keyboard/virtual_keyboard.h"
+#include "virtual_keyboard.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
