@@ -29,6 +29,7 @@ void BOARD_InitBootPins(void);
 #define IOCON_PIO_FUNC0 0x00u           /*!<@brief Selects pin function 0 */
 #define IOCON_PIO_FUNC1 0x01u           /*!<@brief Selects pin function 1 */
 #define IOCON_PIO_FUNC6 0x06u           /*!<@brief Selects pin function 6 */
+#define IOCON_PIO_FUNC7 0x07u           /*!<@brief Selects pin function 7 */
 #define IOCON_PIO_I2CDRIVE_HIGH 0x0400u /*!<@brief High drive: 20 mA */
 #define IOCON_PIO_I2CFILTER_EN 0x00u    /*!<@brief I2C 50 ns glitch filter enabled */
 #define IOCON_PIO_I2CSLEW_I2C 0x00u     /*!<@brief I2C mode */
@@ -289,7 +290,7 @@ void BOARD_InitPins(void); /* Function assigned for the Cortex-M4F */
  * @brief Configures pin routing and optionally pin electrical features.
  *
  */
-void Board_UserPins(void); /* Function assigned for the Cortex-M4F */
+void BOARD_InitUserPins(void); /* Function assigned for the Cortex-M4F */
 
 #if defined(__cplusplus)
 }

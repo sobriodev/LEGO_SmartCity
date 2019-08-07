@@ -9,8 +9,6 @@
 #ifndef _EMWIN_SUPPORT_H_
 #define _EMWIN_SUPPORT_H_
 
-#include "stdbool.h"
-
 #define EXAMPLE_I2C_MASTER_BASE (I2C2_BASE)
 #define I2C_MASTER_CLOCK_FREQUENCY (12000000)
 
