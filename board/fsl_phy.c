@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2017 NXP
+ * Copyright 2016-2019 NXP
  * All rights reserved.
- * 
+ *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
@@ -13,7 +13,7 @@
  ******************************************************************************/
 
 /*! @brief Defines the timeout macro. */
-#define PHY_TIMEOUT_COUNT 0xFFFFFFU
+#define PHY_TIMEOUT_COUNT 500000
 
 /*******************************************************************************
  * Prototypes
@@ -47,10 +47,10 @@ extern clock_ip_name_t s_enetClock[FSL_FEATURE_SOC_LPC_ENET_COUNT];
 status_t PHY_Init(ENET_Type *base, uint32_t phyAddr, uint32_t srcClock_Hz)
 {
     uint32_t reg;
-    uint32_t idReg = 0;
-    uint32_t delay = PHY_TIMEOUT_COUNT;
+    uint32_t idReg    = 0;
+    uint32_t delay    = PHY_TIMEOUT_COUNT;
     uint32_t instance = ENET_GetInstance(base);
-    bool status = false;
+    bool status       = false;
 
 #if !(defined(FSL_SDK_DISABLE_DRIVER_CLOCK_CONTROL) && FSL_SDK_DISABLE_DRIVER_CLOCK_CONTROL)
     /* Set SMI first. */
@@ -101,7 +101,7 @@ status_t PHY_Init(ENET_Type *base, uint32_t phyAddr, uint32_t srcClock_Hz)
 
     if (!delay)
     {
-        return kStatus_Fail;
+        return kStatus_PHY_AutoNegotiateFail;
     }
 
     /* Waiting a moment for phy stable. */

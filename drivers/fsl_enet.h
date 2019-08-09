@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2017 NXP
+ * Copyright 2016-2019 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -22,7 +22,7 @@
 /*! @name Driver version */
 /*@{*/
 /*! @brief Defines the driver version. */
-#define FSL_ENET_DRIVER_VERSION (MAKE_VERSION(2, 1, 2)) /*!< Version 2.1.2. */
+#define FSL_ENET_DRIVER_VERSION (MAKE_VERSION(2, 1, 3)) /*!< Version 2.1.3. */
 /*@}*/
 
 /*! @name Control and status region bit masks of the receive buffer descriptor. */
@@ -118,30 +118,30 @@
 /*! @brief Defines the status return codes for transaction. */
 enum _enet_status
 {
-    kStatus_ENET_RxFrameError = MAKE_STATUS(kStatusGroup_ENET, 0U),  /*!< A frame received but data error happen. */
-    kStatus_ENET_RxFrameFail = MAKE_STATUS(kStatusGroup_ENET, 1U),   /*!< Failed to receive a frame. */
-    kStatus_ENET_RxFrameEmpty = MAKE_STATUS(kStatusGroup_ENET, 2U),  /*!< No frame arrive. */
-    kStatus_ENET_TxFrameBusy = MAKE_STATUS(kStatusGroup_ENET, 3U),   /*!< Transmit descriptors are under process. */
-    kStatus_ENET_TxFrameFail = MAKE_STATUS(kStatusGroup_ENET, 4U),   /*!< Transmit frame fail. */
-    kStatus_ENET_TxFrameOverLen = MAKE_STATUS(kStatusGroup_ENET, 5U) /*!< Transmit oversize. */
+    kStatus_ENET_RxFrameError   = MAKE_STATUS(kStatusGroup_ENET, 0U), /*!< A frame received but data error happen. */
+    kStatus_ENET_RxFrameFail    = MAKE_STATUS(kStatusGroup_ENET, 1U), /*!< Failed to receive a frame. */
+    kStatus_ENET_RxFrameEmpty   = MAKE_STATUS(kStatusGroup_ENET, 2U), /*!< No frame arrive. */
+    kStatus_ENET_TxFrameBusy    = MAKE_STATUS(kStatusGroup_ENET, 3U), /*!< Transmit descriptors are under process. */
+    kStatus_ENET_TxFrameFail    = MAKE_STATUS(kStatusGroup_ENET, 4U), /*!< Transmit frame fail. */
+    kStatus_ENET_TxFrameOverLen = MAKE_STATUS(kStatusGroup_ENET, 5U)  /*!< Transmit oversize. */
 #ifdef ENET_PTP1588FEATURE_REQUIRED
     ,
-    kStatus_ENET_PtpTsRingFull = MAKE_STATUS(kStatusGroup_ENET, 6U), /*!< Timestamp ring full. */
-    kStatus_ENET_PtpTsRingEmpty = MAKE_STATUS(kStatusGroup_ENET, 7U) /*!< Timestamp ring empty. */
-#endif                                                               /* ENET_PTP1588FEATURE_REQUIRED */
+    kStatus_ENET_PtpTsRingFull  = MAKE_STATUS(kStatusGroup_ENET, 6U), /*!< Timestamp ring full. */
+    kStatus_ENET_PtpTsRingEmpty = MAKE_STATUS(kStatusGroup_ENET, 7U)  /*!< Timestamp ring empty. */
+#endif                                                                /* ENET_PTP1588FEATURE_REQUIRED */
 };
 
 /*! @brief Defines the MII/RMII mode for data interface between the MAC and the PHY. */
 typedef enum _enet_mii_mode
 {
-    kENET_MiiMode = 0U, /*!< MII mode for data interface. */
-    kENET_RmiiMode = 1U /*!< RMII mode for data interface. */
+    kENET_MiiMode  = 0U, /*!< MII mode for data interface. */
+    kENET_RmiiMode = 1U  /*!< RMII mode for data interface. */
 } enet_mii_mode_t;
 
 /*! @brief Defines the 10/100 Mbps speed for the MII data interface. */
 typedef enum _enet_mii_speed
 {
-    kENET_MiiSpeed10M = 0U,  /*!< Speed 10 Mbps. */
+    kENET_MiiSpeed10M  = 0U, /*!< Speed 10 Mbps. */
     kENET_MiiSpeed100M = 1U, /*!< Speed 100 Mbps. */
 } enet_mii_speed_t;
 
@@ -156,19 +156,19 @@ typedef enum _enet_mii_duplex
 typedef enum _enet_mii_normal_opcode
 {
     kENET_MiiWriteFrame = 1U, /*!< Write frame operation for a valid MII management frame. */
-    kENET_MiiReadFrame = 3U   /*!< Read frame operation for a valid MII management frame. */
+    kENET_MiiReadFrame  = 3U  /*!< Read frame operation for a valid MII management frame. */
 } enet_mii_normal_opcode;
 
 /*! @brief Define the DMA maximum transmit burst length. */
 typedef enum _enet_dma_burstlen
 {
-    kENET_BurstLen1 = 0x00001U,   /*!< DMA burst length 1. */
-    kENET_BurstLen2 = 0x00002U,   /*!< DMA burst length 2. */
-    kENET_BurstLen4 = 0x00004U,   /*!< DMA burst length 4. */
-    kENET_BurstLen8 = 0x00008U,   /*!< DMA burst length 8. */
-    kENET_BurstLen16 = 0x00010U,  /*!< DMA burst length 16. */
-    kENET_BurstLen32 = 0x00020U,  /*!< DMA burst length 32. */
-    kENET_BurstLen64 = 0x10008U,  /*!< DMA burst length 64. eight times enabled. */
+    kENET_BurstLen1   = 0x00001U, /*!< DMA burst length 1. */
+    kENET_BurstLen2   = 0x00002U, /*!< DMA burst length 2. */
+    kENET_BurstLen4   = 0x00004U, /*!< DMA burst length 4. */
+    kENET_BurstLen8   = 0x00008U, /*!< DMA burst length 8. */
+    kENET_BurstLen16  = 0x00010U, /*!< DMA burst length 16. */
+    kENET_BurstLen32  = 0x00020U, /*!< DMA burst length 32. */
+    kENET_BurstLen64  = 0x10008U, /*!< DMA burst length 64. eight times enabled. */
     kENET_BurstLen128 = 0x10010U, /*!< DMA burst length 128. eight times enabled. */
     kENET_BurstLen256 = 0x10020U, /*!< DMA burst length 256. eight times enabled. */
 } enet_dma_burstlen;
@@ -177,23 +177,23 @@ typedef enum _enet_dma_burstlen
 typedef enum _enet_desc_flag
 {
     kENET_MiddleFlag = 0, /*!< It's a middle descriptor of the frame. */
-    kENET_FirstFlagOnly,  /*!< It's the first descriptor of the frame. */
     kENET_LastFlagOnly,   /*!< It's the last descriptor of the frame. */
+    kENET_FirstFlagOnly,  /*!< It's the first descriptor of the frame. */
     kENET_FirstLastFlag   /*!< It's the first and last descriptor of the frame. */
 } enet_desc_flag;
 
 /*! @brief Define the system time adjust operation control. */
 typedef enum _enet_systime_op
 {
-    kENET_SystimeAdd = 0U,     /*!< System time add to. */
-    kENET_SystimeSubtract = 1U /*!< System time subtract. */
+    kENET_SystimeAdd      = 0U, /*!< System time add to. */
+    kENET_SystimeSubtract = 1U  /*!< System time subtract. */
 } enet_systime_op;
 
 /*! @brief Define the system time rollover control. */
 typedef enum _enet_ts_rollover_type
 {
-    kENET_BinaryRollover = 0, /*!< System time binary rollover.*/
-    kENET_DigitalRollover = 1 /*!< System time digital rollover.*/
+    kENET_BinaryRollover  = 0, /*!< System time binary rollover.*/
+    kENET_DigitalRollover = 1  /*!< System time digital rollover.*/
 } enet_ts_rollover_type;
 
 /*! @brief Defines some special configuration for ENET.
@@ -214,11 +214,11 @@ typedef enum _enet_special_config
     /**************************MTL************************************/
     kENET_StoreAndForward = 0x0002U, /*!< The rx/tx store and forward enable. */
     /***********************MAC****************************************/
-    kENET_PromiscuousEnable = 0x0004U,  /*!< The promiscuous enabled. */
-    kENET_FlowControlEnable = 0x0008U,  /*!< The flow control enabled. */
+    kENET_PromiscuousEnable  = 0x0004U, /*!< The promiscuous enabled. */
+    kENET_FlowControlEnable  = 0x0008U, /*!< The flow control enabled. */
     kENET_BroadCastRxDisable = 0x0010U, /*!< The broadcast disabled. */
     kENET_MulticastAllEnable = 0x0020U, /*!< All multicast are passed. */
-    kENET_8023AS2KPacket = 0x0040U      /*!< 8023as support for 2K packets. */
+    kENET_8023AS2KPacket     = 0x0040U  /*!< 8023as support for 2K packets. */
 } enet_special_config_t;
 
 /*! @brief List of DMA interrupts supported by the ENET interrupt. This
@@ -227,16 +227,16 @@ typedef enum _enet_special_config
  */
 typedef enum _enet_dma_interrupt_enable
 {
-    kENET_DmaTx = ENET_DMA_CH_DMA_CHX_INT_EN_TIE_MASK,                 /*!< Tx interrupt. */
-    kENET_DmaTxStop = ENET_DMA_CH_DMA_CHX_INT_EN_TSE_MASK,             /*!< Tx stop interrupt. */
-    kENET_DmaTxBuffUnavail = ENET_DMA_CH_DMA_CHX_INT_EN_TBUE_MASK,     /*!< Tx buffer unavailable. */
-    kENET_DmaRx = ENET_DMA_CH_DMA_CHX_INT_EN_RIE_MASK,                 /*!< Rx interrupt. */
-    kENET_DmaRxBuffUnavail = ENET_DMA_CH_DMA_CHX_INT_EN_RBUE_MASK,     /*!< Rx buffer unavailable. */
-    kENET_DmaRxStop = ENET_DMA_CH_DMA_CHX_INT_EN_RSE_MASK,             /*!< Rx stop. */
+    kENET_DmaTx                = ENET_DMA_CH_DMA_CHX_INT_EN_TIE_MASK,  /*!< Tx interrupt. */
+    kENET_DmaTxStop            = ENET_DMA_CH_DMA_CHX_INT_EN_TSE_MASK,  /*!< Tx stop interrupt. */
+    kENET_DmaTxBuffUnavail     = ENET_DMA_CH_DMA_CHX_INT_EN_TBUE_MASK, /*!< Tx buffer unavailable. */
+    kENET_DmaRx                = ENET_DMA_CH_DMA_CHX_INT_EN_RIE_MASK,  /*!< Rx interrupt. */
+    kENET_DmaRxBuffUnavail     = ENET_DMA_CH_DMA_CHX_INT_EN_RBUE_MASK, /*!< Rx buffer unavailable. */
+    kENET_DmaRxStop            = ENET_DMA_CH_DMA_CHX_INT_EN_RSE_MASK,  /*!< Rx stop. */
     kENET_DmaRxWatchdogTimeout = ENET_DMA_CH_DMA_CHX_INT_EN_RWTE_MASK, /*!< Rx watchdog timeout. */
-    kENET_DmaEarlyTx = ENET_DMA_CH_DMA_CHX_INT_EN_ETIE_MASK,           /*!< Early transmit. */
-    kENET_DmaEarlyRx = ENET_DMA_CH_DMA_CHX_INT_EN_ERIE_MASK,           /*!< Early receive. */
-    kENET_DmaBusErr = ENET_DMA_CH_DMA_CHX_INT_EN_FBEE_MASK,            /*!< Fatal bus error. */
+    kENET_DmaEarlyTx           = ENET_DMA_CH_DMA_CHX_INT_EN_ETIE_MASK, /*!< Early transmit. */
+    kENET_DmaEarlyRx           = ENET_DMA_CH_DMA_CHX_INT_EN_ERIE_MASK, /*!< Early receive. */
+    kENET_DmaBusErr            = ENET_DMA_CH_DMA_CHX_INT_EN_FBEE_MASK, /*!< Fatal bus error. */
 } enet_dma_interrupt_enable_t;
 
 /*! @brief List of mac interrupts supported by the ENET interrupt. This
@@ -245,7 +245,7 @@ typedef enum _enet_dma_interrupt_enable
  */
 typedef enum _enet_mac_interrupt_enable
 {
-    kENET_MacPmt = (ENET_MAC_INTR_EN_PMTIE_MASK << ENET_MACINT_ENUM_OFFSET),
+    kENET_MacPmt       = (ENET_MAC_INTR_EN_PMTIE_MASK << ENET_MACINT_ENUM_OFFSET),
     kENET_MacTimestamp = (ENET_MAC_INTR_EN_TSIE_MASK << ENET_MACINT_ENUM_OFFSET),
 } enet_mac_interrupt_enable_t;
 
@@ -270,7 +270,7 @@ typedef enum _enet_dma_tx_sche
 typedef enum _enet_mtl_multiqueue_txsche
 {
     kENET_txWeightRR = 0U, /*!< Tx weight round-robin. */
-    kENET_txStrPrio = 3U,  /*!< Tx strict priority. */
+    kENET_txStrPrio  = 3U, /*!< Tx strict priority. */
 } enet_mtl_multiqueue_txsche;
 
 /*! @brief Define the MTL rx scheduling algorithm for multiple queues/rings. */
@@ -286,16 +286,16 @@ typedef enum _enet_mtl_rxqueuemap
     kENET_StaticDirctMap = 0x100U, /*!< The received fame in rx Qn(n = 0,1) direclty map to dma channel n. */
     kENET_DynamicMap =
         0x1010U, /*!< The received frame in rx Qn(n = 0,1) map to the dma channel m(m = 0,1) related with the same Mac.
-                    */
+                  */
 } enet_mtl_rxqueuemap;
 
 /*! @brief Defines the ENET PTP message related constant. */
 typedef enum _enet_ptp_event_type
 {
-    kENET_PtpEventMsgType = 3U,  /*!< PTP event message type. */
-    kENET_PtpSrcPortIdLen = 10U, /*!< PTP message sequence id length. */
-    kENET_PtpEventPort = 319U,   /*!< PTP event port number. */
-    kENET_PtpGnrlPort = 320U     /*!< PTP general port number. */
+    kENET_PtpEventMsgType = 3U,   /*!< PTP event message type. */
+    kENET_PtpSrcPortIdLen = 10U,  /*!< PTP message sequence id length. */
+    kENET_PtpEventPort    = 319U, /*!< PTP event port number. */
+    kENET_PtpGnrlPort     = 320U  /*!< PTP general port number. */
 } enet_ptp_event_type_t;
 
 /*! @brief Defines the receive descriptor structure
@@ -495,9 +495,9 @@ extern "C" {
 #endif
 
 /*!
-  * @name Initialization and De-initialization
-  * @{
-  */
+ * @name Initialization and De-initialization
+ * @{
+ */
 
 /*!
  * @brief Gets the ENET default configuration structure.
@@ -672,7 +672,7 @@ static inline void ENET_SetMacAddr(ENET_Type *base, uint8_t *macAddr)
       domains, then the synchronization is triggered only when bits 31:24 (in little-endian mode)
       or bits 7:0 (in Big-Endian mode) of the MAC address low register are written to.*/
     base->MAC_ADDR_HIGH = highAddress;
-    base->MAC_ADDR_LOW = lowAddress;
+    base->MAC_ADDR_LOW  = lowAddress;
 }
 
 /*!
@@ -723,7 +723,7 @@ void ENET_EnterPowerDown(ENET_Type *base, uint32_t *wakeFilter);
 
 /*!
  * @brief Set the MAC to exit power down mode.
- * Eixt from the power down mode and recover to noraml work mode.
+ * Eixt from the power down mode and recover to normal work mode.
  *
  * @param base    ENET peripheral base address.
  */
@@ -993,21 +993,21 @@ void ENET_CreateHandler(ENET_Type *base,
                         void *userData);
 
 /*!
-* @brief Gets the size of the read frame.
-* This function gets a received frame size from the ENET buffer descriptors.
-* @note The FCS of the frame is automatically removed by MAC and the size is the length without the FCS.
-* After calling ENET_GetRxFrameSize, ENET_ReadFrame() should be called to update the
-* receive buffers If the result is not "kStatus_ENET_RxFrameEmpty".
-*
-* @param handle The ENET handler structure. This is the same handler pointer used in the ENET_Init.
-* @param length The length of the valid frame received.
-* @param channel The DMAC channel for the rx.
-* @retval kStatus_ENET_RxFrameEmpty No frame received. Should not call ENET_ReadFrame to read frame.
-* @retval kStatus_ENET_RxFrameError Data error happens. ENET_ReadFrame should be called with NULL data
-*         and NULL length to update the receive buffers.
-* @retval kStatus_Success Receive a frame Successfully then the ENET_ReadFrame
-*         should be called with the right data buffer and the captured data length input.
-*/
+ * @brief Gets the size of the read frame.
+ * This function gets a received frame size from the ENET buffer descriptors.
+ * @note The FCS of the frame is automatically removed by MAC and the size is the length without the FCS.
+ * After calling ENET_GetRxFrameSize, ENET_ReadFrame() should be called to update the
+ * receive buffers If the result is not "kStatus_ENET_RxFrameEmpty".
+ *
+ * @param handle The ENET handler structure. This is the same handler pointer used in the ENET_Init.
+ * @param length The length of the valid frame received.
+ * @param channel The DMAC channel for the rx.
+ * @retval kStatus_ENET_RxFrameEmpty No frame received. Should not call ENET_ReadFrame to read frame.
+ * @retval kStatus_ENET_RxFrameError Data error happens. ENET_ReadFrame should be called with NULL data
+ *         and NULL length to update the receive buffers.
+ * @retval kStatus_Success Receive a frame Successfully then the ENET_ReadFrame
+ *         should be called with the right data buffer and the captured data length input.
+ */
 status_t ENET_GetRxFrameSize(ENET_Type *base, enet_handle_t *handle, uint32_t *length, uint8_t channel);
 
 /*!

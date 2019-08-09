@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016 NXP
+ * Copyright 2016-2019 NXP
  * All rights reserved.
  *
  * 
@@ -261,6 +261,7 @@ HTTPSRV_STRUCT *httpsrv_create_server(HTTPSRV_PARAM_STRUCT *params)
 
 EXIT:
     httpsrv_destroy_server(server);
+    httpsrv_mem_free(server);
     return (NULL);
 }
 
@@ -405,7 +406,7 @@ static int32_t httpsrv_init_socket(HTTPSRV_STRUCT *server)
     }
 
     /* Listen */
-    error = listen(server->sock, server->params.max_ses);
+    error = listen(server->sock, 0);
     if (error == -1)
     {
         return (HTTPSRV_LISTEN_FAIL);
@@ -1607,7 +1608,7 @@ void httpsrv_url_decode(char *url)
 
     while (*src != '\0')
     {
-        if ((*src == '%') && (isxdigit((int)*(src + 1))) && (isxdigit((int)*(src + 2))))
+        if ((*src == '%') && (isxdigit((unsigned char)*(src + 1))) && (isxdigit((unsigned char)*(src + 2))))
         {
             *src = *(src + 1);
             *(src + 1) = *(src + 2);

@@ -1,13 +1,14 @@
 /*
 ** ###################################################################
 **     Version:             rev. 1.2, 2017-06-08
-**     Build:               b180806
+**     Build:               b190225
 **
 **     Abstract:
 **         Chip specific module features.
 **
 **     Copyright 2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2018 NXP
+**     Copyright 2016-2019 NXP
+**     All rights reserved.
 **
 **     SPDX-License-Identifier: BSD-3-Clause
 **
@@ -142,6 +143,10 @@
 
 /* @brief Number of channels */
 #define FSL_FEATURE_DMA_NUMBER_OF_CHANNELS (30)
+/* @brief Align size of DMA descriptor */
+#define FSL_FEATURE_DMA_DESCRIPTOR_ALIGN_SIZE (512)
+/* @brief DMA head link descriptor table align size */
+#define FSL_FEATURE_DMA_LINK_DESCRIPTOR_ALIGN_SIZE (16U)
 
 /* EEPROM module features */
 
@@ -222,6 +227,25 @@
 #define FSL_FEATURE_FLEXCOMM9_SPI_INDEX  (9)
 /* @brief FLEXCOMM5 I2C INDEX 9 */
 #define FSL_FEATURE_FLEXCOMM9_I2C_INDEX  (9)
+/* @brief I2S has DMIC interconnection */
+#define FSL_FEATURE_FLEXCOMM_INSTANCE_I2S_HAS_DMIC_INTERCONNECTIONn(x) \
+    (((x) == FLEXCOMM0) ? (0) : \
+    (((x) == FLEXCOMM1) ? (0) : \
+    (((x) == FLEXCOMM2) ? (0) : \
+    (((x) == FLEXCOMM3) ? (0) : \
+    (((x) == FLEXCOMM4) ? (0) : \
+    (((x) == FLEXCOMM5) ? (0) : \
+    (((x) == FLEXCOMM6) ? (0) : \
+    (((x) == FLEXCOMM7) ? (1) : \
+    (((x) == FLEXCOMM8) ? (0) : \
+    (((x) == FLEXCOMM9) ? (0) : (-1)))))))))))
+
+/* I2S module features */
+
+/* @brief I2S support dual channel transfer */
+#define FSL_FEATURE_I2S_SUPPORT_SECONDARY_CHANNEL (1)
+/* @brief I2S has DMIC interconnection */
+#define FSL_FEATURE_FLEXCOMM_I2S_HAS_DMIC_INTERCONNECTION  (1)
 
 /* IOCON module features */
 

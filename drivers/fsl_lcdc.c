@@ -57,8 +57,8 @@ static const reset_ip_name_t s_lcdResets[] = LCD_RSTS;
 #endif /* FSL_SDK_DISABLE_DRIVER_RESET_CONTROL */
 
 /*******************************************************************************
-* Prototypes
-******************************************************************************/
+ * Prototypes
+ ******************************************************************************/
 
 /*!
  * @brief Gets the LCD instance according to the LCD base
@@ -114,7 +114,7 @@ static bool LCDC_GetClockDivider(const lcdc_config_t *config, uint32_t srcClock_
     {
         if (kLCDC_DisplayTFT == config->display)
         {
-            pcd = 0U;
+            pcd      = 0U;
             *divider = LCD_POL_BCD_MASK;
         }
         else
@@ -225,9 +225,9 @@ status_t LCDC_Init(LCD_Type *base, const lcdc_config_t *config, uint32_t srcCloc
     base->CTRL = reg;
 
     /* Clean pending interrupts and disable all interrupts. */
-    base->INTCLR = LCDC_NORMAL_INT_MASK;
+    base->INTCLR      = LCDC_NORMAL_INT_MASK;
     base->CRSR_INTCLR = LCDC_CURSOR_INT_MASK;
-    base->INTMSK = 0U;
+    base->INTMSK      = 0U;
     base->CRSR_INTMSK = 0U;
 
     /* Configure timing. */
@@ -302,25 +302,25 @@ void LCDC_GetDefaultConfig(lcdc_config_t *config)
     /* Initializes the configure structure to zero. */
     memset(config, 0, sizeof(*config));
 
-    config->panelClock_Hz = 0U;
-    config->ppl = 0U;
-    config->hsw = 0U;
-    config->hfp = 0U;
-    config->hbp = 0U;
-    config->lpp = 0U;
-    config->vsw = 0U;
-    config->vfp = 0U;
-    config->vbp = 0U;
-    config->acBiasFreq = 1U;
-    config->polarityFlags = 0U;
-    config->enableLineEnd = false;
-    config->lineEndDelay = 0U;
+    config->panelClock_Hz  = 0U;
+    config->ppl            = 0U;
+    config->hsw            = 0U;
+    config->hfp            = 0U;
+    config->hbp            = 0U;
+    config->lpp            = 0U;
+    config->vsw            = 0U;
+    config->vfp            = 0U;
+    config->vbp            = 0U;
+    config->acBiasFreq     = 1U;
+    config->polarityFlags  = 0U;
+    config->enableLineEnd  = false;
+    config->lineEndDelay   = 0U;
     config->upperPanelAddr = 0U;
     config->lowerPanelAddr = 0U;
-    config->bpp = kLCDC_1BPP;
-    config->dataFormat = kLCDC_LittleEndian;
-    config->swapRedBlue = false;
-    config->display = kLCDC_DisplayTFT;
+    config->bpp            = kLCDC_1BPP;
+    config->dataFormat     = kLCDC_LittleEndian;
+    config->swapRedBlue    = false;
+    config->display        = kLCDC_DisplayTFT;
 }
 
 /*!
@@ -612,14 +612,14 @@ void LCDC_CursorGetDefaultConfig(lcdc_cursor_config_t *config)
     /* Initializes the configure structure to zero. */
     memset(config, 0, sizeof(*config));
 
-    config->size = kLCDC_CursorSize32;
-    config->syncMode = kLCDC_CursorAsync;
-    config->palette0.red = 0U;
+    config->size           = kLCDC_CursorSize32;
+    config->syncMode       = kLCDC_CursorAsync;
+    config->palette0.red   = 0U;
     config->palette0.green = 0U;
-    config->palette0.blue = 0U;
-    config->palette1.red = 255U;
+    config->palette0.blue  = 0U;
+    config->palette1.red   = 255U;
     config->palette1.green = 255U;
-    config->palette1.blue = 255U;
+    config->palette1.blue  = 255U;
 
     for (i = 0; i < LCDC_CURSOR_COUNT; i++)
     {
@@ -645,7 +645,7 @@ void LCDC_SetCursorPosition(LCD_Type *base, int32_t positionX, int32_t positionY
 
     if (positionX < 0)
     {
-        clipX = -positionX;
+        clipX     = -positionX;
         positionX = 0U;
 
         /* If clip value too large, set to the max value. */
@@ -661,7 +661,7 @@ void LCDC_SetCursorPosition(LCD_Type *base, int32_t positionX, int32_t positionY
 
     if (positionY < 0)
     {
-        clipY = -positionY;
+        clipY     = -positionY;
         positionY = 0U;
 
         /* If clip value too large, set to the max value. */
@@ -676,7 +676,7 @@ void LCDC_SetCursorPosition(LCD_Type *base, int32_t positionX, int32_t positionY
     }
 
     base->CRSR_CLIP = LCD_CRSR_CLIP_CRSRCLIPX(clipX) | LCD_CRSR_CLIP_CRSRCLIPY(clipY);
-    base->CRSR_XY = LCD_CRSR_XY_CRSRX(positionX) | LCD_CRSR_XY_CRSRY(positionY);
+    base->CRSR_XY   = LCD_CRSR_XY_CRSRX(positionX) | LCD_CRSR_XY_CRSRY(positionY);
 }
 
 /*!
@@ -701,12 +701,12 @@ void LCDC_SetCursorImage(LCD_Type *base, lcdc_cursor_size_t size, uint8_t index,
     if (kLCDC_CursorSize64 == size)
     {
         regStart = 0U;
-        len = LCDC_CURSOR_IMG_64X64_WORDS;
+        len      = LCDC_CURSOR_IMG_64X64_WORDS;
     }
     else
     {
         regStart = index * LCDC_CURSOR_IMG_32X32_WORDS;
-        len = LCDC_CURSOR_IMG_32X32_WORDS;
+        len      = LCDC_CURSOR_IMG_32X32_WORDS;
     }
 
     for (i = 0U; i < len; i++)

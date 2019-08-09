@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2017 NXP
+ * Copyright 2016-2019 NXP
  * All rights reserved.
- * 
+ *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #ifndef _FSL_PHY_H_
@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 /*! @brief PHY driver version */
-#define FSL_PHY_DRIVER_VERSION (MAKE_VERSION(2, 0, 0)) /*!< Version 2.0.0. */
+#define FSL_PHY_DRIVER_VERSION (MAKE_VERSION(2, 0, 1)) /*!< Version 2.0.1. */
 
 /*! @brief Defines the PHY registers. */
 #define PHY_BASICCONTROL_REG 0x00U      /*!< The PHY basic control register. */
@@ -56,17 +56,20 @@
 /*! @brief Defines the PHY status. */
 enum _phy_status
 {
-    kStatus_PHY_SMIVisitTimeout = MAKE_STATUS(kStatusGroup_PHY, 0),  /*!< ENET PHY SMI visit timeout. */
+    kStatus_PHY_SMIVisitTimeout   = MAKE_STATUS(kStatusGroup_PHY, 0), /*!< ENET PHY SMI visit timeout. */
+    kStatus_PHY_AutoNegotiateFail = MAKE_STATUS(kStatusGroup_PHY, 1)  /*!< ENET PHY AutoNegotiate Fail. */
 };
 
 /*! @brief Defines the PHY link speed. This is align with the speed for ENET MAC. */
-typedef enum _phy_speed {
+typedef enum _phy_speed
+{
     kPHY_Speed10M = 0U, /*!< ENET PHY 10M speed. */
     kPHY_Speed100M      /*!< ENET PHY 100M speed. */
 } phy_speed_t;
 
 /*! @brief Defines the PHY link duplex. */
-typedef enum _phy_duplex {
+typedef enum _phy_duplex
+{
     kPHY_HalfDuplex = 0U, /*!< ENET PHY half duplex. */
     kPHY_FullDuplex       /*!< ENET PHY full duplex. */
 } phy_duplex_t;
@@ -80,9 +83,9 @@ extern "C" {
 #endif
 
 /*!
-  * @name PHY Driver
-  * @{
-  */
+ * @name PHY Driver
+ * @{
+ */
 
 /*!
  * @brief Initializes PHY.

@@ -21,8 +21,8 @@
 
 /*! @name Driver version */
 /*@{*/
-/*! @brief EMC driver version 2.0.2. */
-#define FSL_EMC_DRIVER_VERSION (MAKE_VERSION(2, 0, 2))
+/*! @brief EMC driver version 2.0.3. */
+#define FSL_EMC_DRIVER_VERSION (MAKE_VERSION(2, 0, 3))
 /*@}*/
 
 /*! @brief Define the chip numbers for dynamic and static memory devices. */
@@ -35,7 +35,18 @@
 #define EMC_MILLISECS_ONESEC (1000U)
 #define EMC_SDRAM_MODE_CL_SHIFT (4U)
 #define EMC_SDRAM_MODE_CL_MASK (0x70U)
-
+/*! @brief EDMA_SDRAM NOP command wait us */
+#ifndef EMC_SDRAM_NOP_DELAY_US
+#define EMC_SDRAM_NOP_DELAY_US   (100U)
+#endif
+/*! @brief EDMA_SDRAM precharge command wait us */
+#ifndef EMC_SDRAM_PRECHARGE_DELAY_US
+#define EMC_SDRAM_PRECHARGE_DELAY_US   (100U)
+#endif
+/*! @brief EDMA_SDRAM auto refresh wait us */
+#ifndef EMC_SDRAM_AUTO_REFRESH_DELAY_US
+#define EMC_SDRAM_AUTO_REFRESH_DELAY_US   (50U)
+#endif
 /*!
  * @brief Define EMC memory width for static memory device.
  */
@@ -52,10 +63,10 @@ typedef enum _emc_static_memwidth
 typedef enum _emc_static_special_config
 {
     kEMC_AsynchronosPageEnable = 0x0008U, /*!< Enable the asynchronous page mode. page length four. */
-    kEMC_ActiveHighChipSelect = 0x0040U,  /*!< Chip select active high. */
-    kEMC_ByteLaneStateAllLow = 0x0080U,   /*!< Reads/writes the respective valuie bits in BLS3:0 are low. */
-    kEMC_ExtWaitEnable = 0x0100U,         /*!< Extended wait enable. */
-    kEMC_BufferEnable = 0x80000U          /*!< Buffer enable. */
+    kEMC_ActiveHighChipSelect  = 0x0040U, /*!< Chip select active high. */
+    kEMC_ByteLaneStateAllLow   = 0x0080U, /*!< Reads/writes the respective valuie bits in BLS3:0 are low. */
+    kEMC_ExtWaitEnable         = 0x0100U, /*!< Extended wait enable. */
+    kEMC_BufferEnable          = 0x80000U /*!< Buffer enable. */
 } emc_static_special_config_t;
 
 /*! @brief EMC dynamic memory device. */

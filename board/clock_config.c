@@ -19,12 +19,11 @@
 /* clang-format off */
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!GlobalInfo
-product: Clocks v4.1
+product: Clocks v6.0
 processor: LPC54628J512
 package_id: LPC54628J512ET180
 mcu_data: ksdk2_0
-processor_version: 4.0.0
-board: LPCXpresso54628
+processor_version: 6.0.1
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
 
@@ -47,7 +46,7 @@ extern uint32_t SystemCoreClock;
  ******************************************************************************/
 void BOARD_InitBootClocks(void)
 {
-    BOARD_BootClockFROHF96M();
+    BOARD_BootClockPLL220M();
 }
 
 /*******************************************************************************
@@ -145,7 +144,6 @@ void BOARD_BootClockFROHF48M(void)
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!Configuration
 name: BOARD_BootClockFROHF96M
-called_from_default_init: true
 outputs:
 - {id: FRO12M_clock.outFreq, value: 12 MHz}
 - {id: FROHF_clock.outFreq, value: 96 MHz}
@@ -243,7 +241,7 @@ void BOARD_BootClockPLL180M(void)
     CLOCK_SetClkDiv(kCLOCK_DivAhbClk, 1U, false);                  /*!< Reset divider counter and set divider to value 1 */
 
     /*!< Set up clock selectors - Attach clocks to the peripheries */
-    CLOCK_AttachClk(kSYS_PLL_to_MAIN_CLK);                  /*!< Switch MAIN_CLK to SYS_PLL */
+    CLOCK_AttachClk(kSYS_PLL_to_MAIN_CLK);                    /*!< Switch MAIN_CLK to SYS_PLL */
     SYSCON->MAINCLKSELA = ((SYSCON->MAINCLKSELA & ~SYSCON_MAINCLKSELA_SEL_MASK) | SYSCON_MAINCLKSELA_SEL(0U)); /*!< Switch MAINCLKSELA to FRO12M even it is not used for MAINCLKSELB */
     /* Set SystemCoreClock variable. */
     SystemCoreClock = BOARD_BOOTCLOCKPLL180M_CORE_CLOCK;
@@ -256,18 +254,23 @@ void BOARD_BootClockPLL180M(void)
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!Configuration
 name: BOARD_BootClockPLL220M
+called_from_default_init: true
 outputs:
 - {id: FRO12M_clock.outFreq, value: 12 MHz}
-- {id: FROHF_clock.outFreq, value: 48 MHz}
+- {id: FROHF_clock.outFreq, value: 96 MHz}
 - {id: MAIN_clock.outFreq, value: 220 MHz}
 - {id: SYSPLL_clock.outFreq, value: 220 MHz}
 - {id: System_clock.outFreq, value: 220 MHz}
+- {id: USB0_clock.outFreq, value: 96 MHz}
 settings:
 - {id: SYSCON.MAINCLKSELB.sel, value: SYSCON.PLL_BYPASS}
 - {id: SYSCON.M_MULT.scale, value: '110', locked: true}
 - {id: SYSCON.N_DIV.scale, value: '3', locked: true}
 - {id: SYSCON.PDEC.scale, value: '2', locked: true}
+- {id: SYSCON.USB0CLKSEL.sel, value: SYSCON.fro_hf}
 - {id: SYSCON_PDRUNCFG0_PDEN_SYS_PLL_CFG, value: Power_up}
+sources:
+- {id: SYSCON.fro_hf.outFreq, value: 96 MHz}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
 
@@ -298,12 +301,16 @@ void BOARD_BootClockPLL220M(void)
     };
     CLOCK_AttachClk(kFRO12M_to_SYS_PLL);        /*!< Set sys pll clock source*/
     CLOCK_SetPLLFreq(&pllSetup);                 /*!< Configure PLL to the desired value */
+    CLOCK_SetupFROClocking(96000000U);              /*!< Set up high frequency FRO output to selected frequency */
 
     /*!< Set up dividers */
     CLOCK_SetClkDiv(kCLOCK_DivAhbClk, 1U, false);                  /*!< Reset divider counter and set divider to value 1 */
+    CLOCK_SetClkDiv(kCLOCK_DivUsb0Clk, 0U, true);                  /*!< Reset USB0CLKDIV divider counter and halt it */
+    CLOCK_SetClkDiv(kCLOCK_DivUsb0Clk, 1U, false);                  /*!< Set USB0CLKDIV divider to value 1 */
 
     /*!< Set up clock selectors - Attach clocks to the peripheries */
-    CLOCK_AttachClk(kSYS_PLL_to_MAIN_CLK);                  /*!< Switch MAIN_CLK to SYS_PLL */
+    CLOCK_AttachClk(kSYS_PLL_to_MAIN_CLK);                    /*!< Switch MAIN_CLK to SYS_PLL */
+    CLOCK_AttachClk(kFRO_HF_to_USB0_CLK);                    /*!< Switch USB0_CLK to FRO_HF */
     SYSCON->MAINCLKSELA = ((SYSCON->MAINCLKSELA & ~SYSCON_MAINCLKSELA_SEL_MASK) | SYSCON_MAINCLKSELA_SEL(0U)); /*!< Switch MAINCLKSELA to FRO12M even it is not used for MAINCLKSELB */
     /* Set SystemCoreClock variable. */
     SystemCoreClock = BOARD_BOOTCLOCKPLL220M_CORE_CLOCK;

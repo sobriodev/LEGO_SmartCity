@@ -1,20 +1,20 @@
 /*
 ** ###################################################################
 **     Processor:           LPC54628J512ET180
-**     Compilers:           Keil ARM C/C++ Compiler
-**                          GNU C Compiler
+**     Compilers:           GNU C Compiler
 **                          IAR ANSI C/C++ Compiler for ARM
+**                          Keil ARM C/C++ Compiler
 **                          MCUXpresso Compiler
 **
 **     Reference manual:    LPC546xx User manual Rev.1.9  5 June 2017
 **     Version:             rev. 1.2, 2017-06-08
-**     Build:               b181108
+**     Build:               b190322
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for LPC54628
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2018 NXP
+**     Copyright 2016-2019 NXP
 **     All rights reserved.
 **
 **     SPDX-License-Identifier: BSD-3-Clause
@@ -15654,13 +15654,13 @@ typedef struct {
 
 /** EMC CS base address */
 #define EMC_CS0_BASE                                (0x80000000u)
-#define EMC_CS1_BASE                                (0x90000000u)
-#define EMC_CS2_BASE                                (0x98000000u)
-#define EMC_CS3_BASE                                (0x9C000000u)
+#define EMC_CS1_BASE                                (0x88000000u)
+#define EMC_CS2_BASE                                (0x90000000u)
+#define EMC_CS3_BASE                                (0x98000000u)
 #define EMC_DYCS0_BASE                              (0xA0000000u)
-#define EMC_DYCS1_BASE                              (0xB0000000u)
-#define EMC_DYCS2_BASE                              (0xC0000000u)
-#define EMC_DYCS3_BASE                              (0xD0000000u)
+#define EMC_DYCS1_BASE                              (0xA8000000u)
+#define EMC_DYCS2_BASE                              (0xB0000000u)
+#define EMC_DYCS3_BASE                              (0xB8000000u)
 #define EMC_CS_ADDRESS                              {EMC_CS0_BASE, EMC_CS1_BASE, EMC_CS2_BASE, EMC_CS3_BASE}
 #define EMC_DYCS_ADDRESS                            {EMC_DYCS0_BASE, EMC_DYCS1_BASE, EMC_DYCS2_BASE, EMC_DYCS3_BASE}
 

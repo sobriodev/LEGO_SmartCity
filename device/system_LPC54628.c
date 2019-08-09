@@ -329,7 +329,7 @@ uint32_t clkRate = 0;
                 /* MDEC used for rate */
                 workRate = (uint64_t)clkRate * (uint64_t)findPllMMult(SYSCON->SYSPLLCTRL, SYSCON->SYSPLLMDEC);
                 clkRate = workRate / ((uint64_t)postdiv);
-                clkRate = workRate * 2; /* PLL CCO output is divided by 2 before to M-Divider */
+                clkRate = clkRate * 2; /* PLL CCO output is divided by 2 before to M-Divider */
             }
             break;
         case 0x03: /* RTC oscillator 32 kHz output (32k_clk) */

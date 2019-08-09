@@ -108,7 +108,7 @@ static uint32_t EMC_CalculateTimerCycles(EMC_Type *base, uint32_t timer_Ns, uint
 {
     uint32_t cycles;
 
-    cycles = CLOCK_GetFreq(kCLOCK_EMC) / EMC_HZ_ONEMHZ * timer_Ns;
+    cycles = CLOCK_GetEmcClkFreq() / EMC_HZ_ONEMHZ * timer_Ns;
     cycles = EMC_DIV_ROUND_UP(cycles, EMC_MILLISECS_ONESEC); /* Round up. */
 
     /* Decrese according to the plus. */
@@ -126,7 +126,7 @@ static uint32_t EMC_CalculateTimerCycles(EMC_Type *base, uint32_t timer_Ns, uint
 
 static uint32_t EMC_ModeOffset(uint32_t addrMap)
 {
-    uint8_t offset = 0;
+    uint8_t offset     = 0;
     uint32_t columbase = addrMap & EMC_DYNCTL_COLUMNBASE_MASK;
 
     /* First calculate the column length. */
@@ -267,35 +267,29 @@ void EMC_DynamicMemInit(EMC_Type *base,
 
     /* Configure the Dynamic Memory controller timing/latency for all chips. */
     base->DYNAMICREADCONFIG = EMC_DYNAMICREADCONFIG_RD(timing->readConfig);
-    base->DYNAMICRP = EMC_CalculateTimerCycles(base, timing->tRp_Ns, 1) & EMC_DYNAMICRP_TRP_MASK;
-    base->DYNAMICRAS = EMC_CalculateTimerCycles(base, timing->tRas_Ns, 1) & EMC_DYNAMICRAS_TRAS_MASK;
-    base->DYNAMICSREX = EMC_CalculateTimerCycles(base, timing->tSrex_Ns, 1) & EMC_DYNAMICSREX_TSREX_MASK;
-    base->DYNAMICAPR = EMC_CalculateTimerCycles(base, timing->tApr_Ns, 1) & EMC_DYNAMICAPR_TAPR_MASK;
-    base->DYNAMICDAL = EMC_CalculateTimerCycles(base, timing->tDal_Ns, 0) & EMC_DYNAMICDAL_TDAL_MASK;
-    base->DYNAMICWR = EMC_CalculateTimerCycles(base, timing->tWr_Ns, 1) & EMC_DYNAMICWR_TWR_MASK;
-    base->DYNAMICRC = EMC_CalculateTimerCycles(base, timing->tRc_Ns, 1) & EMC_DYNAMICRC_TRC_MASK;
-    base->DYNAMICRFC = EMC_CalculateTimerCycles(base, timing->tRfc_Ns, 1) & EMC_DYNAMICRFC_TRFC_MASK;
-    base->DYNAMICXSR = EMC_CalculateTimerCycles(base, timing->tXsr_Ns, 1) & EMC_DYNAMICXSR_TXSR_MASK;
-    base->DYNAMICRRD = EMC_CalculateTimerCycles(base, timing->tRrd_Ns, 1) & EMC_DYNAMICRRD_TRRD_MASK;
-    base->DYNAMICMRD = EMC_DYNAMICMRD_TMRD((timing->tMrd_Nclk > 0) ? timing->tMrd_Nclk - 1 : 0);
+    base->DYNAMICRP         = EMC_CalculateTimerCycles(base, timing->tRp_Ns, 1) & EMC_DYNAMICRP_TRP_MASK;
+    base->DYNAMICRAS        = EMC_CalculateTimerCycles(base, timing->tRas_Ns, 1) & EMC_DYNAMICRAS_TRAS_MASK;
+    base->DYNAMICSREX       = EMC_CalculateTimerCycles(base, timing->tSrex_Ns, 1) & EMC_DYNAMICSREX_TSREX_MASK;
+    base->DYNAMICAPR        = EMC_CalculateTimerCycles(base, timing->tApr_Ns, 1) & EMC_DYNAMICAPR_TAPR_MASK;
+    base->DYNAMICDAL        = EMC_CalculateTimerCycles(base, timing->tDal_Ns, 0) & EMC_DYNAMICDAL_TDAL_MASK;
+    base->DYNAMICWR         = EMC_CalculateTimerCycles(base, timing->tWr_Ns, 1) & EMC_DYNAMICWR_TWR_MASK;
+    base->DYNAMICRC         = EMC_CalculateTimerCycles(base, timing->tRc_Ns, 1) & EMC_DYNAMICRC_TRC_MASK;
+    base->DYNAMICRFC        = EMC_CalculateTimerCycles(base, timing->tRfc_Ns, 1) & EMC_DYNAMICRFC_TRFC_MASK;
+    base->DYNAMICXSR        = EMC_CalculateTimerCycles(base, timing->tXsr_Ns, 1) & EMC_DYNAMICXSR_TXSR_MASK;
+    base->DYNAMICRRD        = EMC_CalculateTimerCycles(base, timing->tRrd_Ns, 1) & EMC_DYNAMICRRD_TRRD_MASK;
+    base->DYNAMICMRD        = EMC_DYNAMICMRD_TMRD((timing->tMrd_Nclk > 0) ? timing->tMrd_Nclk - 1 : 0);
 
-    /* Initialize the SDRAM.*/
-    for (count = 0; count < EMC_SDRAM_WAIT_CYCLES; count++)
-    {
-    }
+    SDK_DelayAtLeastUs(EMC_SDRAM_NOP_DELAY_US);
     /* Step 2. issue nop command. */
     base->DYNAMICCONTROL = 0x00000183;
-    for (count = 0; count < EMC_SDRAM_WAIT_CYCLES; count++)
-    {
-    }
+
+    SDK_DelayAtLeastUs(EMC_SDRAM_PRECHARGE_DELAY_US);
     /* Step 3. issue precharge all command. */
     base->DYNAMICCONTROL = 0x00000103;
 
     /* Step 4. issue two auto-refresh command. */
     base->DYNAMICREFRESH = 2;
-    for (count = 0; count < EMC_SDRAM_WAIT_CYCLES / 2; count++)
-    {
-    }
+    SDK_DelayAtLeastUs(EMC_SDRAM_AUTO_REFRESH_DELAY_US);
 
     base->DYNAMICREFRESH = EMC_CalculateTimerCycles(base, timing->refreshPeriod_Nanosec, 0) / EMC_REFRESH_CLOCK_PARAM;
 
@@ -308,7 +302,7 @@ void EMC_DynamicMemInit(EMC_Type *base,
     {
         /* Get the shift value first. */
         offset = EMC_ModeOffset(dynamicConfig->devAddrMap);
-        addr = (s_EMCDYCSBases[dynamicConfig->chipIndex] |
+        addr   = (s_EMCDYCSBases[dynamicConfig->chipIndex] |
                 ((uint32_t)(dynamicConfig->sdramModeReg & ~EMC_SDRAM_BANKCS_BA_MASK) << offset));
         /* Set the right mode setting value. */
         data = *(volatile uint32_t *)addr;

@@ -358,6 +358,7 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 	case WM_USER_DATA:
 		WM_GetUserData(selfWin, &vkData.params, sizeof(VKParams_t));
 		VK_CreateInput(); /* Create input and description after user data was passed */
+		WM_InvalidateWindow(selfWin);
 
 	case WM_PAINT:
 		GUI_SetBkColor(VK_BK_COLOR);

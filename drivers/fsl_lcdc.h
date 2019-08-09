@@ -48,7 +48,7 @@ enum _lcdc_polarity_flags
 {
     kLCDC_InvertVsyncPolarity = LCD_POL_IVS_MASK, /*!< Invert the VSYNC polarity, set to active low. */
     kLCDC_InvertHsyncPolarity = LCD_POL_IHS_MASK, /*!< Invert the HSYNC polarity, set to active low. */
-    kLCDC_InvertClkPolarity = LCD_POL_IPC_MASK,   /*!< Invert the panel clock polarity, set to
+    kLCDC_InvertClkPolarity   = LCD_POL_IPC_MASK, /*!< Invert the panel clock polarity, set to
                                                       drive data on falling edge. */
     kLCDC_InvertDePolarity = LCD_POL_IOE_MASK,    /*!< Invert the data enable (DE) polarity, set to active low. */
 };
@@ -58,14 +58,14 @@ enum _lcdc_polarity_flags
  */
 typedef enum _lcdc_bpp
 {
-    kLCDC_1BPP = 0U,     /*!< 1 bpp. */
-    kLCDC_2BPP = 1U,     /*!< 2 bpp. */
-    kLCDC_4BPP = 2U,     /*!< 4 bpp. */
-    kLCDC_8BPP = 3U,     /*!< 8 bpp. */
-    kLCDC_16BPP = 4U,    /*!< 16 bpp. */
-    kLCDC_24BPP = 5U,    /*!< 24 bpp, TFT panel only. */
+    kLCDC_1BPP     = 0U, /*!< 1 bpp. */
+    kLCDC_2BPP     = 1U, /*!< 2 bpp. */
+    kLCDC_4BPP     = 2U, /*!< 4 bpp. */
+    kLCDC_8BPP     = 3U, /*!< 8 bpp. */
+    kLCDC_16BPP    = 4U, /*!< 16 bpp. */
+    kLCDC_24BPP    = 5U, /*!< 24 bpp, TFT panel only. */
     kLCDC_16BPP565 = 6U, /*!< 16 bpp, 5:6:5 mode. */
-    kLCDC_12BPP = 7U,    /*!< 12 bpp, 4:4:4 mode. */
+    kLCDC_12BPP    = 7U, /*!< 12 bpp, 4:4:4 mode. */
 } lcdc_bpp_t;
 
 /*!
@@ -80,9 +80,9 @@ typedef enum _lcdc_display
     kLCDC_DisplayDualMonoSTN4Bit =
         LCD_CTRL_LCDBW_MASK | LCD_CTRL_LCDDUAL_MASK, /*!< Dual-panel monochrome STN (4-bit bus interface). */
     kLCDC_DisplayDualMonoSTN8Bit = LCD_CTRL_LCDBW_MASK | LCD_CTRL_LCDMONO8_MASK |
-                                   LCD_CTRL_LCDDUAL_MASK,  /*!< Dual-panel monochrome STN (8-bit bus interface). */
-    kLCDC_DisplaySingleColorSTN8Bit = 0U,                  /*!< Single-panel color STN (8-bit bus interface). */
-    kLCDC_DisplayDualColorSTN8Bit = LCD_CTRL_LCDDUAL_MASK, /*!< Dual-panel coor STN (8-bit bus interface). */
+                                   LCD_CTRL_LCDDUAL_MASK,    /*!< Dual-panel monochrome STN (8-bit bus interface). */
+    kLCDC_DisplaySingleColorSTN8Bit = 0U,                    /*!< Single-panel color STN (8-bit bus interface). */
+    kLCDC_DisplayDualColorSTN8Bit   = LCD_CTRL_LCDDUAL_MASK, /*!< Dual-panel coor STN (8-bit bus interface). */
 } lcdc_display_t;
 
 /*!
@@ -90,9 +90,9 @@ typedef enum _lcdc_display
  */
 typedef enum _lcdc_data_format
 {
-    kLCDC_LittleEndian = 0U,                                   /*!< Little endian byte, little endian pixel. */
-    kLCDC_BigEndian = LCD_CTRL_BEPO_MASK | LCD_CTRL_BEBO_MASK, /*!< Big endian byte, big endian pixel. */
-    kLCDC_WinCeMode = LCD_CTRL_BEPO_MASK, /*!< little-endian byte, big-endian pixel for Windows CE mode. */
+    kLCDC_LittleEndian = 0U,                                      /*!< Little endian byte, little endian pixel. */
+    kLCDC_BigEndian    = LCD_CTRL_BEPO_MASK | LCD_CTRL_BEBO_MASK, /*!< Big endian byte, big endian pixel. */
+    kLCDC_WinCeMode    = LCD_CTRL_BEPO_MASK, /*!< little-endian byte, big-endian pixel for Windows CE mode. */
 } lcdc_data_format_t;
 
 /*!
@@ -137,11 +137,11 @@ typedef enum _lcdc_vertical_compare_interrupt_mode
  */
 enum _lcdc_interrupts
 {
-    kLCDC_CursorInterrupt = LCD_CRSR_INTMSK_CRSRIM_MASK,      /*!< Cursor image read finished interrupt. */
-    kLCDC_FifoUnderflowInterrupt = LCD_INTMSK_FUFIM_MASK,     /*!< FIFO underflow interrupt. */
-    kLCDC_BaseAddrUpdateInterrupt = LCD_INTMSK_LNBUIM_MASK,   /*!< Panel frame base address update interrupt. */
-    kLCDC_VerticalCompareInterrupt = LCD_INTMSK_VCOMPIM_MASK, /*!< Vertical compare interrupt. */
-    kLCDC_AhbErrorInterrupt = LCD_INTMSK_BERIM_MASK,          /*!< AHB master error interrupt. */
+    kLCDC_CursorInterrupt          = LCD_CRSR_INTMSK_CRSRIM_MASK, /*!< Cursor image read finished interrupt. */
+    kLCDC_FifoUnderflowInterrupt   = LCD_INTMSK_FUFIM_MASK,       /*!< FIFO underflow interrupt. */
+    kLCDC_BaseAddrUpdateInterrupt  = LCD_INTMSK_LNBUIM_MASK,      /*!< Panel frame base address update interrupt. */
+    kLCDC_VerticalCompareInterrupt = LCD_INTMSK_VCOMPIM_MASK,     /*!< Vertical compare interrupt. */
+    kLCDC_AhbErrorInterrupt        = LCD_INTMSK_BERIM_MASK,       /*!< AHB master error interrupt. */
 };
 
 /*!

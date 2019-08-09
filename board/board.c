@@ -44,13 +44,6 @@
 /* Clock rate on the CLKIN pin */
 const uint32_t ExtClockIn = BOARD_EXTCLKINRATE;
 
-#if defined BOARD_USE_CODEC
-codec_config_t boardCodecConfig = {.I2C_SendFunc = BOARD_Codec_I2C_Send,
-                                   .I2C_ReceiveFunc = BOARD_Codec_I2C_Receive,
-                                   .op.Init = WM8904_Init,
-                                   .op.Deinit = WM8904_Deinit,
-                                   .op.SetFormat = WM8904_SetAudioFormat};
-#endif
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -70,12 +63,15 @@ status_t BOARD_InitDebugConsole(void)
 /* Initialize the external memory. */
 void BOARD_InitSDRAM(void)
 {
+    uint32_t emcFreq;
     emc_basic_config_t basicConfig;
     emc_dynamic_timing_config_t dynTiming;
     emc_dynamic_chip_config_t dynChipConfig;
 
+    emcFreq = CLOCK_GetFreq(kCLOCK_EMC);
+    assert(emcFreq != 0); /* Check the clock of emc */
     /* Basic configuration. */
-    basicConfig.endian = kEMC_LittleEndian;
+    basicConfig.endian   = kEMC_LittleEndian;
     basicConfig.fbClkSrc = kEMC_IntloopbackEmcclk;
     /* EMC Clock = CPU FREQ/2 here can fit CPU freq from 12M ~ 180M.
      * If you change the divide to 0 and EMC clock is larger than 100M
@@ -83,26 +79,26 @@ void BOARD_InitSDRAM(void)
      */
     basicConfig.emcClkDiv = 1;
     /* Dynamic memory timing configuration. */
-    dynTiming.readConfig = kEMC_Cmddelay;
+    dynTiming.readConfig            = kEMC_Cmddelay;
     dynTiming.refreshPeriod_Nanosec = SDRAM_REFRESHPERIOD_NS;
-    dynTiming.tRp_Ns = SDRAM_TRP_NS;
-    dynTiming.tRas_Ns = SDRAM_TRAS_NS;
-    dynTiming.tSrex_Ns = SDRAM_TSREX_NS;
-    dynTiming.tApr_Ns = SDRAM_TAPR_NS;
-    dynTiming.tWr_Ns = (1000000000 / CLOCK_GetFreq(kCLOCK_EMC) + SDRAM_TWRDELT_NS); /* one clk + 6ns */
-    dynTiming.tDal_Ns = dynTiming.tWr_Ns + dynTiming.tRp_Ns;
-    dynTiming.tRc_Ns = SDRAM_TRC_NS;
-    dynTiming.tRfc_Ns = SDRAM_RFC_NS;
-    dynTiming.tXsr_Ns = SDRAM_XSR_NS;
-    dynTiming.tRrd_Ns = SDRAM_RRD_NS;
-    dynTiming.tMrd_Nclk = SDRAM_MRD_NCLK;
+    dynTiming.tRp_Ns                = SDRAM_TRP_NS;
+    dynTiming.tRas_Ns               = SDRAM_TRAS_NS;
+    dynTiming.tSrex_Ns              = SDRAM_TSREX_NS;
+    dynTiming.tApr_Ns               = SDRAM_TAPR_NS;
+    dynTiming.tWr_Ns                = (1000000000 / emcFreq + SDRAM_TWRDELT_NS); /* one clk + 6ns */
+    dynTiming.tDal_Ns               = dynTiming.tWr_Ns + dynTiming.tRp_Ns;
+    dynTiming.tRc_Ns                = SDRAM_TRC_NS;
+    dynTiming.tRfc_Ns               = SDRAM_RFC_NS;
+    dynTiming.tXsr_Ns               = SDRAM_XSR_NS;
+    dynTiming.tRrd_Ns               = SDRAM_RRD_NS;
+    dynTiming.tMrd_Nclk             = SDRAM_MRD_NCLK;
     /* Dynamic memory chip specific configuration: Chip 0 - MTL48LC8M16A2B4-6A */
-    dynChipConfig.chipIndex = 0;
-    dynChipConfig.dynamicDevice = kEMC_Sdram;
-    dynChipConfig.rAS_Nclk = SDRAM_RAS_NCLK;
-    dynChipConfig.sdramModeReg = SDRAM_MODEREG_VALUE;
+    dynChipConfig.chipIndex       = 0;
+    dynChipConfig.dynamicDevice   = kEMC_Sdram;
+    dynChipConfig.rAS_Nclk        = SDRAM_RAS_NCLK;
+    dynChipConfig.sdramModeReg    = SDRAM_MODEREG_VALUE;
     dynChipConfig.sdramExtModeReg = 0; /* it has no use for normal sdram */
-    dynChipConfig.devAddrMap = SDRAM_DEV_MEMORYMAP;
+    dynChipConfig.devAddrMap      = SDRAM_DEV_MEMORYMAP;
     /* EMC Basic configuration. */
     EMC_Init(EMC, &basicConfig);
     /* EMC Dynamc memory configuration. */
@@ -128,13 +124,13 @@ status_t BOARD_I2C_Send(I2C_Type *base,
     i2c_master_transfer_t masterXfer;
 
     /* Prepare transfer structure. */
-    masterXfer.slaveAddress = deviceAddress;
-    masterXfer.direction = kI2C_Write;
-    masterXfer.subaddress = subAddress;
+    masterXfer.slaveAddress   = deviceAddress;
+    masterXfer.direction      = kI2C_Write;
+    masterXfer.subaddress     = subAddress;
     masterXfer.subaddressSize = subaddressSize;
-    masterXfer.data = txBuff;
-    masterXfer.dataSize = txBuffSize;
-    masterXfer.flags = kI2C_TransferDefaultFlag;
+    masterXfer.data           = txBuff;
+    masterXfer.dataSize       = txBuffSize;
+    masterXfer.flags          = kI2C_TransferDefaultFlag;
 
     return I2C_MasterTransferBlocking(base, &masterXfer);
 }
@@ -149,13 +145,13 @@ status_t BOARD_I2C_Receive(I2C_Type *base,
     i2c_master_transfer_t masterXfer;
 
     /* Prepare transfer structure. */
-    masterXfer.slaveAddress = deviceAddress;
-    masterXfer.subaddress = subAddress;
+    masterXfer.slaveAddress   = deviceAddress;
+    masterXfer.subaddress     = subAddress;
     masterXfer.subaddressSize = subaddressSize;
-    masterXfer.data = rxBuff;
-    masterXfer.dataSize = rxBuffSize;
-    masterXfer.direction = kI2C_Read;
-    masterXfer.flags = kI2C_TransferDefaultFlag;
+    masterXfer.data           = rxBuff;
+    masterXfer.dataSize       = rxBuffSize;
+    masterXfer.direction      = kI2C_Read;
+    masterXfer.flags          = kI2C_TransferDefaultFlag;
 
     return I2C_MasterTransferBlocking(base, &masterXfer);
 }
