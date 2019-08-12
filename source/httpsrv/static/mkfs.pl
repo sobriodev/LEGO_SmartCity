@@ -122,7 +122,7 @@ foreach $file (@INPUT_FILES)
   $fvar =~ s#[/\.]#_#g;
   $dest = $file;
   $dest =~ s/^$INPUT_DIR//;
-  print(OUTPUT "\t{ \"${dest}\", 0, ");
+  print(OUTPUT "\t{ \"/${dest}\", 0, ");
   print(OUTPUT "(unsigned char*)${fvar}, sizeof(${fvar}) },\n");
 }
 print(OUTPUT "\t{ 0, 0, 0, 0 }\n};\n\n");

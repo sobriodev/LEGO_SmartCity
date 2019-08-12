@@ -16,3 +16,11 @@ skinflex
 str
 int
 bool
+httpsrv
+init
+http
+fs
+netmask
+config
+subnet
+webpage

@@ -12,7 +12,7 @@
 /* Regular expressions */
 #define VALIDATOR_INT_REGEXP		"^-?(0|[1-9][0-9]*)$"
 #define VALIDATOR_DOUBLE_REGEXP		"^-?(0|[1-9][0-9]*)\\.[0-9]+$"
-#define VALIDATOR_BOOL_REGEXP		"^true|false$"
+#define VALIDATOR_BOOL_REGEXP		"^(true|false)$"
 
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------------- DATA TYPES ------------------------------ */

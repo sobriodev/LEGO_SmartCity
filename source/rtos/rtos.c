@@ -53,13 +53,13 @@ bool RTOS_TasksCreate(void)
 {
 	/* emWin task */
 	if (xTaskCreate(vTaskGUI, TASK_GUI_NAME, TASK_GUI_STACK, NULL, TASK_GUI_PRIO, &xGuiTask) != pdPASS) {
-		LOGGER_WRITELN(CRITICAL_LOG, LOG_ERROR, "GUI (emWin) task creation failed");
+		LOGGER_WRITELN(("GUI (emWin) task creation failed"));
 		return false;
 	}
 
 	/* Backlight task */
 	if (xTaskCreate(vTaskBacklight, TASK_BACKLIGHT_NAME, TASK_BACKLIGHT_STACK, NULL, TASK_BACKLIGHT_PRIO, &xBacklightTask) != pdPASS) {
-		LOGGER_WRITELN(CRITICAL_LOG, LOG_ERROR, "Backlight task creation failed");
+		LOGGER_WRITELN(("Backlight task creation failed"));
 		return false;
 	}
 

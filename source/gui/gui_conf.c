@@ -35,5 +35,5 @@ void GUI_Start(void)
 
 void GUI_FailedHook(void)
 {
-	LOGGER_WRITELN(CRITICAL_LOG, LOG_ERROR, "emWin widget creation error. Check stack and heap usage");
+	LOGGER_WRITELN(("emWin widget creation error. Check stack and heap usage"));
 }

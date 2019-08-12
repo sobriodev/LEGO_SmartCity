@@ -87,10 +87,12 @@
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1781921533" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1346094977" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
 									<listOptionValue builtIn="false" value="../source"/>
 									<listOptionValue builtIn="false" value="../"/>
 									<listOptionValue builtIn="false" value="../source/board"/>
-									<listOptionValue builtIn="false" value="../lwip/src/apps/httpsrv"/>
 									<listOptionValue builtIn="false" value="../lwip/port/arch"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/arpa"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/net"/>
@@ -162,13 +164,15 @@
 								<option id="com.crt.advproject.gas.fpu.2016949026" name="Floating point" superClass="com.crt.advproject.gas.fpu" useByScannerDiscovery="false" value="com.crt.advproject.gas.fpu.fpv4.hard" valueType="enumerated"/>
 								<option id="com.crt.advproject.gas.thumb.1622770988" name="Thumb mode" superClass="com.crt.advproject.gas.thumb" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.gas.arch.305216393" name="Architecture" superClass="com.crt.advproject.gas.arch" useByScannerDiscovery="false" value="com.crt.advproject.gas.target.cm4" valueType="enumerated"/>
-								<option id="gnu.both.asm.option.flags.crt.1061739252" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false"/>
+								<option id="gnu.both.asm.option.flags.crt.1061739252" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false" value="-c -x assembler-with-cpp -D__REDLIB__" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.both.asm.option.include.paths.1191281915" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
 									<listOptionValue builtIn="false" value="../source"/>
 									<listOptionValue builtIn="false" value="../"/>
 									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
-									<listOptionValue builtIn="false" value="../lwip/src/apps/httpsrv"/>
 									<listOptionValue builtIn="false" value="../lwip/port/arch"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/arpa"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/net"/>
@@ -357,7 +361,7 @@
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="drivers"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="emwin"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="libs"/>
-						<entry excluding="src/netif/ppp/polarssl/arc4.c|src/netif/ppp/polarssl/des.c|src/netif/ppp/polarssl/md4.c|src/netif/ppp/polarssl/md5.c|src/netif/ppp/polarssl/sha1.c" flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lwip"/>
+						<entry excluding="src/netif/ppp/polarssl/sha1.c|src/netif/ppp/polarssl/des.c|src/netif/ppp/polarssl/md4.c|src/netif/ppp/polarssl/md5.c|src/netif/ppp/polarssl/arc4.c" flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lwip"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="source"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="touchpanel"/>
@@ -448,12 +452,16 @@
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.751050026" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1473031263" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
+									<listOptionValue builtIn="false" value="../source"/>
+									<listOptionValue builtIn="false" value="../"/>
 									<listOptionValue builtIn="false" value="../source/board"/>
-									<listOptionValue builtIn="false" value="../lwip/src/apps/httpsrv"/>
 									<listOptionValue builtIn="false" value="../lwip/port/arch"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/arpa"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/net"/>
-									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/sys"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/stdc"/>
@@ -475,20 +483,17 @@
 									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
 									<listOptionValue builtIn="false" value="../drivers"/>
 									<listOptionValue builtIn="false" value="../CMSIS"/>
-									<listOptionValue builtIn="false" value="../board"/>
 									<listOptionValue builtIn="false" value="../device"/>
 									<listOptionValue builtIn="false" value="../utilities"/>
 									<listOptionValue builtIn="false" value="../component/uart"/>
 									<listOptionValue builtIn="false" value="../component/lists"/>
 									<listOptionValue builtIn="false" value="../emwin"/>
 									<listOptionValue builtIn="false" value="../component/serial_manager"/>
-									<listOptionValue builtIn="false" value="../source"/>
 									<listOptionValue builtIn="false" value="../touchpanel"/>
 									<listOptionValue builtIn="false" value="../amazon-freertos/freertos/portable"/>
 									<listOptionValue builtIn="false" value="../amazon-freertos/include"/>
 									<listOptionValue builtIn="false" value="../emwin/emWin_Config"/>
 									<listOptionValue builtIn="false" value="../emwin/emWin_header"/>
-									<listOptionValue builtIn="false" value="../"/>
 								</option>
 								<option id="gnu.c.compiler.option.include.files.1364933615" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files" useByScannerDiscovery="false"/>
 								<option id="gnu.c.compiler.option.optimization.flags.1487432516" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" useByScannerDiscovery="false" value="-fno-common" valueType="string"/>
@@ -525,10 +530,15 @@
 							<tool id="com.crt.advproject.gas.exe.release.1883748654" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.release">
 								<option id="com.crt.advproject.gas.thumb.1975924231" name="Thumb mode" superClass="com.crt.advproject.gas.thumb" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.gas.arch.1879062322" name="Architecture" superClass="com.crt.advproject.gas.arch" useByScannerDiscovery="false" value="com.crt.advproject.gas.target.cm4" valueType="enumerated"/>
-								<option id="gnu.both.asm.option.flags.crt.1027367371" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false"/>
+								<option id="gnu.both.asm.option.flags.crt.1027367371" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false" value="-c -x assembler-with-cpp -D__REDLIB__" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.both.asm.option.include.paths.118848050" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
+									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
+									<listOptionValue builtIn="false" value="../source"/>
+									<listOptionValue builtIn="false" value="../"/>
 									<listOptionValue builtIn="false" value="../source/gui/virtual_keyboard"/>
-									<listOptionValue builtIn="false" value="../lwip/src/apps/httpsrv"/>
 									<listOptionValue builtIn="false" value="../lwip/port/arch"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/arpa"/>
 									<listOptionValue builtIn="false" value="../lwip/src/include/compat/posix/net"/>
@@ -553,20 +563,17 @@
 									<listOptionValue builtIn="false" value="../source/utils"/>
 									<listOptionValue builtIn="false" value="../drivers"/>
 									<listOptionValue builtIn="false" value="../CMSIS"/>
-									<listOptionValue builtIn="false" value="../board"/>
 									<listOptionValue builtIn="false" value="../device"/>
 									<listOptionValue builtIn="false" value="../utilities"/>
 									<listOptionValue builtIn="false" value="../component/uart"/>
 									<listOptionValue builtIn="false" value="../component/lists"/>
 									<listOptionValue builtIn="false" value="../emwin"/>
 									<listOptionValue builtIn="false" value="../component/serial_manager"/>
-									<listOptionValue builtIn="false" value="../source"/>
 									<listOptionValue builtIn="false" value="../touchpanel"/>
 									<listOptionValue builtIn="false" value="../amazon-freertos/freertos/portable"/>
 									<listOptionValue builtIn="false" value="../amazon-freertos/include"/>
 									<listOptionValue builtIn="false" value="../emwin/emWin_Config"/>
 									<listOptionValue builtIn="false" value="../emwin/emWin_header"/>
-									<listOptionValue builtIn="false" value="../"/>
 								</option>
 								<option id="gnu.both.asm.option.warnings.nowarn.748257442" name="Suppress warnings (-W)" superClass="gnu.both.asm.option.warnings.nowarn" useByScannerDiscovery="false"/>
 								<option id="gnu.both.asm.option.version.1732940384" name="Announce version (-v)" superClass="gnu.both.asm.option.version" useByScannerDiscovery="false"/>
@@ -722,7 +729,7 @@
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="drivers"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="emwin"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="libs"/>
-						<entry excluding="src/netif/ppp/polarssl/arc4.c|src/netif/ppp/polarssl/des.c|src/netif/ppp/polarssl/md4.c|src/netif/ppp/polarssl/md5.c|src/netif/ppp/polarssl/sha1.c" flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lwip"/>
+						<entry excluding="src/netif/ppp/polarssl/sha1.c|src/netif/ppp/polarssl/des.c|src/netif/ppp/polarssl/md4.c|src/netif/ppp/polarssl/md5.c|src/netif/ppp/polarssl/arc4.c" flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lwip"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="source"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="touchpanel"/>
@@ -791,4 +798,5 @@
 &lt;/TargetConfig&gt;</projectStorage>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="refreshScope"/>
 </cproject>
