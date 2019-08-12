@@ -87,6 +87,7 @@
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1781921533" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1346094977" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/gui/startup"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
@@ -167,6 +168,7 @@
 								<option id="gnu.both.asm.option.flags.crt.1061739252" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false" value="-c -x assembler-with-cpp -D__REDLIB__" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.both.asm.option.include.paths.1191281915" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/gui/startup"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
@@ -453,6 +455,7 @@
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.751050026" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1473031263" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/gui/startup"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>
@@ -533,6 +536,7 @@
 								<option id="gnu.both.asm.option.flags.crt.1027367371" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" useByScannerDiscovery="false" value="-c -x assembler-with-cpp -D__REDLIB__" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.both.asm.option.include.paths.118848050" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../board"/>
+									<listOptionValue builtIn="false" value="../source/gui/startup"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/mdns"/>
 									<listOptionValue builtIn="false" value="../source/httpsrv/httpsrv"/>

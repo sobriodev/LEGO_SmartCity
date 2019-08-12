@@ -1,3 +1,4 @@
+#include "gui_conf.h"
 #include "gui_desktop.h"
 #include "stdint.h"
 #include "validator.h"
@@ -9,8 +10,9 @@
 /* ----------------------------------------------------------------------------- */
 
 EDIT_Handle e = 0;
+WM_HWIN selfWin;
 
-void desktopCallback(WM_MESSAGE *pMsg)
+void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 {
 	int widgetId;
 
@@ -22,8 +24,9 @@ void desktopCallback(WM_MESSAGE *pMsg)
 			VK_GetInput(&params);
 		}
 		break;
-	case WM_SET_CALLBACK:
-		e = EDIT_CreateEx(10, 90, 150, 40, WM_HBKWIN, WM_CF_SHOW, 0, GUI_ID_EDIT0, 20);
+	case WM_CREATE:
+		selfWin = pMsg->hWin;
+		e = EDIT_CreateEx(10, 90, 150, 40, selfWin, WM_CF_SHOW, 0, GUI_ID_EDIT0, 20);
 		EDIT_SetText(e, "Edit me");
 
 		break;
@@ -32,5 +35,12 @@ void desktopCallback(WM_MESSAGE *pMsg)
 		GUI_Clear();
 	default:
 		WM_DefaultProc(pMsg);
+	}
+}
+
+void GUI_DesktopCreate(void)
+{
+	if (!WM_CreateWindow(GUI_DESKTOP_X, GUI_DESKTOP_Y, GUI_DESKTOP_WIDTH, GUI_DESKTOP_HEIGHT, WM_CF_SHOW, GUI_DesktopCallback, 0)) {
+		GUI_FailedHook();
 	}
 }

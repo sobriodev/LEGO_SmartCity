@@ -1,5 +1,5 @@
 #include "gui_conf.h"
-#include "desktop/gui_desktop.h"
+#include "gui_startup.h"
 #include "logger.h"
 
 /* emWin */
@@ -24,7 +24,7 @@ void GUI_Start(void)
 	WM_SetSize(WM_HBKWIN, LCD_WIDTH, LCD_HEIGHT);
 
 	/* Set callback for the background window */
-	WM_SetCallback(WM_HBKWIN, desktopCallback);
+	WM_SetCallback(WM_HBKWIN, GUI_StartupCallback);
 
 	/* All buttons should react on level */
 	BUTTON_SetReactOnLevel();
