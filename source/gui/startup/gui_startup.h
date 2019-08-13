@@ -22,14 +22,16 @@
 /* ----------------------------------------------------------------------------- */
 
 /*!
- * todo docs
- * @param pMsg
+ * \brief Startup view callback
+ *
+ * \param pMsg : emWin message base address
  */
 void GUI_StartupCallback(WM_MESSAGE *pMsg);
 
 /*!
- * todo docs
- * @param stepName
+ * \brief Update startup step
+ *
+ * \param stepName : Step name base address
  */
 void GUI_StartupChangeStep(const char *stepName);
 

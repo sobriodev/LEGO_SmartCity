@@ -19,9 +19,16 @@
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-/* todo docs */
+/*!
+ * \brief Desktop view callback
+ *
+ * \param pMsg :emWin message base address
+ */
 void GUI_DesktopCallback(WM_MESSAGE *pMsg);
 
+/*!
+ * \brief Create desktop window
+ */
 void GUI_DesktopCreate(void);
 
 #endif /* GUI_DESKTOP_GUI_DESKTOP_H_ */

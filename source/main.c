@@ -45,7 +45,7 @@ int main(void)
 
     /* Open default window */
     GUI_DesktopCreate();
-	GUI_Exec();
+    WM_Exec();
 
     /* FreeRTOS entry point */
     vTaskStartScheduler();

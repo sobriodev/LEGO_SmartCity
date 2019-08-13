@@ -25,13 +25,13 @@ static ip4_addr_t fsl_netif0_gw;
 /* ----------------------------------------------------------------------------- */
 
 /* Callback function to generate TXT mDNS record for HTTP service */
-static void http_srv_txt(struct mdns_service *service, void *txt_userdata)
+static void HTTPSRV_Text(struct mdns_service *service, void *txt_userdata)
 {
     mdns_resp_add_service_txtitem(service, "path=/", 6);
 }
 
 /* Init lwIP stack */
-static void stack_init(void)
+static void HTTPSRV_StackInit(void)
 {
     ethernetif_config_t fsl_enet_config0 = {
         .phyAddress = EXAMPLE_PHY_ADDRESS,
@@ -53,11 +53,11 @@ static void stack_init(void)
 
     mdns_resp_init();
     mdns_resp_add_netif(&fsl_netif0, MDNS_HOSTNAME, 60);
-    mdns_resp_add_service(&fsl_netif0, MDNS_HOSTNAME, "_http", DNSSD_PROTO_TCP, 80, 300, http_srv_txt, NULL);
+    mdns_resp_add_service(&fsl_netif0, MDNS_HOSTNAME, "_http", DNSSD_PROTO_TCP, 80, 300, HTTPSRV_Text, NULL);
 }
 
 /* Init server */
-static void http_server_socket_init(void)
+static void HTTPSRV_SocketInit(void)
 {
     HTTPSRV_PARAM_STRUCT params;
     uint32_t httpsrv_handle;
@@ -86,8 +86,8 @@ static void http_server_socket_init(void)
 
 void HTTPSRV_Init(void)
 {
-    stack_init();
-    http_server_socket_init();
+    HTTPSRV_StackInit();
+    HTTPSRV_SocketInit();
 
     /* Everything OK. Print server address */
     LOGGER_WRITENL();

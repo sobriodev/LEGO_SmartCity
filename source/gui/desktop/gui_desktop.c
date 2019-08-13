@@ -24,7 +24,7 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 			VK_GetInput(&params);
 		}
 		break;
-	case WM_CREATE:
+	case WM_SET_CALLBACK:
 		selfWin = pMsg->hWin;
 		e = EDIT_CreateEx(10, 90, 150, 40, selfWin, WM_CF_SHOW, 0, GUI_ID_EDIT0, 20);
 		EDIT_SetText(e, "Edit me");
@@ -40,7 +40,9 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 
 void GUI_DesktopCreate(void)
 {
-	if (!WM_CreateWindow(GUI_DESKTOP_X, GUI_DESKTOP_Y, GUI_DESKTOP_WIDTH, GUI_DESKTOP_HEIGHT, WM_CF_SHOW, GUI_DesktopCallback, 0)) {
-		GUI_FailedHook();
-	}
+	/* Just take control of background window */
+	WM_SetCallback(WM_HBKWIN, GUI_DesktopCallback);
+
+	/* The scheduler is not working yet thus refresh window manually */
+	WM_Exec();
 }
