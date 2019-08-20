@@ -28,6 +28,7 @@ void BOARD_InitBootPins(void);
 #define IOCON_PIO_DIGITAL_EN 0x0100u    /*!<@brief Enables digital function */
 #define IOCON_PIO_FUNC0 0x00u           /*!<@brief Selects pin function 0 */
 #define IOCON_PIO_FUNC1 0x01u           /*!<@brief Selects pin function 1 */
+#define IOCON_PIO_FUNC2 0x02u   		/*!@brief Selects pin function 2 */
 #define IOCON_PIO_FUNC6 0x06u           /*!<@brief Selects pin function 6 */
 #define IOCON_PIO_FUNC7 0x07u           /*!<@brief Selects pin function 7 */
 #define IOCON_PIO_I2CDRIVE_HIGH 0x0400u /*!<@brief High drive: 20 mA */
@@ -40,6 +41,20 @@ void BOARD_InitBootPins(void);
 #define IOCON_PIO_OPENDRAIN_DI 0x00u    /*!<@brief Open drain is disabled */
 #define IOCON_PIO_SLEW_FAST 0x0400u     /*!<@brief Fast mode, slew rate control is disabled */
 #define IOCON_PIO_SLEW_STANDARD 0x00u   /*!<@brief Standard mode, output slew rate control is enabled */
+#define PIN3_IDX                         3u   /*!< Pin number for pin 3 in a port 2 */
+#define PIN4_IDX                         4u   /*!< Pin number for pin 4 in a port 2 */
+#define PIN5_IDX                         5u   /*!< Pin number for pin 5 in a port 2 */
+#define PIN6_IDX                         6u   /*!< Pin number for pin 6 in a port 2 */
+#define PIN7_IDX                         7u   /*!< Pin number for pin 7 in a port 2 */
+#define PIN8_IDX                         8u   /*!< Pin number for pin 8 in a port 2 */
+#define PIN9_IDX                         9u   /*!< Pin number for pin 9 in a port 2 */
+#define PIN10_IDX                       10u   /*!< Pin number for pin 10 in a port 2 */
+#define PIN15_IDX                       15u   /*!< Pin number for pin 15 in a port 3 */
+#define PIN29_IDX                       29u   /*!< Pin number for pin 29 in a port 0 */
+#define PIN30_IDX                       30u   /*!< Pin number for pin 30 in a port 0 */
+#define PORT0_IDX                        0u   /*!< Port index */
+#define PORT2_IDX                        2u   /*!< Port index */
+#define PORT3_IDX                        3u   /*!< Port index */
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.

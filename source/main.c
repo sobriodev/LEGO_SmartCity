@@ -1,7 +1,6 @@
 #include "board_conf.h"
 #include "gui_conf.h"
 #include "gui_desktop.h"
-#include "rtos.h"
 #include "logger.h"
 #include "gui_startup.h"
 
@@ -11,6 +10,9 @@
 
 /* Httpsrv */
 #include "httpsrv_conf.h"
+
+/* SD card */
+#include "sdcard_conf.h"
 
 int main(void)
 {
@@ -25,20 +27,18 @@ int main(void)
     GUI_StartupChangeStep("Initializing HTTP server. Plug in Ethernet cable");
     LOGGER_WRITELN(("Initializing HTTP server. Plug in Ethernet cable"));
 
-    /* Start Http server */
+    /* Start Http server (it internally creates RTOS tasks) */
     HTTPSRV_Init();
 
     GUI_StartupChangeStep("Creating RTOS tasks");
     LOGGER_WRITELN(("Creating RTOS tasks"));
 
-    if (!RTOS_TasksCreate() || !RTOS_TimersCreate()) {
-    	LOGGER_WRITELN(("FreeRTOS tasks creation failed. The program will not start!"));
-    	while (1) {}
-    }
+    GUI_RTOSInit();
 
     GUI_StartupChangeStep("Configuring SD controller. Insert card");
     LOGGER_WRITELN(("Configuring SD controller. Insert card"));
-    /* TODO Add SD card routines */
+
+    SDCARD_RTOSInit();
 
     LOGGER_WRITELN(("Launching application..."));
     LOGGER_WRITELN((LOGGER_PROJECT_LOGO));

@@ -24,3 +24,6 @@ netmask
 config
 subnet
 webpage
+sd
+sdmmc
+filesystem

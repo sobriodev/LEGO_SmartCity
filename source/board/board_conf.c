@@ -2,6 +2,8 @@
 #include "board.h"
 #include "pin_mux.h"
 #include "fsl_sctimer.h"
+#include "fsl_iocon.h"
+#include "fsl_sdmmc_host.h"
 
 /* Touch panel */
 #include "fsl_i2c.h"
@@ -23,8 +25,24 @@ static uint32_t backlightPWMEvent;
 extern ft5406_handle_t touch_handle;
 
 /* ----------------------------------------------------------------------------- */
+/* ------------------------------ PRIVATE FUNCTIONS ---------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+static void Board_InitSdifUnusedDataPin(void)
+{
+	IOCON_PinMuxSet(IOCON, 4, 29,
+			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[4] */
+	IOCON_PinMuxSet(IOCON, 4, 30,
+			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[5] */
+	IOCON_PinMuxSet(IOCON, 4, 31,
+			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[6] */
+	IOCON_PinMuxSet(IOCON, 5, 0,
+			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[7] */
+}
+
+/* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
-/* -------------------------------------------------------}---------------------- */
+/* ----------------------------------------------------------------------------- */
 
 void BOARD_InitBacklightPWM(void)
 {
@@ -63,6 +81,15 @@ void BOARD_Init(void)
 	BOARD_BootClockPLL220M();
 	BOARD_InitDebugConsole();
 	BOARD_InitSDRAM();
+
+	/* Attach main clock to SDIF */
+	CLOCK_AttachClk(BOARD_SDIF_CLK_ATTACH);
+	/* This function is used to cover the IP bug which the DATA4-7 pin should be configured, otherwise the SDIF will not work */
+	Board_InitSdifUnusedDataPin();
+	/* Need call this function to clear the halt bit in clock divider register */
+	CLOCK_SetClkDiv(kCLOCK_DivSdioClk, (uint32_t)(SystemCoreClock / FSL_FEATURE_SDIF_MAX_SOURCE_CLOCK + 1U), true);
+	/* Set SD host interrupt priority */
+	NVIC_SetPriority(SD_HOST_IRQ, 5U);
 }
 
 void BOARD_SetBacklightPercent(uint8_t percent)
