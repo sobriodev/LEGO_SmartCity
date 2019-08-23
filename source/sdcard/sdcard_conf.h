@@ -17,6 +17,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
+#include "queue.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ---------------------------------- MACROS ----------------------------------- */
@@ -27,41 +28,68 @@
 /* Data buffer size. */
 #define SDCARD_DATA_BUFFER_SIZE (FSL_SDMMC_DEFAULT_BLOCK_SIZE * SDCARD_DATA_BLOCK_COUNT)
 
-#define TASK_SDDETECT_NAME	"TASK_SDDETECT"
-#define TASK_SDDETECT_STACK	(SDCARD_DATA_BUFFER_SIZE + 1000U)
-#define TASK_SDDETECT_PRIO 	(configMAX_PRIORITIES - 1U)
-
-#define TASK_SDLOAD_NAME	"TASK_SDLOAD"
-#define TASK_SDLOAD_STACK	0x1F4
-#define TASK_SDLOAD_PRIO	(configMAX_PRIORITIES - 2U)
-
-#define TASK_SDSAVE_NAME	"TASK_SDSAVE"
-#define TASK_SDSAVE_STACK	0x1F4
-#define TASK_SDSAVE_PRIO	(configMAX_PRIORITIES - 2U)
-
 #define SDCARD_IO_WAIT		pdMS_TO_TICKS(20)
 
-#define SDCARD_SETTINGS_PATH	"/conf.dat"
+/* The file in which settings will be stored */
+#define SDCARD_SETTINGS_PATH	"/settings.dat"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- DATA TYPES --------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
-// todo docs
-typedef struct {
-	int value1;
-	int value2;
-} SDCARD_Conf_h;
+/*!
+ * \brief IO operation type
+ */
+typedef enum {
+	SDCARD_SAVE,	//!< Save operation
+	SDCARD_LOAD 	//!< Load operation
+} SDCARD_IO_t;
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- API_FUNCTIONS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+/*!
+ * \brief Search and mount SD card
+ * @return True if succeed, false otherwise
+ */
+bool SDCARD_Init(void);
+
+/*!
+ * \brief Init SD card tasks and event objects
+ *
+ * \return True if creation passed, false otherwise
+ */
 bool SDCARD_RTOSInit(void);
 
-void SDCARD_LoadSettings(void);
+/*!
+ * \brief Start save/load task
+ *
+ * \param operation : Chosen operation. See SDCARD_IO_t for more information
+ * \return True if operation succeed, false otherwise
+ * \note This is only helper function. Use SDCARD_ExportSettings and SDCARD_ImportSettings functions for convenience
+ */
+bool SDCARD_IOGeneric(SDCARD_IO_t operation);
 
-void SDCARD_SaveSettings(void);
+/*!
+ * \brief Save current settings on SD card
+ *
+ * \return True if operation succeed, false otherwise
+ */
+static inline bool SDCARD_ExportSettings(void)
+{
+	return SDCARD_IOGeneric(SDCARD_SAVE);
+}
 
+/*!
+ * \brief Load settings from SD card
+ *
+ * \return True if operation succeed, false otherwise
+ * \note On successful load current settings will be replaced with new ones
+ */
+static inline bool SDCARD_ImportSettings(void)
+{
+	return SDCARD_IOGeneric(SDCARD_LOAD);
+}
 
 #endif /* SDCARD_SDCARD_CONF_H_ */

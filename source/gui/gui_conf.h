@@ -39,7 +39,11 @@
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-// todo docs
+/*!
+ * \brief Create GUI tasks
+ *
+ * \return True if creation succeed, false otherwise
+ */
 bool GUI_RTOSInit(void);
 
 /*!

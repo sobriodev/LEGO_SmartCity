@@ -3,7 +3,12 @@
 #include "pin_mux.h"
 #include "fsl_sctimer.h"
 #include "fsl_iocon.h"
-#include "fsl_sdmmc_host.h"
+
+#include "gui_conf.h"
+#include "gui_startup.h"
+#include "gui_desktop.h"
+
+#include "logger.h"
 
 /* Touch panel */
 #include "fsl_i2c.h"
@@ -14,6 +19,13 @@
 #include "GUI.h"
 #include "WM.h"
 #include "GUIDRV_Lin.h"
+
+/* Httpsrv */
+#include "httpsrv_conf.h"
+
+/* SD card */
+#include "sdcard_conf.h"
+#include "fsl_sdmmc_host.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PRIVATE VARIABLES ----------------------------- */
@@ -38,6 +50,32 @@ static void Board_InitSdifUnusedDataPin(void)
 			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[6] */
 	IOCON_PinMuxSet(IOCON, 5, 0,
 			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[7] */
+}
+
+/* ----------------------------------------------------------------------------- */
+/* -------------------------------- FREERTOS TASKS ----------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+static void BOARD_StartupTask(void *pvParameters)
+{
+	/* SD card must be initialized first. Other routines uses settings struct */
+	LOGGER_WRITELN(("Initializing SD card"));
+	GUI_StartupChangeStep("Initializing SD card");
+    if (SDCARD_Init()) {
+    	SDCARD_ImportSettings();
+    }
+
+    /* Start Http server (it internally creates RTOS tasks) */
+    LOGGER_WRITELN(("Initializing HTTP server"));
+    GUI_StartupChangeStep("Initializing HTTP server. Plug in Ethernet cable");
+    HTTPSRV_Init();
+
+    LOGGER_WRITELN((LOGGER_PROJECT_LOGO));
+
+    /* Open default window */
+    GUI_DesktopCreate();
+
+    vTaskDelete(NULL); /* Deleting startup task allows lower priority tasks (GUI, server, ...) to work */
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -135,4 +173,11 @@ void BOARD_TouchEvent(TouchInfo_t *touchInfo)
         	GUI_TOUCH_StoreStateEx(&pidState);
         }
     }
+}
+
+bool BOARD_RTOSInit(void)
+{
+	return SDCARD_RTOSInit()
+			&& GUI_RTOSInit()
+			&& (xTaskCreate(BOARD_StartupTask, TASK_STARTUP_NAME, TASK_STARTUP_STACK, NULL, TASK_STARTUP_PRIO, NULL) != pdFAIL);
 }

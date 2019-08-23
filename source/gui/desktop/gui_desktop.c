@@ -4,13 +4,16 @@
 #include "validator.h"
 
 #include "virtual_keyboard.h"
+#include "settings.h"
+#include "sdcard_conf.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
 EDIT_Handle e = 0;
-WM_HWIN selfWin;
+BUTTON_Handle b = 0;
+static WM_HWIN selfWin;
 
 void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 {
@@ -23,12 +26,15 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 			VKParams_t params = {e, "Enter true/false value", 15, true , VALIDATOR_IsBool};
 			VK_GetInput(&params);
 		}
+
+		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_BUTTON0) {
+		}
+
 		break;
 	case WM_SET_CALLBACK:
 		selfWin = pMsg->hWin;
 		e = EDIT_CreateEx(10, 90, 150, 40, selfWin, WM_CF_SHOW, 0, GUI_ID_EDIT0, 20);
-		EDIT_SetText(e, "Edit me");
-
+		b = BUTTON_CreateEx(200, 50, 30, 20, selfWin, WM_CF_SHOW, 0, GUI_ID_BUTTON0);
 		break;
 	case WM_PAINT:
 		GUI_SetBkColor(GUI_LIGHTBLUE);

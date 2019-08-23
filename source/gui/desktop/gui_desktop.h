@@ -22,7 +22,7 @@
 /*!
  * \brief Desktop view callback
  *
- * \param pMsg :emWin message base address
+ * \param pMsg : emWin message base address
  */
 void GUI_DesktopCallback(WM_MESSAGE *pMsg);
 
