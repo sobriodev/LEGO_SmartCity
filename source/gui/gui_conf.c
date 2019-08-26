@@ -19,34 +19,38 @@ TaskHandle_t xBacklightTask;
 /* Backlight timer */
 TimerHandle_t xBacklightTimer;
 
+/* Variable indicating touch event presence */
+TouchInfo_t touchInfo;
+
 /* ----------------------------------------------------------------------------- */
 /* --------------------------------- RTOS TASKS -------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
 static void GUI_MainTask(void *pvParameters)
 {
-	/* Variable indicating touch event presence */
-	TouchInfo_t touchInfo;
+	while (1) {
+		/* Prevent emWin for executing when LCD is not active */
+		if (touchInfo.eventLCDState != LCD_ON) {
+			vTaskDelay(RTOS_LCD_IDLE_TIME);
+		}
+		/* emWin execute */
+		WM_Exec();
+	}
+}
 
-    while (1) {
-    	BOARD_TouchEvent(&touchInfo);
+static void GUI_TouchTask(void *pvParameters)
+{
+	while (1) {
+		BOARD_TouchEvent(&touchInfo);
 
-    	if (touchInfo.touchPanelStatus == TOUCH_PANEL_STATUS_OK) {
+		if (touchInfo.touchPanelStatus == TOUCH_PANEL_STATUS_OK) {
 
-    		if (touchInfo.touchEvent) {
-        		/* Touch event occurred. Send notification to the backlight task */
-        		xTaskNotifyGive(xBacklightTask);
-
-        		/* Prevent emWin for executing when LCD is not active */
-        		if (touchInfo.eventLCDState != LCD_ON) {
-        			vTaskDelay(RTOS_LCD_IDLE_TIME);
-        		}
-    		}
-
-        	/* emWin execute */
-            WM_Exec();
-    	}
-    }
+			if (touchInfo.touchEvent) {
+				/* Touch event occurred. Send notification to the backlight task */
+				xTaskNotifyGive(xBacklightTask);
+			}
+		}
+	}
 }
 
 static void GUI_BacklightTask(void *pvParameters)
@@ -109,17 +113,24 @@ static bool GUI_TimersCreate(void)
 
 static bool GUI_TasksCreate(void)
 {
+	BaseType_t res = pdPASS;
+
 	/* emWin task */
 	if (xTaskCreate(GUI_MainTask, TASK_GUI_NAME, TASK_GUI_STACK, NULL, TASK_GUI_PRIO, NULL) != pdPASS) {
-		return false;
+		res = false;
+	}
+
+	/* Touch task */
+	if (xTaskCreate(GUI_TouchTask, TASK_TOUCH_NAME, TASK_TOUCH_STACK, NULL, TASK_TOUCH_PRIO, NULL) != pdPASS) {
+		res =  false;
 	}
 
 	/* Backlight task */
 	if (xTaskCreate(GUI_BacklightTask, TASK_BACKLIGHT_NAME, TASK_BACKLIGHT_STACK, NULL, TASK_BACKLIGHT_PRIO, &xBacklightTask) != pdPASS) {
-		return false;
+		res =  false;
 	}
 
-	return true;
+	return (res == pdPASS);
 }
 
 /* ----------------------------------------------------------------------------- */

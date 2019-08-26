@@ -14,17 +14,17 @@
 /* ----------------------------------------------------------------------------- */
 
 /* RTOS */
-#define TASK_GUI_NAME			"Task-GUI"
+#define TASK_GUI_NAME			"TASK-GUI"
 #define TASK_GUI_STACK			0x2710
 #define TASK_GUI_PRIO			(tskIDLE_PRIORITY + 1)
-
-#define TASK_BACKLIGHT_NAME		"TASK-BACKLIGHT"
-#define TASK_BACKLIGHT_STACK	0x3E8
-#define TASK_BACKLIGHT_PRIO		(tskIDLE_PRIORITY + 2)
 
 #define TASK_TOUCH_NAME			"TASK-TOUCH"
 #define TASK_TOUCH_STACK		0x1F4
 #define TASK_TOUCH_PRIO			(tskIDLE_PRIORITY + 1)
+
+#define TASK_BACKLIGHT_NAME		"TASK-BACKLIGHT"
+#define TASK_BACKLIGHT_STACK	0x3E8
+#define TASK_BACKLIGHT_PRIO		(tskIDLE_PRIORITY + 2)
 
 /* Timer properties */
 #define TIMER_BACKLIGHT_NAME	"TIMER_BACKLIGHT"

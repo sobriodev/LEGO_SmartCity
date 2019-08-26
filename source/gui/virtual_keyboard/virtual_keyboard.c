@@ -10,7 +10,7 @@
  * \brief Virtual keyboard data
  */
 typedef struct {
-	VKParams_t params;								//!< Input params
+	const VKParams_t *params;						//!< Input params base address
 	BUTTON_Handle buttons[VK_NUM_BUTTONS];			//!< GUI buttons
 	BUTTON_Handle funcButtons[VK_NUM_FUNC_BUTTONS];	//!< GUI func buttons
 	EDIT_Handle inputHandle;						//!< Input widget
@@ -76,6 +76,11 @@ static const VKButton_t vkButtonsProps[VK_NUM_BUTTONS] =
 		VK_CREATE_BUTTON(0, 0, VK_UNUSED, VK_UNUSED, '.'),
 };
 
+static const GUI_WIDGET_CREATE_INFO vkDialog[] =
+{
+		{ WINDOW_CreateIndirect, NULL, 0, 0, 0, LCD_WIDTH, LCD_HEIGHT, WM_CF_SHOW, 0, 0 },
+};
+
 /* Virtual keyboard data instance (handles and settings) */
 static VKData_t vkData;
 
@@ -89,7 +94,7 @@ static char inputBuffer[VK_INPUT_MAX_LEN];
 static BUTTON_SKINFLEX_PROPS buttonGuiPropsBackup;
 static BUTTON_SKINFLEX_PROPS buttonGuiClickedPropsBackup;
 
-/* ID of VK window */
+/* ID of VK dialog window */
 static WM_HWIN selfWin;
 
 /* ----------------------------------------------------------------------------- */
@@ -109,7 +114,7 @@ static const char *VK_CharToStr(uint8_t ch)
 static void VK_setupGuiSkins(void)
 {
 	BUTTON_GetSkinFlexProps(&buttonGuiPropsBackup, BUTTON_SKINFLEX_PI_ENABLED);
-	BUTTON_GetSkinFlexProps(&buttonGuiClickedPropsBackup, BUTTON_SKINFLEX_PI_ENABLED);
+	BUTTON_GetSkinFlexProps(&buttonGuiClickedPropsBackup, BUTTON_SKINFLEX_PI_PRESSED);
 
 	BUTTON_SKINFLEX_PROPS buttonGuiProps = buttonGuiPropsBackup;
 	BUTTON_SKINFLEX_PROPS buttonGuiClickedProps = buttonGuiClickedPropsBackup;
@@ -214,7 +219,7 @@ static bool VK_CreateButtons(void)
 static bool VK_CreateInput(void)
 {
 	/* Input edit widget */
-	vkData.inputHandle = EDIT_CreateEx(VK_INPUT_X, VK_INPUT_Y, VK_INPUT_XSIZE, VK_INPUT_YSIZE, selfWin, WM_CF_SHOW, 0, VK_INPUT_ID, vkData.params.maxLen);
+	vkData.inputHandle = EDIT_CreateEx(VK_INPUT_X, VK_INPUT_Y, VK_INPUT_XSIZE, VK_INPUT_YSIZE, selfWin, WM_CF_SHOW, 0, VK_INPUT_ID, vkData.params->maxLen);
 
 	if (!vkData.inputHandle) {
 		GUI_FailedHook();
@@ -227,13 +232,13 @@ static bool VK_CreateInput(void)
 	WM_SetFocus(vkData.inputHandle); /* Edit widget should has focus by default */
 
 	/* Store current input value */
-	if (vkData.params.copyVal) {
-		EDIT_GetText(vkData.params.inputHandle, inputBuffer, VK_INPUT_MAX_LEN);
+	if (vkData.params->copyVal) {
+		EDIT_GetText(vkData.params->inputHandle, inputBuffer, VK_INPUT_MAX_LEN);
 		EDIT_SetText(vkData.inputHandle, inputBuffer);
 	}
 
 	/* Input description */
-	vkData.descHandle = TEXT_CreateEx(VK_DESC_X, VK_DESC_Y, VK_DESC_XSIZE, VK_DESC_YSIZE, selfWin, WM_CF_SHOW, TEXT_CF_VCENTER | TEXT_CF_HCENTER, VK_DESC_ID, vkData.params.inputDesc);
+	vkData.descHandle = TEXT_CreateEx(VK_DESC_X, VK_DESC_Y, VK_DESC_XSIZE, VK_DESC_YSIZE, selfWin, WM_CF_SHOW, TEXT_CF_VCENTER | TEXT_CF_HCENTER, VK_DESC_ID, vkData.params->inputDesc);
 
 	if (!vkData.descHandle) {
 		GUI_FailedHook();
@@ -323,11 +328,13 @@ static void VK_FuncButtonClicked(uint8_t funcButton)
 		EDIT_GetText(vkData.inputHandle, inputBuffer, VK_INPUT_MAX_LEN);
 
 		/* Validation function was passed */
-		if (vkData.params.validatorFn != NULL && vkData.params.validatorFn(inputBuffer)) {
-			EDIT_SetText(vkData.params.inputHandle, inputBuffer);
+		if (vkData.params->validatorFn != NULL && vkData.params->validatorFn(inputBuffer)) {
+			EDIT_SetText(vkData.params->inputHandle, inputBuffer);
+			GUI_EndDialog(selfWin, 1); /* OK */
+			break;
 		}
 
-		WM_DeleteWindow(selfWin);
+		GUI_EndDialog(selfWin, 0); /* Validation failed */
 		break;
 
 	default:
@@ -342,8 +349,7 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 	int16_t notifyWidgetId;
 
 	switch (pMsg->MsgId) {
-
-	case WM_CREATE:
+	case WM_INIT_DIALOG:
 		selfWin = pMsg->hWin; /* Store self handle */
 
 		/* Reset shift and caps states */
@@ -353,21 +359,16 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 		/* Setup GUI skins and create all buttons */
 		VK_setupGuiSkins();
 		VK_CreateButtons();
-		break;
-
-	case WM_USER_DATA:
-		WM_GetUserData(selfWin, &vkData.params, sizeof(VKParams_t));
 		VK_CreateInput(); /* Create input and description after user data was passed */
 		WM_InvalidateWindow(selfWin);
-
+		break;
+	case WM_DELETE:
+		VK_RestoreGuiSkins(); /* Before deleting keyboard window restore all changed GUI skin properties */
+		break;
 	case WM_PAINT:
 		GUI_SetBkColor(VK_BK_COLOR);
 		GUI_Clear();
 		break;
-
-	case WM_DELETE:
-		VK_RestoreGuiSkins(); /* Before deleting keyboard window restore all changed GUI skin properties */
-
 	case WM_NOTIFY_PARENT:
 		notifyWidgetId = WM_GetId(pMsg->hWinSrc);
 
@@ -386,12 +387,10 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 		}
 
 		break;
-
 	default:
 		WM_DefaultProc(pMsg);
 	}
 }
-
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -399,14 +398,13 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 
 bool VK_GetInput(const VKParams_t *params)
 {
-	WM_HWIN win = WM_CreateWindow(VK_X, VK_Y, VK_XSIZE, VK_YSIZE, WM_CF_SHOW, VK_Callback, sizeof(VKParams_t));
+	vkData.params = params;
+	WM_HWIN win = GUI_CreateDialogBox(vkDialog, GUI_COUNTOF(vkDialog), VK_Callback, WM_HBKWIN, 0, 0);
 
 	if (!win) {
 		GUI_FailedHook();
 		return false;
 	}
 
-	WM_SetUserData(win, params, sizeof(VKParams_t)); /* Pass input data as user data */
-	return true;
+	return (bool)GUI_ExecCreatedDialog(win);
 }
-

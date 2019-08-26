@@ -43,7 +43,7 @@
 typedef enum {
 	SDCARD_SAVE,	//!< Save operation
 	SDCARD_LOAD 	//!< Load operation
-} SDCARD_IO_t;
+} SDCARDIO_t;
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- API_FUNCTIONS ------------------------------- */
@@ -69,7 +69,7 @@ bool SDCARD_RTOSInit(void);
  * \return True if operation succeed, false otherwise
  * \note This is only helper function. Use SDCARD_ExportSettings and SDCARD_ImportSettings functions for convenience
  */
-bool SDCARD_IOGeneric(SDCARD_IO_t operation);
+bool SDCARD_IOGeneric(SDCARDIO_t operation);
 
 /*!
  * \brief Save current settings on SD card

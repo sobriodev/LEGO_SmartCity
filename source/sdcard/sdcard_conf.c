@@ -225,7 +225,7 @@ bool SDCARD_RTOSInit(void)
 	return (sdcardAccessSemaphore != NULL);
 }
 
-bool SDCARD_IOGeneric(SDCARD_IO_t operation)
+bool SDCARD_IOGeneric(SDCARDIO_t operation)
 {
 	bool res;
 

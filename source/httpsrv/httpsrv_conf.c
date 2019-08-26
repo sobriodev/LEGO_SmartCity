@@ -1,6 +1,9 @@
 #include "httpsrv_conf.h"
 #include "logger.h"
 
+#include "settings.h"
+#include "misc.h"
+
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE VARIABLES ---------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -42,9 +45,25 @@ static void HTTPSRV_StackInit(void)
 
     tcpip_init(NULL, NULL);
 
-    IP4_ADDR(&fsl_netif0_ipaddr, configIP_ADDR0, configIP_ADDR1, configIP_ADDR2, configIP_ADDR3);
-    IP4_ADDR(&fsl_netif0_netmask, configNET_MASK0, configNET_MASK1, configNET_MASK2, configNET_MASK3);
-    IP4_ADDR(&fsl_netif0_gw, configGW_ADDR0, configGW_ADDR1, configGW_ADDR2, configGW_ADDR3);
+    Settings_t *settings = SETTINGS_GetInstance();
+
+    IP4_ADDR(&fsl_netif0_ipaddr,
+    		IP4_ADDR0(settings->httpsrvIp),
+			IP4_ADDR1(settings->httpsrvIp),
+			IP4_ADDR2(settings->httpsrvIp),
+			IP4_ADDR3(settings->httpsrvIp));
+
+    IP4_ADDR(&fsl_netif0_netmask,
+    		IP4_ADDR0(settings->httpsrvSm),
+			IP4_ADDR1(settings->httpsrvSm),
+			IP4_ADDR2(settings->httpsrvSm),
+			IP4_ADDR3(settings->httpsrvSm));
+
+    IP4_ADDR(&fsl_netif0_gw,
+    		IP4_ADDR0(settings->httpsrvGw),
+			IP4_ADDR1(settings->httpsrvGw),
+			IP4_ADDR2(settings->httpsrvGw),
+			IP4_ADDR3(settings->httpsrvGw));
 
     netifapi_netif_add(&fsl_netif0, &fsl_netif0_ipaddr, &fsl_netif0_netmask, &fsl_netif0_gw, &fsl_enet_config0,
                        ethernetif0_init, tcpip_input);
@@ -52,8 +71,8 @@ static void HTTPSRV_StackInit(void)
     netifapi_netif_set_up(&fsl_netif0);
 
     mdns_resp_init();
-    mdns_resp_add_netif(&fsl_netif0, MDNS_HOSTNAME, 60);
-    mdns_resp_add_service(&fsl_netif0, MDNS_HOSTNAME, "_http", DNSSD_PROTO_TCP, 80, 300, HTTPSRV_Text, NULL);
+    mdns_resp_add_netif(&fsl_netif0, settings->httpsrvDnsName, 60);
+    mdns_resp_add_service(&fsl_netif0, settings->httpsrvDnsName, "_http", DNSSD_PROTO_TCP, 80, 300, HTTPSRV_Text, NULL);
 }
 
 /* Init server */
@@ -95,6 +114,6 @@ void HTTPSRV_Init(void)
     LOGGER_WRITELN(("IPv4        : %u.%u.%u.%u", ((u8_t *)&fsl_netif0_ipaddr)[0], ((u8_t *)&fsl_netif0_ipaddr)[1], ((u8_t *)&fsl_netif0_ipaddr)[2], ((u8_t *)&fsl_netif0_ipaddr)[3]));
     LOGGER_WRITELN(("Subnet mask : %u.%u.%u.%u", ((u8_t *)&fsl_netif0_netmask)[0], ((u8_t *)&fsl_netif0_netmask)[1], ((u8_t *)&fsl_netif0_netmask)[2], ((u8_t *)&fsl_netif0_netmask)[3]));
     LOGGER_WRITELN(("Gateway     : %u.%u.%u.%u", ((u8_t *)&fsl_netif0_gw)[0], ((u8_t *)&fsl_netif0_gw)[1], ((u8_t *)&fsl_netif0_gw)[2], ((u8_t *)&fsl_netif0_gw)[3]));
-    LOGGER_WRITELN(("DNS         : %s", MDNS_HOSTNAME));
+    LOGGER_WRITELN(("DNS         : %s", SETTINGS_GetInstance()->httpsrvDnsName));
     LOGGER_WRITENL();
 }
