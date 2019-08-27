@@ -9,8 +9,8 @@
 /* ----------------------------------------------------------------------------- */
 
 /* Server internal config */
-static struct netif fsl_netif0;
-static mem_range_t non_dma_memory[] = NON_DMA_MEMORY_ARRAY;
+static struct netif fslNetif;
+static mem_range_t nonDmaMemory[] = HTTPSRV_NON_DMA_MEMORY_ARRAY;
 
 /* FS data generated automatically */
 extern const HTTPSRV_FS_DIR_ENTRY httpsrv_fs_data[];
@@ -19,9 +19,9 @@ extern const HTTPSRV_FS_DIR_ENTRY httpsrv_fs_data[];
 extern const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[];
 
 /* IP, Netmask and Gateway addresses */
-static ip4_addr_t fsl_netif0_ipaddr;
-static ip4_addr_t fsl_netif0_netmask;
-static ip4_addr_t fsl_netif0_gw;
+static ip4_addr_t fslNetifIpAddr;
+static ip4_addr_t fslNetifNetmask;
+static ip4_addr_t fslNetifGw;
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE FUNCTIONS ---------------------------- */
@@ -37,42 +37,42 @@ static void HTTPSRV_Text(struct mdns_service *service, void *txt_userdata)
 static void HTTPSRV_StackInit(void)
 {
     ethernetif_config_t fsl_enet_config0 = {
-        .phyAddress = EXAMPLE_PHY_ADDRESS,
-        .clockName  = EXAMPLE_CLOCK_NAME,
-        .macAddress = configMAC_ADDR,
-        .non_dma_memory = non_dma_memory,
+        .phyAddress = HTTPSRV_PHY_ADDRESS,
+        .clockName  = HTTPSRV_CLOCK_NAME,
+        .macAddress = HTTPSRV_MAC_ADDR,
+        .non_dma_memory = nonDmaMemory,
     };
 
     tcpip_init(NULL, NULL);
 
     Settings_t *settings = SETTINGS_GetInstance();
 
-    IP4_ADDR(&fsl_netif0_ipaddr,
+    IP4_ADDR(&fslNetifIpAddr,
     		IP4_ADDR0(settings->httpsrvIp),
 			IP4_ADDR1(settings->httpsrvIp),
 			IP4_ADDR2(settings->httpsrvIp),
 			IP4_ADDR3(settings->httpsrvIp));
 
-    IP4_ADDR(&fsl_netif0_netmask,
+    IP4_ADDR(&fslNetifNetmask,
     		IP4_ADDR0(settings->httpsrvSm),
 			IP4_ADDR1(settings->httpsrvSm),
 			IP4_ADDR2(settings->httpsrvSm),
 			IP4_ADDR3(settings->httpsrvSm));
 
-    IP4_ADDR(&fsl_netif0_gw,
+    IP4_ADDR(&fslNetifGw,
     		IP4_ADDR0(settings->httpsrvGw),
 			IP4_ADDR1(settings->httpsrvGw),
 			IP4_ADDR2(settings->httpsrvGw),
 			IP4_ADDR3(settings->httpsrvGw));
 
-    netifapi_netif_add(&fsl_netif0, &fsl_netif0_ipaddr, &fsl_netif0_netmask, &fsl_netif0_gw, &fsl_enet_config0,
+    netifapi_netif_add(&fslNetif, &fslNetifIpAddr, &fslNetifNetmask, &fslNetifGw, &fsl_enet_config0,
                        ethernetif0_init, tcpip_input);
-    netifapi_netif_set_default(&fsl_netif0);
-    netifapi_netif_set_up(&fsl_netif0);
+    netifapi_netif_set_default(&fslNetif);
+    netifapi_netif_set_up(&fslNetif);
 
     mdns_resp_init();
-    mdns_resp_add_netif(&fsl_netif0, settings->httpsrvDnsName, 60);
-    mdns_resp_add_service(&fsl_netif0, settings->httpsrvDnsName, "_http", DNSSD_PROTO_TCP, 80, 300, HTTPSRV_Text, NULL);
+    mdns_resp_add_netif(&fslNetif, settings->httpsrvDnsName, 60);
+    mdns_resp_add_service(&fslNetif, settings->httpsrvDnsName, "_http", DNSSD_PROTO_TCP, 80, 300, HTTPSRV_Text, NULL);
 }
 
 /* Init server */
@@ -87,7 +87,7 @@ static void HTTPSRV_SocketInit(void)
     /* Init HTTPSRV parameters.*/
     memset(&params, 0, sizeof(params));
     params.root_dir = "";
-    params.index_page = "/index.html";
+    params.index_page = HTTPSRV_DEFAULT_PAGE;
     params.auth_table = NULL;
     params.cgi_lnk_tbl = HTTPSRV_ApiTable;
     params.ssi_lnk_tbl = NULL;
@@ -111,9 +111,9 @@ void HTTPSRV_Init(void)
     /* Everything OK. Print server address */
     LOGGER_WRITENL();
     LOGGER_WRITELN(("HTTP Server configuration: "));
-    LOGGER_WRITELN(("IPv4        : %u.%u.%u.%u", ((u8_t *)&fsl_netif0_ipaddr)[0], ((u8_t *)&fsl_netif0_ipaddr)[1], ((u8_t *)&fsl_netif0_ipaddr)[2], ((u8_t *)&fsl_netif0_ipaddr)[3]));
-    LOGGER_WRITELN(("Subnet mask : %u.%u.%u.%u", ((u8_t *)&fsl_netif0_netmask)[0], ((u8_t *)&fsl_netif0_netmask)[1], ((u8_t *)&fsl_netif0_netmask)[2], ((u8_t *)&fsl_netif0_netmask)[3]));
-    LOGGER_WRITELN(("Gateway     : %u.%u.%u.%u", ((u8_t *)&fsl_netif0_gw)[0], ((u8_t *)&fsl_netif0_gw)[1], ((u8_t *)&fsl_netif0_gw)[2], ((u8_t *)&fsl_netif0_gw)[3]));
+    LOGGER_WRITELN(("IPv4        : %u.%u.%u.%u", ((u8_t *)&fslNetifIpAddr)[0], ((u8_t *)&fslNetifIpAddr)[1], ((u8_t *)&fslNetifIpAddr)[2], ((u8_t *)&fslNetifIpAddr)[3]));
+    LOGGER_WRITELN(("Subnet mask : %u.%u.%u.%u", ((u8_t *)&fslNetifNetmask)[0], ((u8_t *)&fslNetifNetmask)[1], ((u8_t *)&fslNetifNetmask)[2], ((u8_t *)&fslNetifNetmask)[3]));
+    LOGGER_WRITELN(("Gateway     : %u.%u.%u.%u", ((u8_t *)&fslNetifGw)[0], ((u8_t *)&fslNetifGw)[1], ((u8_t *)&fslNetifGw)[2], ((u8_t *)&fslNetifGw)[3]));
     LOGGER_WRITELN(("DNS         : %s", SETTINGS_GetInstance()->httpsrvDnsName));
     LOGGER_WRITENL();
 }

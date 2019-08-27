@@ -148,7 +148,7 @@
 /* ----------------------------------------------------------------------------- */
 
 /*!
- * \typedef Button format
+ * \brief Button format
  *
  * \note Format: UNUSED(31:26) | SHIFT_SUPPORT(25) | CAPS_SUPPPORT(24) | AFTER_SHIFT(23:16) | AFTER_CAPS(15:8) | BASIC(7:0)
  */
@@ -165,6 +165,15 @@ typedef struct {
 	VALIDATORFn_t validatorFn;	//!< Optional validation function, NULL if not used
 } VKParams_t;
 
+/*!
+ * \brief Possible return values when closing keyboard dialog
+ */
+typedef enum {
+	VK_FAILURE = -1,	//!< Dialog creation error
+	VK_NON_VALID,		//!< Validation error
+	VK_STORED          	//!< Input stored
+} VKInputStatus_t;
+
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -173,8 +182,9 @@ typedef struct {
  * \brief Get input from virtual keyboard
  *
  * \param params : Input params. See VK_Params_t for more information
- * \return True if windows creation succeed, false otherwise
+ * \return See VKInputStatus_t for more information
+ * \note This is blocking function. It does not return until the dialog is closed
  */
-bool VK_GetInput(const VKParams_t *params);
+VKInputStatus_t VK_GetInput(const VKParams_t *params);
 
 #endif /* GUI_VIRTUAL_KEYBOARD_VIRTUAL_KEYBOARD_H_ */

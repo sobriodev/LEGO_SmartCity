@@ -40,6 +40,7 @@ extern ft5406_handle_t touch_handle;
 /* ------------------------------ PRIVATE FUNCTIONS ---------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+/* This function is used to cover the IP bug which the DATA4-7 pin should be configured */
 static void Board_InitSdifUnusedDataPin(void)
 {
 	IOCON_PinMuxSet(IOCON, 4, 29,
@@ -59,6 +60,8 @@ static void Board_InitSdifUnusedDataPin(void)
 static void BOARD_StartupTask(void *pvParameters)
 {
 	/* SD card must be initialized first. Other routines uses settings struct */
+	SDCARD_RTOSInit();
+
 	LOGGER_WRITELN(("Initializing SD card"));
 	GUI_StartupChangeStep("Initializing SD card");
     if (SDCARD_Init()) {
@@ -70,10 +73,15 @@ static void BOARD_StartupTask(void *pvParameters)
     GUI_StartupChangeStep("Initializing HTTP server. Plug in Ethernet cable");
     HTTPSRV_Init();
 
-    LOGGER_WRITELN((LOGGER_PROJECT_LOGO));
-
-    /* Open default window */
+    /* Open desktop window */
     GUI_DesktopCreate();
+
+    /* Start GUI and touch tasks */
+    if (!GUI_RTOSInit()) {
+    	LOGGER_WRITELN(("GUI/Touch RTOS error. Check heap and stack usage"));
+    }
+
+    LOGGER_WRITELN((LOGGER_PROJECT_LOGO));
 
     vTaskDelete(NULL); /* Deleting startup task allows lower priority tasks (GUI, server, ...) to work */
 }
@@ -177,7 +185,5 @@ void BOARD_TouchEvent(TouchInfo_t *touchInfo)
 
 bool BOARD_RTOSInit(void)
 {
-	return SDCARD_RTOSInit()
-			&& GUI_RTOSInit()
-			&& (xTaskCreate(BOARD_StartupTask, TASK_STARTUP_NAME, TASK_STARTUP_STACK, NULL, TASK_STARTUP_PRIO, NULL) != pdFAIL);
+	return (xTaskCreate(BOARD_StartupTask, TASK_STARTUP_NAME, TASK_STARTUP_STACK, NULL, TASK_STARTUP_PRIO, NULL) != pdFAIL);
 }

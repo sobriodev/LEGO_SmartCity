@@ -9,13 +9,6 @@
 /* Card descriptor (located in FatFS files) */
 extern sd_card_t g_sd;
 
-/* Data written to the card */
-SDK_ALIGN(uint8_t g_dataWrite[SDK_SIZEALIGN(SDCARD_DATA_BUFFER_SIZE, SDMMC_DATA_BUFFER_ALIGN_CACHE)],
-		MAX(SDMMC_DATA_BUFFER_ALIGN_CACHE, SDMMCHOST_DMA_BUFFER_ADDR_ALIGN));
-/* Data read from the card */
-SDK_ALIGN(uint8_t g_dataRead[SDK_SIZEALIGN(SDCARD_DATA_BUFFER_SIZE, SDMMC_DATA_BUFFER_ALIGN_CACHE)],
-		MAX(SDMMC_DATA_BUFFER_ALIGN_CACHE, SDMMCHOST_DMA_BUFFER_ADDR_ALIGN));
-
 /* SDMMC host detect card configuration */
 static const sdmmchost_detect_card_t s_sdCardDetect = {
 		.cdType = BOARD_SD_DETECT_TYPE,
@@ -108,94 +101,67 @@ static void SDCARD_Detect(void)
 	xQueueSendToBack(taskResQueue, &result, 0);
 }
 
-/* Function for loading settings from sd card */
-static void SDCARD_Load(void)
+static void SDCARD_IO(const SDCARDIOParams_t *params)
 {
-	FIL readFile;
-	Settings_t settingsBuff;
-	uint32_t bytesRead;
-
-	bool taskResult = false;
+	bool res = false;
 
 	/* Take main sd semaphore. If pdFAIL is returned sd card is not inserted or another I/O operation is executing */
 	if (xSemaphoreTake(sdcardAccessSemaphore, SDCARD_IO_WAIT) != pdPASS) {
 		LOGGER_WRITELN(("SD card not active"));
 
-		xQueueSendToBack(taskResQueue, &taskResult, 0);
+		xQueueSendToBack(taskResQueue, &res, 0);
 		return;
 	}
 
-	/* Open file */
-	fsResult = f_open(&readFile, SDCARD_SETTINGS_PATH, FA_READ);
+	/* Open settings file */
+	FIL settingsFile;
+	fsResult = f_open(&settingsFile, SDCARD_SETTINGS_PATH, params->openMode);
 
 	if (fsResult) {
 		LOGGER_WRITELN(("Settings file not found"));
 
-		xQueueSendToBack(taskResQueue, &taskResult, 0);
+		xQueueSendToBack(taskResQueue, &res, 0);
 		xSemaphoreGive(sdcardAccessSemaphore);
 		return;
 	}
 
-	/* Read file */
-	fsResult = f_read(&readFile, &settingsBuff, sizeof(Settings_t), &bytesRead);
-
-	if (fsResult || bytesRead != sizeof(Settings_t)) {
-		LOGGER_WRITELN(("Unable to read settings. Corrupted file"));
-	} else {
-		LOGGER_WRITELN(("Settings successfully loaded"));
-
-		SETTINGS_Replace(&settingsBuff); /* Load succeed. Replace settings */
-		taskResult = true;
+	/* Save/load operation */
+	if (!params->opFn(&settingsFile) || f_close(&settingsFile)) {
+		LOGGER_WRITELN(("SD card IO error"));
 	}
 
-	xQueueSendToBack(taskResQueue, &taskResult, 0);
+	LOGGER_WRITELN(("Settings import/export succeed"));
 
-	f_close(&readFile);
+	xQueueSendToBack(taskResQueue, &res, 0);
 	xSemaphoreGive(sdcardAccessSemaphore);
 }
 
-/* Function for saving settings on sd card */
-static void SDCARD_Save(void)
+/* Function for loading settings from sd card */
+static bool SDCARD_Load(FIL *readFile)
 {
-	FIL writeFile;
-	uint32_t bytesWritten;
+	Settings_t settingsBuff;
+	uint32_t bytesRead;
+
+	/* Read file */
+	fsResult = f_read(readFile, &settingsBuff, sizeof(Settings_t), &bytesRead);
+
+	if (fsResult || bytesRead != sizeof(Settings_t)) {
+		return false;
+	}
+
+	SETTINGS_Replace(&settingsBuff); /* Load succeed. Replace settings */
+	return true;
+}
+
+/* Function for saving settings on sd card */
+static bool SDCARD_Save(FIL *writeFile)
+{
 	Settings_t *settings = SETTINGS_GetInstance();
-
-	bool taskResult = false;
-
-	/* Take main sd semaphore. If pdFAIL is returned sd card is not inserted or another I/O operation is executing */
-	if (xSemaphoreTake(sdcardAccessSemaphore, SDCARD_IO_WAIT) != pdPASS) {
-		LOGGER_WRITELN(("SD card not active"));
-
-		xQueueSendToBack(taskResQueue, &taskResult, 0);
-		return;
-	}
-
-	/* Open file */
-	fsResult = f_open(&writeFile, SDCARD_SETTINGS_PATH, FA_CREATE_ALWAYS | FA_WRITE);
-
-	if (fsResult) {
-		LOGGER_WRITELN(("Error while creating settings file"));
-
-		xQueueSendToBack(taskResQueue, &taskResult, 0);
-		xSemaphoreGive(sdcardAccessSemaphore);
-		return;
-	}
+	uint32_t bytesWritten;
 
 	/* Write file */
-	fsResult = f_write(&writeFile, settings, sizeof(Settings_t), &bytesWritten);
-
-	if (fsResult || bytesWritten != sizeof(Settings_t)) {
-		LOGGER_WRITELN(("Unable to write settings"));
-	} else {
-		LOGGER_WRITELN(("Settings successfully saved"));
-		taskResult = true;
-	}
-
-	xQueueSendToBack(taskResQueue, &taskResult, 0);
-
-	f_close(&writeFile);
-	xSemaphoreGive(sdcardAccessSemaphore);
+	fsResult = f_write(writeFile, settings, sizeof(Settings_t), &bytesWritten);
+	return (!fsResult && bytesWritten == sizeof(Settings_t));
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -214,29 +180,29 @@ bool SDCARD_RTOSInit(void)
 {
 	/* Result queue */
 	taskResQueue = xQueueCreate(1, sizeof(bool));
-
-	if (taskResQueue == NULL) {
-		return false;
-	}
-
-	/* Semaphores */
+	/* Access semaphore */
 	sdcardAccessSemaphore = xSemaphoreCreateBinary();
 
-	return (sdcardAccessSemaphore != NULL);
+	return (taskResQueue != NULL && sdcardAccessSemaphore != NULL);
 }
 
 bool SDCARD_IOGeneric(SDCARDIO_t operation)
 {
 	bool res;
+	SDCARDIOParams_t params;
 
 	switch (operation) {
 	case SDCARD_SAVE:
-		SDCARD_Save();
+		params.openMode = FA_CREATE_ALWAYS | FA_WRITE;
+		params.opFn = SDCARD_Save;
 		break;
 	case SDCARD_LOAD:
-		SDCARD_Load();
+		params.openMode = FA_READ;
+		params.opFn = SDCARD_Load;
 		break;
 	}
+
+	SDCARD_IO(&params);
 
 	xQueueReceive(taskResQueue, &res, portMAX_DELAY); /* Wait for response */
 	return res;

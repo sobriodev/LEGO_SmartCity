@@ -28,22 +28,20 @@
 /* ----------------------------------------------------------------------------- */
 
 /* MAC address configuration. */
-#define configMAC_ADDR {0x02, 0x12, 0x13, 0x10, 0x15, 0x11}
-
+#define HTTPSRV_MAC_ADDR 				{0x02, 0x12, 0x13, 0x10, 0x15, 0x11}
 /* Address of PHY interface. */
-#define EXAMPLE_PHY_ADDRESS BOARD_ENET0_PHY_ADDRESS
-
+#define HTTPSRV_PHY_ADDRESS 			BOARD_ENET0_PHY_ADDRESS
 /* System clock name. */
-#define EXAMPLE_CLOCK_NAME kCLOCK_CoreSysClk
-
+#define HTTPSRV_CLOCK_NAME 				kCLOCK_CoreSysClk
 /* Memory not usable by ENET DMA. */
-#define NON_DMA_MEMORY_ARRAY {{0x0U, 0x80000U}, {0x0U, 0x0U}}
+#define HTTPSRV_NON_DMA_MEMORY_ARRAY	{{0x0U, 0x80000U}, {0x0U, 0x0U}}
 
-#define HTTPD_DEBUG LWIP_DBG_ON
-#define HTTPD_STACKSIZE DEFAULT_THREAD_STACKSIZE
-#define HTTPD_PRIORITY DEFAULT_THREAD_PRIO
-#define DEBUG_WS 0
+/* lwIP specific macros */
+#define HTTPD_DEBUG 					LWIP_DBG_ON
+#define HTTPD_STACKSIZE					DEFAULT_THREAD_STACKSIZE
+#define HTTPD_PRIORITY 					DEFAULT_THREAD_PRIO
 
+#define HTTPSRV_DEFAULT_PAGE			"/index.html"
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */

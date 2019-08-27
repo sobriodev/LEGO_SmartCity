@@ -13,16 +13,16 @@ const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[] = {
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-int API_TestConn(HTTPSRV_CGI_REQ_STRUCT *param)
+int32_t API_TestConn(HTTPSRV_CGI_REQ_STRUCT *param)
 {
     HTTPSRV_CGI_RES_STRUCT response = {0};
 
     response.ses_handle = param->ses_handle;
     response.status_code = HTTPSRV_CODE_OK;
 
-    response.content_type = HTTPSRV_CONTENT_TYPE_HTML;
-    response.data = "OK";
-    response.data_length = 2;
+    response.content_type = HTTPSRV_CONTENT_TYPE_JSON;
+    response.data = "{response: \"OK\"}";
+    response.data_length = strlen("{response: \"OK\"}");
     response.content_length = response.data_length;
 
     HTTPSRV_cgi_write(&response);

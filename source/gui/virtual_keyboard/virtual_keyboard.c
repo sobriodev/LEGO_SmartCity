@@ -196,11 +196,12 @@ static bool VK_CreateButtons(void)
 	/* ENTER button */
 	vkData.funcButtons[VK_ENTER_ARR] = BUTTON_CreateEx(VK_ENTER_X, VK_BUTTON_ROW4_Y, VK_BUTTON_MEDIUM_XSIZE, VK_BUTTON_YSIZE, selfWin, WM_CF_SHOW, 0, VK_BUTTON_FUNC_ID + VK_ENTER_ARR);
 
-	for (int i = 0; i < VK_NUM_FUNC_BUTTONS; i++) {
+	for (uint8_t i = 0; i < VK_NUM_FUNC_BUTTONS; i++) {
 		if (!vkData.funcButtons[i]) {
 			GUI_FailedHook();
 			return false;
 		}
+
 		BUTTON_SetTextColor(vkData.funcButtons[i], BUTTON_CI_UNPRESSED, VK_BUTTON_TXT_COLOR);
 		BUTTON_SetFont(vkData.funcButtons[i], VK_FONT);
 		BUTTON_SetFocusable(vkData.funcButtons[i], 0);
@@ -283,7 +284,7 @@ static void VK_FuncButtonClicked(uint8_t funcButton)
 {
 	switch (funcButton) {
 
-	case VK_SHIFT_ARR:
+	case VK_SHIFT_ARR: /* Shift clicked */
 
 		vkData.shiftPressed = !vkData.shiftPressed;
 
@@ -302,7 +303,7 @@ static void VK_FuncButtonClicked(uint8_t funcButton)
 
 		break;
 
-	case VK_CAPS_ARR:
+	case VK_CAPS_ARR: /* Caps clicked */
 
 		vkData.capsPressed = !vkData.capsPressed;
 
@@ -319,22 +320,22 @@ static void VK_FuncButtonClicked(uint8_t funcButton)
 		}
 		break;
 
-	case VK_BACKSPACE_ARR:
+	case VK_BACKSPACE_ARR: /* Backspace clicked */
 		EDIT_AddKey(vkData.inputHandle, GUI_KEY_BACKSPACE);
 		break;
 
-	case VK_ENTER_ARR:
+	case VK_ENTER_ARR: /* Enter clicked */
 
 		EDIT_GetText(vkData.inputHandle, inputBuffer, VK_INPUT_MAX_LEN);
 
 		/* Validation function was passed */
 		if (vkData.params->validatorFn != NULL && vkData.params->validatorFn(inputBuffer)) {
 			EDIT_SetText(vkData.params->inputHandle, inputBuffer);
-			GUI_EndDialog(selfWin, 1); /* OK */
+			GUI_EndDialog(selfWin, VK_STORED); /* OK */
 			break;
 		}
 
-		GUI_EndDialog(selfWin, 0); /* Validation failed */
+		GUI_EndDialog(selfWin, VK_NON_VALID); /* Validation failed */
 		break;
 
 	default:
@@ -358,8 +359,12 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 
 		/* Setup GUI skins and create all buttons */
 		VK_setupGuiSkins();
-		VK_CreateButtons();
-		VK_CreateInput(); /* Create input and description after user data was passed */
+
+		/* Create buttons and input/description */
+		if (!VK_CreateButtons() || !VK_CreateInput()) {
+			GUI_EndDialog(selfWin, VK_FAILURE);
+		}
+
 		WM_InvalidateWindow(selfWin);
 		break;
 	case WM_DELETE:
@@ -374,7 +379,6 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 
 		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED) {
 			if (notifyWidgetId >= VK_BUTTON_ID && notifyWidgetId < VK_BUTTON_FUNC_ID) {
-
 				/* Normal button was clicked. Add new character */
 				BUTTON_GetText(vkData.buttons[notifyWidgetId - VK_BUTTON_ID], charToStrConvArray, 2);
 				EDIT_AddKey(vkData.inputHandle, charToStrConvArray[0]);
@@ -396,15 +400,15 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-bool VK_GetInput(const VKParams_t *params)
+VKInputStatus_t VK_GetInput(const VKParams_t *params)
 {
 	vkData.params = params;
 	WM_HWIN win = GUI_CreateDialogBox(vkDialog, GUI_COUNTOF(vkDialog), VK_Callback, WM_HBKWIN, 0, 0);
 
 	if (!win) {
 		GUI_FailedHook();
-		return false;
+		return VK_FAILURE;
 	}
 
-	return (bool)GUI_ExecCreatedDialog(win);
+	return (VKInputStatus_t)GUI_ExecCreatedDialog(win);
 }

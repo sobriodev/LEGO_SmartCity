@@ -32,7 +32,8 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 			if (VK_GetInput(&params)) {
 				EDIT_GetText(e, buff, 15);
 				stringToIPv4(buff, &addr0, &addr1, &addr2, &addr3);
-				PRINTF("%d %d %d %d", addr0, addr1, addr2, addr3);
+				SETTINGS_GetInstance()->httpsrvIp = IP4_TO_UINT32(addr0, addr1, addr2, addr3);
+				SDCARD_ExportSettings();
 			}
 		}
 

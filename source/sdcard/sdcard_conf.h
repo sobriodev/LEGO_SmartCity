@@ -24,14 +24,13 @@
 /* ----------------------------------------------------------------------------- */
 
 /* Data block count accessed in card */
-#define SDCARD_DATA_BLOCK_COUNT (5U)
+#define SDCARD_DATA_BLOCK_COUNT 	(5U)
 /* Data buffer size. */
-#define SDCARD_DATA_BUFFER_SIZE (FSL_SDMMC_DEFAULT_BLOCK_SIZE * SDCARD_DATA_BLOCK_COUNT)
-
-#define SDCARD_IO_WAIT		pdMS_TO_TICKS(20)
+#define SDCARD_DATA_BUFFER_SIZE		(FSL_SDMMC_DEFAULT_BLOCK_SIZE * SDCARD_DATA_BLOCK_COUNT)
+#define SDCARD_IO_WAIT				pdMS_TO_TICKS(20)
 
 /* The file in which settings will be stored */
-#define SDCARD_SETTINGS_PATH	"/settings.dat"
+#define SDCARD_SETTINGS_PATH		"/settings.dat"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- DATA TYPES --------------------------------- */
@@ -45,13 +44,30 @@ typedef enum {
 	SDCARD_LOAD 	//!< Load operation
 } SDCARDIO_t;
 
+/*!
+ * \brief IO operation function
+ *
+ * \param fp : File base address
+ * \return True if operation passed, false otherwise
+ */
+typedef bool(*SDCARDIOFn_t)(FIL *fp);
+
+/*!
+ * \brief IO operation params
+ */
+typedef struct {
+	BYTE openMode; 		//!< File open mode
+	SDCARDIOFn_t opFn;	//!< Operation function base address
+} SDCARDIOParams_t;
+
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- API_FUNCTIONS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
 /*!
  * \brief Search and mount SD card
- * @return True if succeed, false otherwise
+ *
+ * \return True if succeed, false otherwise
  */
 bool SDCARD_Init(void);
 
