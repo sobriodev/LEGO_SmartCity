@@ -42,7 +42,7 @@
 typedef enum {
 	SDCARD_SAVE,	//!< Save operation
 	SDCARD_LOAD 	//!< Load operation
-} SDCARDIO_t;
+} SDCARD_IO_t;
 
 /*!
  * \brief IO operation function
@@ -50,15 +50,15 @@ typedef enum {
  * \param fp : File base address
  * \return True if operation passed, false otherwise
  */
-typedef bool(*SDCARDIOFn_t)(FIL *fp);
+typedef bool(*SDCARDIO_Fn_t)(FIL *fp);
 
 /*!
  * \brief IO operation params
  */
 typedef struct {
 	BYTE openMode; 		//!< File open mode
-	SDCARDIOFn_t opFn;	//!< Operation function base address
-} SDCARDIOParams_t;
+	SDCARDIO_Fn_t opFn;	//!< Operation function base address
+} SDCARD_IOParams_t;
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- API_FUNCTIONS ------------------------------- */
@@ -85,7 +85,7 @@ bool SDCARD_RTOSInit(void);
  * \return True if operation succeed, false otherwise
  * \note This is only helper function. Use SDCARD_ExportSettings and SDCARD_ImportSettings functions for convenience
  */
-bool SDCARD_IOGeneric(SDCARDIO_t operation);
+bool SDCARD_IOGeneric(SDCARD_IO_t operation);
 
 /*!
  * \brief Save current settings on SD card

@@ -6,7 +6,7 @@
 #include "virtual_keyboard.h"
 #include "settings.h"
 #include "sdcard_conf.h"
-#include "misc.h"
+#include "conv.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -15,10 +15,11 @@
 EDIT_Handle e = 0;
 BUTTON_Handle b = 0;
 static WM_HWIN selfWin;
-
 char buff[15];
 
 uint8_t addr0, addr1, addr2, addr3;
+VK_Params_t params;
+GUI_BlockingDialogInfo_t infoGUI;
 
 void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 {
@@ -28,13 +29,17 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 	case WM_NOTIFY_PARENT:
 		widgetId = WM_GetId(pMsg->hWinSrc);
 		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_EDIT0) {
-			VKParams_t params = {e, "Enter true/false value", 15, true , VALIDATOR_IsIp4};
-			if (VK_GetInput(&params)) {
-				EDIT_GetText(e, buff, 15);
-				stringToIPv4(buff, &addr0, &addr1, &addr2, &addr3);
-				SETTINGS_GetInstance()->httpsrvIp = IP4_TO_UINT32(addr0, addr1, addr2, addr3);
-				SDCARD_ExportSettings();
-			}
+			params.copyVal = true;
+			params.inputDesc = "Description";
+			params.inputHandle = e;
+			params.maxLen = 15;
+			params.validatorFn = VALIDATOR_IsBool;
+			params.srcWin = pMsg->hWin;
+			infoGUI.dialog = DIALOG_VK;
+			infoGUI.data = &params;
+			infoGUI.winSrc = pMsg->hWin;
+
+			GUI_RequestBlockingDialog(&infoGUI);
 		}
 
 		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_BUTTON0) {
@@ -49,6 +54,17 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 	case WM_PAINT:
 		GUI_SetBkColor(GUI_LIGHTBLUE);
 		GUI_Clear();
+		break;
+	case MSG_VK: /* Virtual keyboard returned */
+		switch (pMsg->Data.v) {
+		case VK_FAILURE:
+			GUI_FailedHook();
+			break;
+		case VK_NON_VALID:
+		case VK_STORED:
+			break;
+		}
+		break;
 	default:
 		WM_DefaultProc(pMsg);
 	}

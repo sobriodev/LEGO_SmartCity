@@ -25,7 +25,7 @@
  * \param str : Input string base address
  * \return True if validation passed, false otherwise
  */
-typedef bool (*VALIDATORFn_t)(const char *str);
+typedef bool (*VALIDATOR_Fn_t)(const char *str);
 
 /* ----------------------------------------------------------------------------- */
 /* ---------------------------------- API_FUNCTIONS ---------------------------- */

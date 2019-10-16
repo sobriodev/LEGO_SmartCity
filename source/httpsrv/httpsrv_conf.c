@@ -2,7 +2,7 @@
 #include "logger.h"
 
 #include "settings.h"
-#include "misc.h"
+#include "conv.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE VARIABLES ---------------------------- */
@@ -16,7 +16,7 @@ static mem_range_t nonDmaMemory[] = HTTPSRV_NON_DMA_MEMORY_ARRAY;
 extern const HTTPSRV_FS_DIR_ENTRY httpsrv_fs_data[];
 
 /* Routes table */
-extern const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[];
+extern const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_apiTable[];
 
 /* IP, Netmask and Gateway addresses */
 static ip4_addr_t fslNetifIpAddr;
@@ -45,25 +45,25 @@ static void HTTPSRV_StackInit(void)
 
     tcpip_init(NULL, NULL);
 
-    Settings_t *settings = SETTINGS_GetInstance();
+    SETTINGS_t *settings = SETTINGS_GetInstance();
 
     IP4_ADDR(&fslNetifIpAddr,
-    		IP4_ADDR0(settings->httpsrvIp),
-			IP4_ADDR1(settings->httpsrvIp),
-			IP4_ADDR2(settings->httpsrvIp),
-			IP4_ADDR3(settings->httpsrvIp));
+    		CONV_IP4_ADDR0(settings->httpsrvIp),
+			CONV_IP4_ADDR1(settings->httpsrvIp),
+			CONV_IP4_ADDR2(settings->httpsrvIp),
+			CONV_IP4_ADDR3(settings->httpsrvIp));
 
     IP4_ADDR(&fslNetifNetmask,
-    		IP4_ADDR0(settings->httpsrvSm),
-			IP4_ADDR1(settings->httpsrvSm),
-			IP4_ADDR2(settings->httpsrvSm),
-			IP4_ADDR3(settings->httpsrvSm));
+    		CONV_IP4_ADDR0(settings->httpsrvSm),
+			CONV_IP4_ADDR1(settings->httpsrvSm),
+			CONV_IP4_ADDR2(settings->httpsrvSm),
+			CONV_IP4_ADDR3(settings->httpsrvSm));
 
     IP4_ADDR(&fslNetifGw,
-    		IP4_ADDR0(settings->httpsrvGw),
-			IP4_ADDR1(settings->httpsrvGw),
-			IP4_ADDR2(settings->httpsrvGw),
-			IP4_ADDR3(settings->httpsrvGw));
+    		CONV_IP4_ADDR0(settings->httpsrvGw),
+			CONV_IP4_ADDR1(settings->httpsrvGw),
+			CONV_IP4_ADDR2(settings->httpsrvGw),
+			CONV_IP4_ADDR3(settings->httpsrvGw));
 
     netifapi_netif_add(&fslNetif, &fslNetifIpAddr, &fslNetifNetmask, &fslNetifGw, &fsl_enet_config0,
                        ethernetif0_init, tcpip_input);
@@ -89,7 +89,7 @@ static void HTTPSRV_SocketInit(void)
     params.root_dir = "";
     params.index_page = HTTPSRV_DEFAULT_PAGE;
     params.auth_table = NULL;
-    params.cgi_lnk_tbl = HTTPSRV_ApiTable;
+    params.cgi_lnk_tbl = HTTPSRV_apiTable;
     params.ssi_lnk_tbl = NULL;
 
     /* Init HTTP Server.*/

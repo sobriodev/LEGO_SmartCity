@@ -101,7 +101,7 @@ static void SDCARD_Detect(void)
 	xQueueSendToBack(taskResQueue, &result, 0);
 }
 
-static void SDCARD_IO(const SDCARDIOParams_t *params)
+static void SDCARD_IO(const SDCARD_IOParams_t *params)
 {
 	bool res = false;
 
@@ -139,13 +139,13 @@ static void SDCARD_IO(const SDCARDIOParams_t *params)
 /* Function for loading settings from sd card */
 static bool SDCARD_Load(FIL *readFile)
 {
-	Settings_t settingsBuff;
+	SETTINGS_t settingsBuff;
 	uint32_t bytesRead;
 
 	/* Read file */
-	fsResult = f_read(readFile, &settingsBuff, sizeof(Settings_t), &bytesRead);
+	fsResult = f_read(readFile, &settingsBuff, sizeof(SETTINGS_t), &bytesRead);
 
-	if (fsResult || bytesRead != sizeof(Settings_t)) {
+	if (fsResult || bytesRead != sizeof(SETTINGS_t)) {
 		return false;
 	}
 
@@ -156,12 +156,12 @@ static bool SDCARD_Load(FIL *readFile)
 /* Function for saving settings on sd card */
 static bool SDCARD_Save(FIL *writeFile)
 {
-	Settings_t *settings = SETTINGS_GetInstance();
+	SETTINGS_t *settings = SETTINGS_GetInstance();
 	uint32_t bytesWritten;
 
 	/* Write file */
-	fsResult = f_write(writeFile, settings, sizeof(Settings_t), &bytesWritten);
-	return (!fsResult && bytesWritten == sizeof(Settings_t));
+	fsResult = f_write(writeFile, settings, sizeof(SETTINGS_t), &bytesWritten);
+	return (!fsResult && bytesWritten == sizeof(SETTINGS_t));
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -186,10 +186,10 @@ bool SDCARD_RTOSInit(void)
 	return (taskResQueue != NULL && sdcardAccessSemaphore != NULL);
 }
 
-bool SDCARD_IOGeneric(SDCARDIO_t operation)
+bool SDCARD_IOGeneric(SDCARD_IO_t operation)
 {
 	bool res;
-	SDCARDIOParams_t params;
+	SDCARD_IOParams_t params;
 
 	switch (operation) {
 	case SDCARD_SAVE:

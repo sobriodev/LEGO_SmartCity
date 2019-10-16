@@ -23,7 +23,7 @@ typedef struct {
 	uint32_t httpsrvSm;
 	uint32_t httpsrvGw;
 	char httpsrvDnsName[MDNS_MAX_LENGTH];
-} Settings_t;
+} SETTINGS_t;
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ API FUNCTIONS -------------------------------- */
@@ -34,21 +34,21 @@ typedef struct {
  *
  * \return Settings struct base address
  */
-Settings_t *SETTINGS_GetInstance(void);
+SETTINGS_t *SETTINGS_GetInstance(void);
 
 /*!
  * \brief Get default settings
  *
  * \return Default settings base address
  */
-const Settings_t *SETTINGS_GetDefaults(void);
+const SETTINGS_t *SETTINGS_GetDefaults(void);
 
 /*!
  * \brief Replace current settings
  *
  * \param src : New settings base address
  */
-void SETTINGS_Replace(const Settings_t *src);
+void SETTINGS_Replace(const SETTINGS_t *src);
 
 /*!
  * \brief Restore default settings

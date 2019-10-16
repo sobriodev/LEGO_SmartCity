@@ -145,7 +145,7 @@ void BOARD_SetBacklightPercent(uint8_t percent)
 	SCTIMER_UpdatePwmDutycycle(SCT0, 5, percent, backlightPWMEvent);
 }
 
-void BOARD_TouchEvent(TouchInfo_t *touchInfo)
+void BOARD_TouchEvent(BOARD_TouchInfo_t *touchInfo)
 {
     touch_event_t touchEvent;
     int touchX;
@@ -185,5 +185,5 @@ void BOARD_TouchEvent(TouchInfo_t *touchInfo)
 
 bool BOARD_RTOSInit(void)
 {
-	return (xTaskCreate(BOARD_StartupTask, TASK_STARTUP_NAME, TASK_STARTUP_STACK, NULL, TASK_STARTUP_PRIO, NULL) != pdFAIL);
+	return (xTaskCreate(BOARD_StartupTask, BOARD_TASK_STARTUP_NAME, BOARD_TASK_STARTUP_STACK, NULL, BOARD_TASK_STARTUP_PRIO, NULL) != pdFAIL);
 }

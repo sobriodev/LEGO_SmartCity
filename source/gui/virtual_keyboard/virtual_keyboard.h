@@ -158,12 +158,13 @@ typedef uint32_t VKButton_t;
  * \brief Input parameters struct
  */
 typedef struct {
+	WM_HWIN srcWin;				//!< Calling window
 	EDIT_Handle inputHandle; 	//!< Source input GUI handle
 	const char *inputDesc; 		//!< Input description
 	uint8_t maxLen; 			//!< Maximum input length
 	bool copyVal; 				//!< True if current value should be copied to the virtual keyboard, false otherwise
-	VALIDATORFn_t validatorFn;	//!< Optional validation function, NULL if not used
-} VKParams_t;
+	VALIDATOR_Fn_t validatorFn;	//!< Optional validation function, NULL if not used
+} VK_Params_t;
 
 /*!
  * \brief Possible return values when closing keyboard dialog
@@ -172,7 +173,7 @@ typedef enum {
 	VK_FAILURE = -1,	//!< Dialog creation error
 	VK_NON_VALID,		//!< Validation error
 	VK_STORED          	//!< Input stored
-} VKInputStatus_t;
+} VK_InputStatus_t;
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -182,9 +183,9 @@ typedef enum {
  * \brief Get input from virtual keyboard
  *
  * \param params : Input params. See VK_Params_t for more information
- * \return See VKInputStatus_t for more information
+ * \return See VK_InputStatus_t for more information
  * \note This is blocking function. It does not return until the dialog is closed
  */
-VKInputStatus_t VK_GetInput(const VKParams_t *params);
+VK_InputStatus_t VK_GetInput(const VK_Params_t *params);
 
 #endif /* GUI_VIRTUAL_KEYBOARD_VIRTUAL_KEYBOARD_H_ */

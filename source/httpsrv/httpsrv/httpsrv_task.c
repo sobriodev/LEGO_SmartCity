@@ -661,7 +661,7 @@ static HTTPSRV_SES_STATE httpsrv_req_do(HTTPSRV_STRUCT *server, HTTPSRV_SESSION_
     /* Check if requested resource is CGI script */
     if ((suffix = strrchr(session->request.path, '.')) != 0)
     {
-        if (0 == lwip_stricmp(suffix, ".cgi" ))
+        if (0 == lwip_stricmp(suffix, ".api" ))
         {
             *suffix = '\0';
             httpsrv_process_cgi(server, session, session->request.path + 1); /* +1 because of slash */

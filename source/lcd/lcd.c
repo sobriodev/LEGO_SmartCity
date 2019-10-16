@@ -5,20 +5,20 @@
 /* ----------------------------- PRIVATE VARIABLES ----------------------------- */
 /* ----------------------------------------------------------------------------- */
 
-static LCDState_t LCDState = LCD_ON; /* LCD active on startup */
+static LCD_State_t lcdState = LCD_ON; /* LCD active on startup */
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- API FUNCTIONS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
-LCDState_t LCD_GetState(void)
+LCD_State_t LCD_GetState(void)
 {
-	return LCDState;
+	return lcdState;
 }
 
-void LCD_SetState(LCDState_t state)
+void LCD_SetState(LCD_State_t state)
 {
-	LCDState = state;
+	lcdState = state;
 
 	uint8_t newPWMPercent;
 

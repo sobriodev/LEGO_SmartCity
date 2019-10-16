@@ -2,12 +2,7 @@
 #include "gui_startup.h"
 #include "logger.h"
 #include "board_conf.h"
-
-/* emWin */
-#include "emwin_support.h"
-#include "GUI.h"
-#include "WM.h"
-#include "BUTTON.h"
+#include "virtual_keyboard.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE VARIABLES ---------------------------- */
@@ -20,7 +15,10 @@ TaskHandle_t xBacklightTask;
 TimerHandle_t xBacklightTimer;
 
 /* Variable indicating touch event presence */
-TouchInfo_t touchInfo;
+BOARD_TouchInfo_t touchInfo;
+
+/* Blocking dialogs queue */
+QueueHandle_t blockingDialogQueue;
 
 /* ----------------------------------------------------------------------------- */
 /* --------------------------------- RTOS TASKS -------------------------------- */
@@ -28,11 +26,24 @@ TouchInfo_t touchInfo;
 
 static void GUI_MainTask(void *pvParameters)
 {
+	GUI_BlockingDialogInfo_t *blockingDialogInfo;
+
 	while (1) {
-		/* Prevent emWin for executing when LCD is not active */
-		if (touchInfo.eventLCDState != LCD_ON) {
-			vTaskDelay(RTOS_LCD_IDLE_TIME);
+
+		if (xQueueReceive(blockingDialogQueue, &blockingDialogInfo, 0) == pdPASS) {
+			switch (blockingDialogInfo->dialog) {
+				case DIALOG_VK: {
+					VK_Params_t *params = (VK_Params_t *)blockingDialogInfo->data;
+					VK_InputStatus_t res = VK_GetInput(params);
+					WM_MESSAGE feedback;
+					feedback.MsgId = MSG_VK;
+					feedback.Data.v = res;
+					WM_SendMessage(blockingDialogInfo->winSrc, &feedback);
+					break;
+				}
+			}
 		}
+
 		/* emWin execute */
 		WM_Exec();
 	}
@@ -48,6 +59,11 @@ static void GUI_TouchTask(void *pvParameters)
 			if (touchInfo.touchEvent) {
 				/* Touch event occurred. Send notification to the backlight task */
 				xTaskNotifyGive(xBacklightTask);
+
+				/* Prevent emWin from executing when LCD is not active */
+				if (touchInfo.eventLCDState != LCD_ON) {
+					vTaskDelay(GUI_LCD_IDLE_TIME);
+				}
 			}
 		}
 	}
@@ -66,7 +82,7 @@ static void GUI_BacklightTask(void *pvParameters)
 			case LCD_OFF:
 			default:
 				/* In the worst case the timer command queue will be full and LCD will change the state from ON to DIMMING faster */
-				xTimerChangePeriod(xBacklightTimer, RTOS_LCD_FROM_ON_TO_DIMMING_MS, 0);
+				xTimerChangePeriod(xBacklightTimer, GUI_LCD_FROM_ON_TO_DIMMING_MS, 0);
 				LCD_SetState(LCD_ON);
 			break;
 			}
@@ -79,7 +95,7 @@ static void GUI_BacklightTimer(TimerHandle_t xTimer)
 	switch (LCD_GetState()) {
 	case LCD_ON:
 		/* In the worst case the timer command queue will be full and LCD will not turn off */
-		if (xTimerChangePeriod(xBacklightTimer, RTOS_LCD_FROM_DIMMING_TO_OFF_MS, 0) != pdPASS) {
+		if (xTimerChangePeriod(xBacklightTimer, GUI_LCD_FROM_DIMMING_TO_OFF_MS, 0) != pdPASS) {
 			LCD_SetState(LCD_ON);
 			break;
 		}
@@ -97,10 +113,16 @@ static void GUI_BacklightTimer(TimerHandle_t xTimer)
 /* ------------------------------ PRIVATE FUNCTIONS ---------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+static bool GUI_QueuesCreate(void)
+{
+	blockingDialogQueue = xQueueCreate(1, sizeof(GUI_BlockingDialogInfo_t *));
+	return blockingDialogQueue != NULL;
+}
+
 static bool GUI_TimersCreate(void)
 {
 	/* Backlight timer */
-	xBacklightTimer = xTimerCreate(TIMER_BACKLIGHT_NAME, RTOS_LCD_FROM_ON_TO_DIMMING_MS, pdFALSE, NULL, GUI_BacklightTimer);
+	xBacklightTimer = xTimerCreate(GUI_TIMER_BACKLIGHT_NAME, GUI_LCD_FROM_ON_TO_DIMMING_MS, pdFALSE, NULL, GUI_BacklightTimer);
 
 	if (xBacklightTimer == NULL) {
 		return false;
@@ -116,17 +138,17 @@ static bool GUI_TasksCreate(void)
 	BaseType_t res = pdPASS;
 
 	/* emWin task */
-	if (xTaskCreate(GUI_MainTask, TASK_GUI_NAME, TASK_GUI_STACK, NULL, TASK_GUI_PRIO, NULL) != pdPASS) {
+	if (xTaskCreate(GUI_MainTask, GUI_TASK_GUI_NAME, GUI_TASK_GUI_STACK, NULL, GUI_TASK_GUI_PRIO, NULL) != pdPASS) {
 		res = false;
 	}
 
 	/* Touch task */
-	if (xTaskCreate(GUI_TouchTask, TASK_TOUCH_NAME, TASK_TOUCH_STACK, NULL, TASK_TOUCH_PRIO, NULL) != pdPASS) {
+	if (xTaskCreate(GUI_TouchTask, GUI_TASK_TOUCH_NAME, GUI_TASK_TOUCH_STACK, NULL, GUI_TASK_TOUCH_PRIO, NULL) != pdPASS) {
 		res =  false;
 	}
 
 	/* Backlight task */
-	if (xTaskCreate(GUI_BacklightTask, TASK_BACKLIGHT_NAME, TASK_BACKLIGHT_STACK, NULL, TASK_BACKLIGHT_PRIO, &xBacklightTask) != pdPASS) {
+	if (xTaskCreate(GUI_BacklightTask, GUI_TASK_BACKLIGHT_NAME, GUI_TASK_BACKLIGHT_STACK, NULL, GUI_TASK_BACKLIGHT_PRIO, &xBacklightTask) != pdPASS) {
 		res =  false;
 	}
 
@@ -139,7 +161,7 @@ static bool GUI_TasksCreate(void)
 
 bool GUI_RTOSInit(void)
 {
-	return GUI_TimersCreate() && GUI_TasksCreate();
+	return GUI_TimersCreate() && GUI_TasksCreate() && GUI_QueuesCreate();
 }
 
 void GUI_Start(void)
@@ -166,4 +188,9 @@ void GUI_Start(void)
 void GUI_FailedHook(void)
 {
 	LOGGER_WRITELN(("emWin widget creation error. Check stack and heap usage"));
+}
+
+bool GUI_RequestBlockingDialog(const GUI_BlockingDialogInfo_t *info)
+{
+	return (xQueueSendToBack(blockingDialogQueue, &info, 0) == pdPASS);
 }

@@ -1,10 +1,10 @@
-#include "httpsrv_api.h"
+#include <api.h>
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- PUBLIC VARIABLES ---------------------------- */
 /* ----------------------------------------------------------------------------- */
 
-const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[] = {
+const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_apiTable[] = {
     {"test", API_TestConn},
     {0, 0} /* Do not remove */
 };

@@ -10,7 +10,7 @@
  * \brief Virtual keyboard data
  */
 typedef struct {
-	const VKParams_t *params;						//!< Input params base address
+	const VK_Params_t *params;						//!< Input params base address
 	BUTTON_Handle buttons[VK_NUM_BUTTONS];			//!< GUI buttons
 	BUTTON_Handle funcButtons[VK_NUM_FUNC_BUTTONS];	//!< GUI func buttons
 	EDIT_Handle inputHandle;						//!< Input widget
@@ -78,7 +78,7 @@ static const VKButton_t vkButtonsProps[VK_NUM_BUTTONS] =
 
 static const GUI_WIDGET_CREATE_INFO vkDialog[] =
 {
-		{ WINDOW_CreateIndirect, NULL, 0, 0, 0, LCD_WIDTH, LCD_HEIGHT, WM_CF_SHOW, 0, 0 },
+		{ WINDOW_CreateIndirect, NULL, 0, 0, 0, LCD_WIDTH, LCD_HEIGHT, 0, 0, 0 },
 };
 
 /* Virtual keyboard data instance (handles and settings) */
@@ -327,15 +327,19 @@ static void VK_FuncButtonClicked(uint8_t funcButton)
 	case VK_ENTER_ARR: /* Enter clicked */
 
 		EDIT_GetText(vkData.inputHandle, inputBuffer, VK_INPUT_MAX_LEN);
-
 		/* Validation function was passed */
-		if (vkData.params->validatorFn != NULL && vkData.params->validatorFn(inputBuffer)) {
+		if (vkData.params->validatorFn != NULL) {
+			if (vkData.params->validatorFn(inputBuffer)) {
+				EDIT_SetText(vkData.params->inputHandle, inputBuffer);
+				GUI_EndDialog(selfWin, VK_STORED); /* OK */
+			} else {
+				GUI_EndDialog(selfWin, VK_NON_VALID); /* Validation failed */
+			}
+		} else {
 			EDIT_SetText(vkData.params->inputHandle, inputBuffer);
 			GUI_EndDialog(selfWin, VK_STORED); /* OK */
-			break;
 		}
 
-		GUI_EndDialog(selfWin, VK_NON_VALID); /* Validation failed */
 		break;
 
 	default:
@@ -400,15 +404,14 @@ static void VK_Callback(WM_MESSAGE *pMsg)
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-VKInputStatus_t VK_GetInput(const VKParams_t *params)
+VK_InputStatus_t VK_GetInput(const VK_Params_t *params)
 {
 	vkData.params = params;
 	WM_HWIN win = GUI_CreateDialogBox(vkDialog, GUI_COUNTOF(vkDialog), VK_Callback, WM_HBKWIN, 0, 0);
 
 	if (!win) {
-		GUI_FailedHook();
 		return VK_FAILURE;
 	}
 
-	return (VKInputStatus_t)GUI_ExecCreatedDialog(win);
+	return (VK_InputStatus_t)GUI_ExecCreatedDialog(win);
 }

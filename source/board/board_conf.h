@@ -13,9 +13,9 @@
 /* ----------------------------------- MACROS ---------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
-#define TASK_STARTUP_NAME		"TASK-STARTUP"
-#define TASK_STARTUP_STACK		0x2710
-#define TASK_STARTUP_PRIO		(configMAX_PRIORITIES - 2)
+#define BOARD_TASK_STARTUP_NAME		"TASK-STARTUP"
+#define BOARD_TASK_STARTUP_STACK	0x2710
+#define BOARD_TASK_STARTUP_PRIO		(configMAX_PRIORITIES - 2)
 
 /* ----------------------------------------------------------------------------- */
 /* --------------------------------- DATA TYPES -------------------------------- */
@@ -27,16 +27,16 @@
 typedef enum {
 	TOUCH_PANEL_STATUS_ERROR = -1,	//!< An error occurred and touch event cannot be processed
 	TOUCH_PANEL_STATUS_OK         	//!< A touch event was successfully stored
-} TouchPanelStatus_t;
+} BOARD_TouchPanelStatus_t;
 
 /*!
  * \brief Structure containing response from touch panel controller
  */
 typedef struct {
-	TouchPanelStatus_t touchPanelStatus;	//!< See TouchPanelStatus_t for more information
-	int touchEvent;							//!< If 1 new touch event was generated, 0 otherwise
-	LCDState_t eventLCDState;				//!< LCD state when touch event was generated. See TouchInfo_t for more information
-} TouchInfo_t;
+	BOARD_TouchPanelStatus_t touchPanelStatus;	//!< See BOARD_TouchPanelStatus_t for more information
+	uint32_t touchEvent;						//!< If 1 new touch event was generated, 0 otherwise
+	LCD_State_t eventLCDState;					//!< LCD state when touch event was generated. See LCD_State_t for more information
+} BOARD_TouchInfo_t;
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -62,9 +62,9 @@ void BOARD_SetBacklightPercent(uint8_t percent);
 /*!
  * \brief Poll the touch controller for new events
  *
- * \param touchInfo : Base address of TouchInfo_t struct
+ * \param touchInfo : Base address of BOARD_TouchInfo_t struct
  */
-void BOARD_TouchEvent(TouchInfo_t *touchInfo);
+void BOARD_TouchEvent(BOARD_TouchInfo_t *touchInfo);
 
 /*!
  * \brief The function creates startup task which create and configure all RTOS routines
