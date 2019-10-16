@@ -11,7 +11,7 @@ int main(void)
 	BOARD_Init();
     BOARD_InitBacklightPWM();
 
-    /* Create GUI/SDCARD tasks. Http server task is created internally inside lwIP files */
+    /* Create all needed tasks. Http server task is created internally inside lwIP files */
     if (!BOARD_RTOSInit()) {
     	LOGGER_WRITELN(("RTOS startup error. Check heap and stack usage"));
     }

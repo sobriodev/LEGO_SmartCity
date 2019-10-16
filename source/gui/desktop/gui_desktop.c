@@ -7,6 +7,7 @@
 #include "settings.h"
 #include "sdcard_conf.h"
 #include "conv.h"
+#include "confirm.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -20,6 +21,8 @@ char buff[15];
 uint8_t addr0, addr1, addr2, addr3;
 VK_Params_t params;
 GUI_BlockingDialogInfo_t infoGUI;
+CONFIRM_Params_t p;
+GUI_BlockingDialogInfo_t infoConfirm;
 
 void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 {
@@ -43,6 +46,12 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 		}
 
 		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_BUTTON0) {
+			p.msg = "This kind of view requires application restart. Choose correct option and see how it works!";
+			p.type = CONFIRM_ALERT;
+			infoConfirm.dialog = DIALOG_CONFIRM;
+			infoConfirm.winSrc = pMsg->hWin;
+			infoConfirm.data = &p;
+			GUI_RequestBlockingDialog(&infoConfirm);
 		}
 
 		break;
@@ -62,8 +71,16 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 			break;
 		case VK_NON_VALID:
 		case VK_STORED:
+			p.msg = "This kind of view requires application restart. Choose correct option and see how it works!";
+			p.type = CONFIRM_CONFIRM;
+			infoConfirm.dialog = DIALOG_CONFIRM;
+			infoConfirm.winSrc = pMsg->hWin;
+			infoConfirm.data = &p;
+			GUI_RequestBlockingDialog(&infoConfirm);
 			break;
 		}
+		break;
+	case MSG_CONFIRM:
 		break;
 	default:
 		WM_DefaultProc(pMsg);

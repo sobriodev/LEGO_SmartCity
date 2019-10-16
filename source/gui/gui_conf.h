@@ -51,14 +51,16 @@
  * \brief Possible blocking dialogs
  */
 typedef enum {
-	DIALOG_VK	//!< Virtual keyboard dialog
+	DIALOG_VK,		//!< Virtual keyboard dialog
+	DIALOG_CONFIRM	//!< Confirmation dialog
 } GUI_BlockingDialog_t;
 
 /*!
  * \brief Messages sent back when dialog window returned
  */
 typedef enum {
-	MSG_VK = WM_USER	//!< Virtual keyboard dialog returned
+	MSG_VK = WM_USER,	//!< Virtual keyboard dialog returned
+	MSG_CONFIRM
 } GUI_UserMsgId_t;
 
 /*!

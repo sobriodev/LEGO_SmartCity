@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "board_conf.h"
 #include "virtual_keyboard.h"
+#include "confirm.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE VARIABLES ---------------------------- */
@@ -30,13 +31,23 @@ static void GUI_MainTask(void *pvParameters)
 
 	while (1) {
 
+		/* Check if any dialog window is pending */
 		if (xQueueReceive(blockingDialogQueue, &blockingDialogInfo, 0) == pdPASS) {
 			switch (blockingDialogInfo->dialog) {
-				case DIALOG_VK: {
+				case DIALOG_VK: { /* Virtual keyboard */
 					VK_Params_t *params = (VK_Params_t *)blockingDialogInfo->data;
 					VK_InputStatus_t res = VK_GetInput(params);
 					WM_MESSAGE feedback;
 					feedback.MsgId = MSG_VK;
+					feedback.Data.v = res;
+					WM_SendMessage(blockingDialogInfo->winSrc, &feedback);
+					break;
+				}
+				case DIALOG_CONFIRM: { /* Confirmation */
+					CONFIRM_Params_t *params = (CONFIRM_Params_t *)blockingDialogInfo->data;
+					CONFIRM_Status_t res = CONFIRM_Exec(params);
+					WM_MESSAGE feedback;
+					feedback.MsgId = MSG_CONFIRM;
 					feedback.Data.v = res;
 					WM_SendMessage(blockingDialogInfo->winSrc, &feedback);
 					break;
