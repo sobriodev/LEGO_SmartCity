@@ -48,6 +48,7 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_BUTTON0) {
 			p.msg = "This kind of view requires application restart. Choose correct option and see how it works!";
 			p.type = CONFIRM_ALERT;
+			p.opCode = 100;
 			infoConfirm.dialog = DIALOG_CONFIRM;
 			infoConfirm.winSrc = pMsg->hWin;
 			infoConfirm.data = &p;

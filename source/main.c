@@ -14,6 +14,7 @@ int main(void)
     /* Create all needed tasks. Http server task is created internally inside lwIP files */
     if (!BOARD_RTOSInit()) {
     	LOGGER_WRITELN(("RTOS startup error. Check heap and stack usage"));
+    	while (1) {}
     }
 
     /* emWin config */

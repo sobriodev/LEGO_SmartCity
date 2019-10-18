@@ -69,7 +69,7 @@ typedef enum {
 typedef struct {
 	WM_HWIN winSrc; 				//!< Calling window
 	GUI_BlockingDialog_t dialog;	//!< Desired dialog. See GUI_BlockingDialog_t for more information
-	void *data; 					//!< Optional data pointer. It has to be valid until dialog returns
+	const void *data; 				//!< Optional data pointer. It has to be valid until dialog returns
 } GUI_BlockingDialogInfo_t;
 
 /* ----------------------------------------------------------------------------- */

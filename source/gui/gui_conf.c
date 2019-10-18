@@ -44,11 +44,17 @@ static void GUI_MainTask(void *pvParameters)
 					break;
 				}
 				case DIALOG_CONFIRM: { /* Confirmation */
+					/* Exec confirm dialog */
 					CONFIRM_Params_t *params = (CONFIRM_Params_t *)blockingDialogInfo->data;
 					CONFIRM_Status_t res = CONFIRM_Exec(params);
+					/* Fill feedback values */
+					CONFIRM_Feedback_t confirmRes;
+					confirmRes.status = res;
+					confirmRes.opCode = params->opCode;
+					/* Send message to the calling window */
 					WM_MESSAGE feedback;
 					feedback.MsgId = MSG_CONFIRM;
-					feedback.Data.v = res;
+					feedback.Data.p = &confirmRes;
 					WM_SendMessage(blockingDialogInfo->winSrc, &feedback);
 					break;
 				}
@@ -126,7 +132,7 @@ static void GUI_BacklightTimer(TimerHandle_t xTimer)
 
 static bool GUI_QueuesCreate(void)
 {
-	blockingDialogQueue = xQueueCreate(1, sizeof(GUI_BlockingDialogInfo_t *));
+	blockingDialogQueue = xQueueCreate(1, sizeof(const GUI_BlockingDialogInfo_t *));
 	return blockingDialogQueue != NULL;
 }
 

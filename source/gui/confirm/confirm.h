@@ -1,6 +1,8 @@
 #ifndef GUI_CONFIRM_CONFIRM_H_
 #define GUI_CONFIRM_CONFIRM_H_
 
+#include "stdint.h"
+
 /* emWin */
 #include "emwin_support.h"
 #include "GUI.h"
@@ -34,8 +36,9 @@ typedef enum {
  * \brief Dialog parameters
  */
 typedef struct {
-	CONFIRM_Type_t type;	//!< See CONFIRM_Type_T for more information
+	CONFIRM_Type_t type;	//!< See CONFIRM_Type_t for more information
 	const char *msg;		//!< Message to be displayed
+	uint32_t opCode;		//!< Operation identifier (typically what caused confirm dialog) sent back to the calling window
 } CONFIRM_Params_t;
 
 /*!
@@ -47,10 +50,24 @@ typedef enum {
 	CONFIRM_NO           	//!< Rejection
 } CONFIRM_Status_t;
 
+/*!
+ * \brief Data sent back to the calling window
+ */
+typedef struct {
+	CONFIRM_Status_t status;	//!< Confirm status. See CONFIRM_Status_t for more information
+	uint32_t opCode;			//!< Operation code. See CONFIRM_Params_t for more information
+} CONFIRM_Feedback_t;
+
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-CONFIRM_Status_t CONFIRM_Exec(CONFIRM_Params_t *params);
+/*!
+ * \brief Exec confirm window
+ *
+ * \param params : CONFIRM_Params_t structure base address
+ * \return See CONFIRM_Status_t for more information
+ */
+CONFIRM_Status_t CONFIRM_Exec(const CONFIRM_Params_t *params);
 
 #endif /* GUI_CONFIRM_CONFIRM_H_ */

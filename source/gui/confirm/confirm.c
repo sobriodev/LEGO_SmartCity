@@ -41,7 +41,7 @@ static const GUI_WIDGET_CREATE_INFO confirmInfoAlert[] = {
 };
 
 static WM_HWIN dialogWin; /* Self win */
-static CONFIRM_Params_t *dialogParams;
+static const CONFIRM_Params_t *dialogParams;
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE FUNCTIONS ---------------------------- */
@@ -92,14 +92,13 @@ static void CONFIRM_Callback(WM_MESSAGE *pMsg)
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-CONFIRM_Status_t CONFIRM_Exec(CONFIRM_Params_t *params)
+CONFIRM_Status_t CONFIRM_Exec(const CONFIRM_Params_t *params)
 {
 	dialogParams = params;
 	WM_HWIN dialog = (dialogParams->type == CONFIRM_CONFIRM) ? GUI_CreateDialogBox(confirmInfoConfirm, GUI_COUNTOF(confirmInfoConfirm), CONFIRM_Callback, WM_HBKWIN, 90, 61)
 															 : GUI_CreateDialogBox(confirmInfoAlert, GUI_COUNTOF(confirmInfoAlert), CONFIRM_Callback, WM_HBKWIN, 90, 61);
 
 	if (!dialog) {
-		GUI_FailedHook();
 		return CONFIRM_FAILURE;
 	}
 
