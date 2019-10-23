@@ -48,22 +48,22 @@ static void HTTPSRV_StackInit(void)
     SETTINGS_t *settings = SETTINGS_GetInstance();
 
     IP4_ADDR(&fslNetifIpAddr,
-    		CONV_IP4_ADDR0(settings->httpsrvIp),
-			CONV_IP4_ADDR1(settings->httpsrvIp),
+    		CONV_IP4_ADDR3(settings->httpsrvIp),
 			CONV_IP4_ADDR2(settings->httpsrvIp),
-			CONV_IP4_ADDR3(settings->httpsrvIp));
+			CONV_IP4_ADDR1(settings->httpsrvIp),
+			CONV_IP4_ADDR0(settings->httpsrvIp));
 
     IP4_ADDR(&fslNetifNetmask,
-    		CONV_IP4_ADDR0(settings->httpsrvSm),
-			CONV_IP4_ADDR1(settings->httpsrvSm),
+    		CONV_IP4_ADDR3(settings->httpsrvSm),
 			CONV_IP4_ADDR2(settings->httpsrvSm),
-			CONV_IP4_ADDR3(settings->httpsrvSm));
+			CONV_IP4_ADDR1(settings->httpsrvSm),
+			CONV_IP4_ADDR0(settings->httpsrvSm));
 
     IP4_ADDR(&fslNetifGw,
-    		CONV_IP4_ADDR0(settings->httpsrvGw),
-			CONV_IP4_ADDR1(settings->httpsrvGw),
+    		CONV_IP4_ADDR3(settings->httpsrvGw),
 			CONV_IP4_ADDR2(settings->httpsrvGw),
-			CONV_IP4_ADDR3(settings->httpsrvGw));
+			CONV_IP4_ADDR1(settings->httpsrvGw),
+			CONV_IP4_ADDR0(settings->httpsrvGw));
 
     netifapi_netif_add(&fslNetif, &fslNetifIpAddr, &fslNetifNetmask, &fslNetifGw, &fsl_enet_config0,
                        ethernetif0_init, tcpip_input);

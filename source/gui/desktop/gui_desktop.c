@@ -8,6 +8,7 @@
 #include "sdcard_conf.h"
 #include "conv.h"
 #include "confirm.h"
+#include "gui_settings.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -37,22 +38,15 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 			params.inputHandle = e;
 			params.maxLen = 15;
 			params.validatorFn = VALIDATOR_IsBool;
-			params.srcWin = pMsg->hWin;
 			infoGUI.dialog = DIALOG_VK;
 			infoGUI.data = &params;
-			infoGUI.winSrc = pMsg->hWin;
+			infoGUI.srcWin = pMsg->hWin;
 
 			GUI_RequestBlockingDialog(&infoGUI);
 		}
 
 		if (pMsg->Data.v == WM_NOTIFICATION_CLICKED && widgetId == GUI_ID_BUTTON0) {
-			p.msg = "This kind of view requires application restart. Choose correct option and see how it works!";
-			p.type = CONFIRM_ALERT;
-			p.opCode = 100;
-			infoConfirm.dialog = DIALOG_CONFIRM;
-			infoConfirm.winSrc = pMsg->hWin;
-			infoConfirm.data = &p;
-			GUI_RequestBlockingDialog(&infoConfirm);
+			GUI_SettingsOpen(pMsg->hWin);
 		}
 
 		break;
@@ -75,7 +69,7 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 			p.msg = "This kind of view requires application restart. Choose correct option and see how it works!";
 			p.type = CONFIRM_CONFIRM;
 			infoConfirm.dialog = DIALOG_CONFIRM;
-			infoConfirm.winSrc = pMsg->hWin;
+			infoConfirm.srcWin = pMsg->hWin;
 			infoConfirm.data = &p;
 			GUI_RequestBlockingDialog(&infoConfirm);
 			break;

@@ -40,7 +40,7 @@ static void GUI_MainTask(void *pvParameters)
 					WM_MESSAGE feedback;
 					feedback.MsgId = MSG_VK;
 					feedback.Data.v = res;
-					WM_SendMessage(blockingDialogInfo->winSrc, &feedback);
+					WM_SendMessage(blockingDialogInfo->srcWin, &feedback);
 					break;
 				}
 				case DIALOG_CONFIRM: { /* Confirmation */
@@ -55,7 +55,7 @@ static void GUI_MainTask(void *pvParameters)
 					WM_MESSAGE feedback;
 					feedback.MsgId = MSG_CONFIRM;
 					feedback.Data.p = &confirmRes;
-					WM_SendMessage(blockingDialogInfo->winSrc, &feedback);
+					WM_SendMessage(blockingDialogInfo->srcWin, &feedback);
 					break;
 				}
 			}

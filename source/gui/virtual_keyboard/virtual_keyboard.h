@@ -158,7 +158,6 @@ typedef uint32_t VKButton_t;
  * \brief Input parameters struct
  */
 typedef struct {
-	WM_HWIN srcWin;				//!< Calling window
 	EDIT_Handle inputHandle; 	//!< Source input GUI handle
 	const char *inputDesc; 		//!< Input description
 	uint8_t maxLen; 			//!< Maximum input length

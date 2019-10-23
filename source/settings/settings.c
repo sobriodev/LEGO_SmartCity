@@ -1,6 +1,5 @@
 #include "settings.h"
 #include "string.h"
-
 #include "conv.h"
 
 /* ----------------------------------------------------------------------------- */
@@ -12,7 +11,7 @@ static const SETTINGS_t defaultSettings = {
 		/* Http server related */
 		.httpsrvIp = CONV_IP4_TO_UINT32(192, 168, 0, 105),
 		.httpsrvSm = CONV_IP4_TO_UINT32(255, 255, 255, 0),
-		.httpsrvGw = CONV_IP4_TO_UINT32(192, 168, 0, 100),
+		.httpsrvGw = CONV_IP4_TO_UINT32(192, 168, 0, 1),
 		.httpsrvDnsName = "lego"
 };
 
