@@ -23,6 +23,8 @@ static const TCHAR driverNumberBuffer[3U] = {SDDISK + '0', ':', '/'};
 static FATFS fatfsFileSystem; /* File system object */
 static FRESULT fsResult;
 
+static bool isCardPresent;
+
 /* Queue for returning results from load/save tasks */
 static QueueHandle_t taskResQueue;
 
@@ -59,7 +61,8 @@ static void SDCARD_Detect(void)
 	/* SD host init */
 	if (SD_HostInit(&g_sd) == kStatus_Success) {
 
-		if (SD_IsCardPresent(&g_sd)) {
+		isCardPresent = SD_IsCardPresent(&g_sd);
+		if (isCardPresent) {
 
 			/* Reset SD power */
 			SD_PowerOffCard(g_sd.host.base, g_sd.usrParam.pwr);
@@ -206,4 +209,9 @@ bool SDCARD_IOGeneric(SDCARD_IO_t operation)
 
 	xQueueReceive(taskResQueue, &res, portMAX_DELAY); /* Wait for response */
 	return res;
+}
+
+bool SDCARD_IsPresent(void)
+{
+	return isCardPresent;
 }

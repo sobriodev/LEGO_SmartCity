@@ -108,4 +108,11 @@ static inline bool SDCARD_ImportSettings(void)
 	return SDCARD_IOGeneric(SDCARD_LOAD);
 }
 
+/*!
+ * \brief Check whether sd card is present or not
+ *
+ * \return True if card is present, false otherwise
+ */
+bool SDCARD_IsPresent(void);
+
 #endif /* SDCARD_SDCARD_CONF_H_ */

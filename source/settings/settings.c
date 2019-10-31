@@ -8,11 +8,14 @@
 
 /* Default settings. They will never changed during runtime */
 static const SETTINGS_t defaultSettings = {
-		/* Http server related */
+		/* Http server */
 		.httpsrvIp = CONV_IP4_TO_UINT32(192, 168, 0, 105),
 		.httpsrvSm = CONV_IP4_TO_UINT32(255, 255, 255, 0),
 		.httpsrvGw = CONV_IP4_TO_UINT32(192, 168, 0, 1),
-		.httpsrvDnsName = "lego"
+		.httpsrvDnsName = "lego",
+		/* Display */
+		.lcdBrightness = 80,
+		.lcdDimmingTime = LCD_DIMMING_10S
 };
 
 /* Current settings. User code and IO tasks can modify them */

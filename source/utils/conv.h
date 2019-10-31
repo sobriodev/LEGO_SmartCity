@@ -27,16 +27,13 @@
  * \brief Convert string to ipv4 address
  *
  * \param str : Input string base address
- * \param addr3 : Octet 0 ([X].x.x.x)
- * \param addr2 : Octet 1 (x.[X].x.x)
- * \param addr1 : Octet 2 (x.x.[X].x)
- * \param addr0	: Octet 3 (x.x.x.[X])
+ * \param addr3 : Octet 0 (x.x.x.[x])
+ * \param addr2 : Octet 1 (x.x.[x].x)
+ * \param addr1 : Octet 2 (x.[x].x.x)
+ * \param addr0	: Octet 3 ([x].x.x.x)
  * \return True if conversion succeed, false otherwise
  */
-static inline bool CONV_StrToIP4(const char *str, uint8_t *addr3, uint8_t *addr2, uint8_t *addr1, uint8_t *addr0)
-{
-	return (sscanf(str, "%hhu.%hhu.%hhu.%hhu", addr3, addr2, addr1, addr0) == 4);
-}
+bool CONV_StrToIP4(const char *str, uint8_t *addr3, uint8_t *addr2, uint8_t *addr1, uint8_t *addr0);
 
 /*!
  * \brief Convert compressed ipv4 to string value
@@ -47,6 +44,14 @@ static inline void CONV_IP4CompresssedToStr(uint32_t ip, char *dst)
 {
 	snprintf(dst, 16, "%hhu.%hhu.%hhu.%hhu", CONV_IP4_ADDR3(ip), CONV_IP4_ADDR2(ip), CONV_IP4_ADDR1(ip), CONV_IP4_ADDR0(ip));
 }
+
+/*!
+ * \brief Convert string ip value to compressed uint32_t value
+ * \param str : Source string
+ * \param dst : Output uint32_t base address
+ * \return : True if conversion succeed, false otherwise
+ */
+bool CONV_IP4StrToCompressed(const char *str, uint32_t *dst);
 
 /*!
  * \brief Convert string to int value

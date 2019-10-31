@@ -39,3 +39,8 @@ bool VALIDATOR_IsIp4(const char *str)
 
 	return true;
 }
+
+bool VALIDATOR_IsDnsName(const char *str)
+{
+	return slre_match(VALIDATOR_DNS_REGEX, str, strlen(str), NULL, 0, 0) > 0;
+}

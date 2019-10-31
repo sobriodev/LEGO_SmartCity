@@ -3,12 +3,8 @@
 
 #include "stdbool.h"
 #include "stdint.h"
-
-/* ----------------------------------------------------------------------------- */
-/* ---------------------------------- MACROS ----------------------------------- */
-/* ----------------------------------------------------------------------------- */
-
-#define MDNS_MAX_LENGTH 10
+#include "lcd.h"
+#include "validator.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- DATA TYPES --------------------------------- */
@@ -18,11 +14,14 @@
  * \brief Settings structure
  */
 typedef struct {
-	/* Http server related */
+	/* Http server */
 	uint32_t httpsrvIp;
 	uint32_t httpsrvSm;
 	uint32_t httpsrvGw;
-	char httpsrvDnsName[MDNS_MAX_LENGTH];
+	char httpsrvDnsName[VALIDATOR_DNS_LEN];
+	/* Display */
+	uint8_t lcdBrightness;  /* in percentage */
+	LCD_DimmingTime_t lcdDimmingTime; /* in milliseconds */
 } SETTINGS_t;
 
 /* ----------------------------------------------------------------------------- */

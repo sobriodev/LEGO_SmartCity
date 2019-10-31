@@ -14,6 +14,10 @@
 #define VALIDATOR_DOUBLE_REGEXP		"^-?(0|[1-9][0-9]*)\\.[0-9]+$"
 #define VALIDATOR_BOOL_REGEXP		"^(true|false)$"
 #define VALIDATOR_IP4_REGEXP		"^(\\d\\d?\\d?)\\.(\\d\\d?\\d?)\\.(\\d\\d?\\d?)\\.(\\d\\d?\\d?)$"
+#define VALIDATOR_DNS_REGEX			"^[a-zA-Z]+$"
+
+#define VALIDATOR_IP4_LEN			15
+#define VALIDATOR_DNS_LEN			10
 
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------------- DATA TYPES ------------------------------ */
@@ -62,5 +66,13 @@ bool VALIDATOR_IsBool(const char *str);
  * \return True if value is IPv4, false otherwise
  */
 bool VALIDATOR_IsIp4(const char *str);
+
+/*!
+ * \brief Check whether value is valid conventional DNS address
+ *
+ * \param str : Input string
+ * \return : True if value is valid, false otherwise
+ */
+bool VALIDATOR_IsDnsName(const char *str);
 
 #endif /* UTILS_VALIDATOR_H_ */

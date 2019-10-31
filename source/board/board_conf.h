@@ -73,4 +73,9 @@ void BOARD_TouchEvent(BOARD_TouchInfo_t *touchInfo);
  */
 bool BOARD_RTOSInit(void);
 
+/*!
+ * \brief Reset board
+ */
+void BOARD_SystemReset(void);
+
 #endif /* BOARD_INIT_H_ */

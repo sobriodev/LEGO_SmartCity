@@ -102,7 +102,7 @@ void BOARD_InitBacklightPWM(void)
 
     pwmParam.output = kSCTIMER_Out_5;
     pwmParam.level = kSCTIMER_HighTrue;
-    pwmParam.dutyCyclePercent = LCD_ON_BRIGHTNESS; /* Default max brightness */
+    pwmParam.dutyCyclePercent = LCD_MAX_BRIGHTNESS; /* Default max brightness */
 
     SCTIMER_SetupPwm(SCT0, &pwmParam, kSCTIMER_CenterAlignedPwm, 1000U, CLOCK_GetFreq(kCLOCK_Sct), &backlightPWMEvent);
     SCTIMER_StartTimer(SCT0, kSCTIMER_Counter_L);
@@ -186,4 +186,9 @@ void BOARD_TouchEvent(BOARD_TouchInfo_t *touchInfo)
 bool BOARD_RTOSInit(void)
 {
 	return (xTaskCreate(BOARD_StartupTask, BOARD_TASK_STARTUP_NAME, BOARD_TASK_STARTUP_STACK, NULL, BOARD_TASK_STARTUP_PRIO, NULL) != pdFAIL);
+}
+
+void BOARD_SystemReset(void)
+{
+	NVIC_SystemReset();
 }

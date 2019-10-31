@@ -13,8 +13,8 @@
 
 /* Text constants */
 #define CONFIRM_OK_TXT	"OK"
-#define CONFIRM_YES_TXT	"Yes"
-#define CONFIRM_NO_TXT	"No"
+#define CONFIRM_YES_TXT	"Apply"
+#define CONFIRM_NO_TXT	"Discard"
 
 /* Colors and fonts */
 #define CONFIRM_BK_COLOR 	GUI_GRAY

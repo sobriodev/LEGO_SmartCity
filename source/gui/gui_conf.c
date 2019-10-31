@@ -4,22 +4,23 @@
 #include "board_conf.h"
 #include "virtual_keyboard.h"
 #include "confirm.h"
+#include "settings.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE VARIABLES ---------------------------- */
 /* ----------------------------------------------------------------------------- */
 
 /* Task for turning on/off the LCD */
-TaskHandle_t xBacklightTask;
+static TaskHandle_t xBacklightTask;
 
 /* Backlight timer */
-TimerHandle_t xBacklightTimer;
+static TimerHandle_t xBacklightTimer;
 
 /* Variable indicating touch event presence */
-BOARD_TouchInfo_t touchInfo;
+static BOARD_TouchInfo_t touchInfo;
 
 /* Blocking dialogs queue */
-QueueHandle_t blockingDialogQueue;
+static QueueHandle_t blockingDialogQueue;
 
 /* ----------------------------------------------------------------------------- */
 /* --------------------------------- RTOS TASKS -------------------------------- */
@@ -35,17 +36,22 @@ static void GUI_MainTask(void *pvParameters)
 		if (xQueueReceive(blockingDialogQueue, &blockingDialogInfo, 0) == pdPASS) {
 			switch (blockingDialogInfo->dialog) {
 				case DIALOG_VK: { /* Virtual keyboard */
-					VK_Params_t *params = (VK_Params_t *)blockingDialogInfo->data;
+					const VK_Params_t *params = (const VK_Params_t *)blockingDialogInfo->data;
 					VK_InputStatus_t res = VK_GetInput(params);
+					/* Fill feedback values */
+					VK_Feedback_t vkRes;
+					vkRes.status = res;
+					vkRes.opCode = params->opCode;
+					/* Send message to the calling window */
 					WM_MESSAGE feedback;
 					feedback.MsgId = MSG_VK;
-					feedback.Data.v = res;
+					feedback.Data.p = &vkRes;
 					WM_SendMessage(blockingDialogInfo->srcWin, &feedback);
 					break;
 				}
 				case DIALOG_CONFIRM: { /* Confirmation */
 					/* Exec confirm dialog */
-					CONFIRM_Params_t *params = (CONFIRM_Params_t *)blockingDialogInfo->data;
+					const CONFIRM_Params_t *params = (const CONFIRM_Params_t *)blockingDialogInfo->data;
 					CONFIRM_Status_t res = CONFIRM_Exec(params);
 					/* Fill feedback values */
 					CONFIRM_Feedback_t confirmRes;
@@ -89,7 +95,7 @@ static void GUI_TouchTask(void *pvParameters)
 static void GUI_BacklightTask(void *pvParameters)
 {
 	while (1) {
-		if (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != 0) {
+		if (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != 0 && SETTINGS_GetInstance()->lcdDimmingTime != LCD_ALWAYS_ON) {
 			switch (LCD_GetState()) {
 			case LCD_ON:
 				/* In the worst case the timer command queue will be full and LCD will be turned off faster */
@@ -99,7 +105,7 @@ static void GUI_BacklightTask(void *pvParameters)
 			case LCD_OFF:
 			default:
 				/* In the worst case the timer command queue will be full and LCD will change the state from ON to DIMMING faster */
-				xTimerChangePeriod(xBacklightTimer, GUI_LCD_FROM_ON_TO_DIMMING_MS, 0);
+				xTimerChangePeriod(xBacklightTimer, pdMS_TO_TICKS(SETTINGS_GetInstance()->lcdDimmingTime), 0);
 				LCD_SetState(LCD_ON);
 			break;
 			}
@@ -139,13 +145,13 @@ static bool GUI_QueuesCreate(void)
 static bool GUI_TimersCreate(void)
 {
 	/* Backlight timer */
-	xBacklightTimer = xTimerCreate(GUI_TIMER_BACKLIGHT_NAME, GUI_LCD_FROM_ON_TO_DIMMING_MS, pdFALSE, NULL, GUI_BacklightTimer);
+	xBacklightTimer = xTimerCreate(GUI_TIMER_BACKLIGHT_NAME, LCD_DIMMING_10S, pdFALSE, NULL, GUI_BacklightTimer);
 
 	if (xBacklightTimer == NULL) {
 		return false;
 	}
 
-	xTimerStart(xBacklightTimer, portMAX_DELAY); /* The scheduler is not started. Just wait for timer command queue free space */
+	GUI_UpdateLcdBlankingStatus();
 
 	return true;
 }
@@ -210,4 +216,20 @@ void GUI_FailedHook(void)
 bool GUI_RequestBlockingDialog(const GUI_BlockingDialogInfo_t *info)
 {
 	return (xQueueSendToBack(blockingDialogQueue, &info, 0) == pdPASS);
+}
+
+void GUI_UpdateLcdBlankingStatus(void)
+{
+	LCD_SetState(LCD_ON);
+
+	LCD_DimmingTime_t time = SETTINGS_GetInstance()->lcdDimmingTime;
+
+	switch (time) {
+	case LCD_ALWAYS_ON:
+		xTimerStop(xBacklightTimer, 0);
+		break;
+	default:
+		xTimerChangePeriod(xBacklightTimer, pdMS_TO_TICKS(time), 0);
+		break;
+	}
 }

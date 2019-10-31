@@ -14,7 +14,6 @@
 
 /* Text constants (buttons) */
 #define GUI_SETT_SAVE_TXT				"Save"
-#define GUI_SETT_CLOSE_TXT				"Cancel"
 
 /* Text constants (tabs) */
 #define GUI_SETT_SERVER_TXT				"Http server"
@@ -35,8 +34,12 @@
 #define GUI_SETT_MISC_RESTORE_TXT		"Default settings"
 #define GUI_SETT_MISC_RESTORE_BTN_TXT	"Restore"
 
+#define GUI_SETT_RESTART_TXT			"The change of config will not take effect until the device reboots. All application tasks will be shut down and system restart will be performed"
+#define GUI_SETT_RESTORE_TXT			"Click apply button to reset all configuration settings to their default values. All application tasks will be shut down and system restart will be performed"
+#define GUI_SETT_SDCARD_NOT_FOUND_TXT	"SD card is not present during current session. No operation will be performed"
+
 /* Colors and fonts */
-#define GUI_SETT_BK_COLOR			GUI_LIGHTGRAY
+#define GUI_SETT_BK_COLOR				GUI_LIGHTGRAY
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */

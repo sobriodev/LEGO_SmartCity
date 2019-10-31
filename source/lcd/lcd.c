@@ -1,5 +1,6 @@
 #include "lcd.h"
 #include "board_conf.h"
+#include "settings.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PRIVATE VARIABLES ----------------------------- */
@@ -28,10 +29,10 @@ void LCD_SetState(LCD_State_t state)
 		newPWMPercent = LCD_DIMMING_BRIGHTNESS;
 		break;
 	case LCD_OFF:
-		newPWMPercent = LCD_MIN_BRIGHTNESS;
+		newPWMPercent = LCD_OFF_BRIGHTNESS;
 		break;
 	case LCD_ON:
-		newPWMPercent = LCD_MAX_BRIGHTNESS;
+		newPWMPercent = SETTINGS_GetInstance()->lcdBrightness;
 		break;
 	default:
 		break;

@@ -35,9 +35,6 @@
 
 /* Timer properties */
 #define GUI_TIMER_BACKLIGHT_NAME	"TIMER_BACKLIGHT"
-
-// todo it will be inside settings?
-#define GUI_LCD_FROM_ON_TO_DIMMING_MS		pdMS_TO_TICKS(LCD_FROM_ON_TO_DIMMING_MS)
 #define GUI_LCD_FROM_DIMMING_TO_OFF_MS		pdMS_TO_TICKS(LCD_FROM_DIMMING_TO_OFF_MS)
 
 /* 200ms delay on LCD wake up */
@@ -60,7 +57,7 @@ typedef enum {
  */
 typedef enum {
 	MSG_VK = WM_USER,	//!< Virtual keyboard dialog returned
-	MSG_CONFIRM
+	MSG_CONFIRM			//!< Confirmation/alert dialog returned
 } GUI_UserMsgId_t;
 
 /*!
@@ -100,5 +97,10 @@ void GUI_FailedHook(void);
  * \return True if request was stored in dialog queue, false otherwise
  */
 bool GUI_RequestBlockingDialog(const GUI_BlockingDialogInfo_t *info);
+
+/*!
+ * \brief Reload LCD timer after changing settings
+ */
+void GUI_UpdateLcdBlankingStatus(void);
 
 #endif /* GUI_GUI_CONF_H_ */

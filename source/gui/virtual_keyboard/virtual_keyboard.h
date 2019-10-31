@@ -163,6 +163,7 @@ typedef struct {
 	uint8_t maxLen; 			//!< Maximum input length
 	bool copyVal; 				//!< True if current value should be copied to the virtual keyboard, false otherwise
 	VALIDATOR_Fn_t validatorFn;	//!< Optional validation function, NULL if not used
+	uint32_t opCode;			//!< Operation identifier sent back to the calling window
 } VK_Params_t;
 
 /*!
@@ -173,6 +174,14 @@ typedef enum {
 	VK_NON_VALID,		//!< Validation error
 	VK_STORED          	//!< Input stored
 } VK_InputStatus_t;
+
+/*!
+ * \brief Data sent back to the calling window
+ */
+typedef struct {
+	VK_InputStatus_t status;	//!< Input status. See VK_InputStatus_t for more information
+	uint32_t opCode;			//!< Operation identifier sent back to the calling window
+} VK_Feedback_t;
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
