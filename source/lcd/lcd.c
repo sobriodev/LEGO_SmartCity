@@ -38,5 +38,5 @@ void LCD_SetState(LCD_State_t state)
 		break;
 	}
 
-	LCD_SET_BRIGHNTESS(newPWMPercent);
+	LCD_SET_BRIGHTNESS(newPWMPercent);
 }

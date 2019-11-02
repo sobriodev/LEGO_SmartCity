@@ -295,7 +295,7 @@ static void GUI_SettingsLCDCallback(WM_MESSAGE *pMsg)
 			/* Update brightness setting */
 			uint8_t sliderVal = SLIDER_GetValue(pMsg->hWinSrc);
 			settings->lcdBrightness = sliderVal;
-			LCD_SET_BRIGHNTESS(sliderVal);
+			LCD_SET_BRIGHTNESS(sliderVal);
 		} else if (widgetId == GUI_SETT_LCD_BLANKING && pMsg->Data.v == WM_NOTIFICATION_SEL_CHANGED) {
 			/* Update dimming time setting */
 			settings->lcdDimmingTime = lcdblankingTimes[DROPDOWN_GetSel(pMsg->hWinSrc)].time;

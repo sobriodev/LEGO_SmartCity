@@ -16,7 +16,7 @@
 #define LCD_FROM_DIMMING_TO_OFF_MS	2000
 
 /* This is only alias for setting backlight PWM duty */
-#define LCD_SET_BRIGHNTESS(DUTY)	BOARD_SetBacklightPercent((DUTY))
+#define LCD_SET_BRIGHTNESS(DUTY)	BOARD_SetBacklightPercent((DUTY))
 
 /* ----------------------------------------------------------------------------- */
 /* --------------------------------- DATA TYPES -------------------------------- */
