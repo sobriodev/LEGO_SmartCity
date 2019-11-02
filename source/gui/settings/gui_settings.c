@@ -325,13 +325,24 @@ static void GUI_SettingsMiscCallback(WM_MESSAGE *pMsg)
 	case MSG_CONFIRM: {
 		const CONFIRM_Feedback_t *feedback = (const CONFIRM_Feedback_t *)pMsg->Data.p;
 
-		if (feedback->opCode == RESTORE_OP && feedback->status == CONFIRM_YES) {
-			if (!SDCARD_IsPresent()) {
-				GUI_SettingsConfirmDialog(pMsg->hWin, CONFIRM_ALERT, GUI_SETT_SDCARD_NOT_FOUND_TXT, SDCARD_NOT_FOUND_OP);
-			} else {
-				SETTINGS_RestoreDefaults();
-				SDCARD_ExportSettings();
-				BOARD_SystemReset();
+		if (feedback->opCode == RESTORE_OP) {
+			switch (feedback->status) {
+			case CONFIRM_YES:
+				/* Restore settings */
+				if (!SDCARD_IsPresent()) {
+					GUI_SettingsConfirmDialog(pMsg->hWin, CONFIRM_ALERT, GUI_SETT_SDCARD_NOT_FOUND_TXT, SDCARD_NOT_FOUND_OP);
+				} else {
+					SETTINGS_RestoreDefaults();
+					SDCARD_ExportSettings();
+					BOARD_SystemReset();
+				}
+				break;
+			case CONFIRM_NO:
+				LOGGER_WRITELN(("Confirm dialog rejected"));
+				break;
+			case CONFIRM_FAILURE:
+				GUI_FailedHook();
+				break;
 			}
 		}
 
@@ -412,7 +423,18 @@ static void GUI_SettingsCallback(WM_MESSAGE *pMsg)
 		const CONFIRM_Feedback_t *feedback = (const CONFIRM_Feedback_t *)pMsg->Data.p;
 
 		if (feedback->opCode == SAVE_OP) {
-			BOARD_SystemReset();
+			switch (feedback->status) {
+			case CONFIRM_YES:
+				/* Reboot */
+				BOARD_SystemReset();
+				break;
+			case CONFIRM_NO:
+				LOGGER_WRITELN(("Confirm dialog rejected"));
+				break;
+			case CONFIRM_FAILURE:
+				GUI_FailedHook();
+				break;
+			}
 		}
 
 		break;
