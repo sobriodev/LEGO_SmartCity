@@ -16,7 +16,7 @@ static mem_range_t nonDmaMemory[] = HTTPSRV_NON_DMA_MEMORY_ARRAY;
 extern const HTTPSRV_FS_DIR_ENTRY httpsrv_fs_data[];
 
 /* Routes table */
-extern const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_apiTable[];
+extern const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[];
 
 /* IP, Netmask and Gateway addresses */
 static ip4_addr_t fslNetifIpAddr;
@@ -89,7 +89,7 @@ static void HTTPSRV_SocketInit(void)
     params.root_dir = "";
     params.index_page = HTTPSRV_DEFAULT_PAGE;
     params.auth_table = NULL;
-    params.cgi_lnk_tbl = HTTPSRV_apiTable;
+    params.cgi_lnk_tbl = HTTPSRV_ApiTable;
     params.ssi_lnk_tbl = NULL;
 
     /* Init HTTP Server.*/
