@@ -54,13 +54,13 @@ int32_t API_TestConn(HTTPSRV_CGI_REQ_STRUCT *param)
 	const QS_Param_t *led = QS_GetParam("led", params, paramsFound);
 
 	if (QS_PARAM_EXISTS(home) && QS_PARAM_EXISTS(led) && QS_PARAM_IS_INT(home) && QS_PARAM_IS_BOOL(led)) {
-		response.status_code = 200;
+		response.status_code = HTTPSRV_CODE_OK;
 		response.content_type = HTTPSRV_CONTENT_TYPE_JSON;
 	    response.data = "{\"response\": \"OK\"}";
 	    response.data_length = strlen("{\"response\": \"OK\"}");
 	    response.content_length = response.data_length;
 	} else {
-		HTTPSRV_MakeJsonError(&response, 404, "LED not found!");
+		HTTPSRV_MakeJsonError(&response, HTTPSRV_CODE_BAD_REQ, "Query param missing");
 	}
 
     HTTPSRV_cgi_write(&response);
