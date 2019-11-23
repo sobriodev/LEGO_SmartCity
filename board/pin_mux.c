@@ -28,8 +28,8 @@ processor_version: 6.0.1
  * END ****************************************************************************************************************/
 void BOARD_InitBootPins(void)
 {
-	BOARD_InitPins();
-	BOARD_InitUserPins();
+    BOARD_InitPins();
+    BOARD_InitUserPins();
 }
 
 /* clang-format off */
@@ -1571,6 +1571,8 @@ BOARD_InitUserPins:
 - options: {callFromInitBoot: 'true', coreID: core0, enableClock: 'true'}
 - pin_list:
   - {pin_num: J14, peripheral: SCT0, signal: 'OUT, 5', pin_signal: PIO3_31/FC9_RTS_SCL_SSEL1/SCT0_OUT5/CTIMER4_MAT2/SCT0_GPI0/EMC_A(20)}
+  - {pin_num: F11, peripheral: FLEXCOMM1, signal: CTS_SDA_SSEL0, pin_signal: PIO0_13/FC1_CTS_SDA_SSEL0/UTICK_CAP0/CTIMER0_CAP0/SCT0_GPI0/ENET_RXD0}
+  - {pin_num: E13, peripheral: FLEXCOMM1, signal: RTS_SCL_SSEL1, pin_signal: PIO0_14/FC1_RTS_SCL_SSEL1/UTICK_CAP1/CTIMER0_CAP1/SCT0_GPI1/ENET_RXD1}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -1584,20 +1586,44 @@ BOARD_InitUserPins:
 /* Function assigned for the Cortex-M4F */
 void BOARD_InitUserPins(void)
 {
-	/* Enables the clock for the IOCON block. 0 = Disable; 1 = Enable.: 0x01u */
-	CLOCK_EnableClock(kCLOCK_Iocon);
+    /* Enables the clock for the IOCON block. 0 = Disable; 1 = Enable.: 0x01u */
+    CLOCK_EnableClock(kCLOCK_Iocon);
 
-	IOCON->PIO[3][31] = ((IOCON->PIO[3][31] &
-			/* Mask bits to zero which are setting */
-			(~(IOCON_PIO_FUNC_MASK | IOCON_PIO_DIGIMODE_MASK)))
+    IOCON->PIO[0][13] = ((IOCON->PIO[0][13] &
+                          /* Mask bits to zero which are setting */
+                          (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_DIGIMODE_MASK)))
 
-			/* Selects pin function.
-			 * : PORT331 (pin J14) is configured as SCT0_OUT5. */
-			| IOCON_PIO_FUNC(PIO331_FUNC_ALT2)
+                         /* Selects pin function.
+                          * : PORT013 (pin F11) is configured as FC1_CTS_SDA_SSEL0. */
+                         | IOCON_PIO_FUNC(PIO013_FUNC_ALT1)
 
-			/* Select Analog/Digital mode.
-			 * : Digital mode. */
-			| IOCON_PIO_DIGIMODE(PIO331_DIGIMODE_DIGITAL));
+                         /* Select Analog/Digital mode.
+                          * : Digital mode. */
+                         | IOCON_PIO_DIGIMODE(PIO013_DIGIMODE_DIGITAL));
+
+    IOCON->PIO[0][14] = ((IOCON->PIO[0][14] &
+                          /* Mask bits to zero which are setting */
+                          (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_DIGIMODE_MASK)))
+
+                         /* Selects pin function.
+                          * : PORT014 (pin E13) is configured as FC1_RTS_SCL_SSEL1. */
+                         | IOCON_PIO_FUNC(PIO014_FUNC_ALT1)
+
+                         /* Select Analog/Digital mode.
+                          * : Digital mode. */
+                         | IOCON_PIO_DIGIMODE(PIO014_DIGIMODE_DIGITAL));
+
+    IOCON->PIO[3][31] = ((IOCON->PIO[3][31] &
+                          /* Mask bits to zero which are setting */
+                          (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_DIGIMODE_MASK)))
+
+                         /* Selects pin function.
+                          * : PORT331 (pin J14) is configured as SCT0_OUT5. */
+                         | IOCON_PIO_FUNC(PIO331_FUNC_ALT2)
+
+                         /* Select Analog/Digital mode.
+                          * : Digital mode. */
+                         | IOCON_PIO_DIGIMODE(PIO331_DIGIMODE_DIGITAL));
 }
 /***********************************************************************************************************************
  * EOF

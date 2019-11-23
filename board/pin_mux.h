@@ -62,6 +62,10 @@ void BOARD_InitBootPins(void);
  */
 void BOARD_InitPins(void); /* Function assigned for the Cortex-M4F */
 
+#define PIO013_DIGIMODE_DIGITAL 0x01u /*!<@brief Select Analog/Digital mode.: Digital mode. */
+#define PIO013_FUNC_ALT1 0x01u        /*!<@brief Selects pin function.: Alternative connection 1. */
+#define PIO014_DIGIMODE_DIGITAL 0x01u /*!<@brief Select Analog/Digital mode.: Digital mode. */
+#define PIO014_FUNC_ALT1 0x01u        /*!<@brief Selects pin function.: Alternative connection 1. */
 #define PIO331_DIGIMODE_DIGITAL 0x01u /*!<@brief Select Analog/Digital mode.: Digital mode. */
 #define PIO331_FUNC_ALT2 0x02u        /*!<@brief Selects pin function.: Alternative connection 2. */
 

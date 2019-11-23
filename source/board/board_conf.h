@@ -78,4 +78,64 @@ bool BOARD_RTOSInit(void);
  */
 void BOARD_SystemReset(void);
 
+/*!
+ * \brief Function for sending I2C frames when slave device has only one byte-register
+ *
+ * \param devAddr : Device address
+ * \param txBuff : Transmit byte
+ * \return True if slave device acknowledged the data, false otherwise
+ */
+bool BOARD_I2C_SendSingleReg(uint8_t devAddr, uint8_t txBuff);
+
+/*!
+ * \brief Function for receiving I2C frames when slave device has only one byte-register
+ *
+ * \param devAddr : Device address
+ * \param rxBuff : Receive byte base address
+ * \return True if slave data was successfully read, false otherwise
+ */
+bool BOARD_I2C_ReadSingleReg(uint8_t devAddr, uint8_t *rxBuff);
+
+/*!
+ * \brief Function for sending I2C frames when slave device has multiple byte-registers
+ *
+ * \param devAddr : Device address
+ * \param regAddr : Register address
+ * \param txBuff : Transmit byte
+ * \return True if slave device acknowledged the data, false otherwise
+ */
+bool BOARD_I2C_SendMultiReg(uint8_t devAddr, uint8_t regAddr, uint8_t txBuff);
+
+/*!
+ * \brief Function for receiving I2C frames when slave device has multiple byte-registers
+ *
+ * \param devAddr : Device address
+ * \param regAddr : Register address
+ * \param RxBuff : Receive byte base address
+ * \return True if slave data was successfully read, false otherwise
+ */
+bool BOARD_I2C_ReadMultiReg(uint8_t devAddr, uint8_t regAddr, uint8_t *rxBuff);
+
+/*!
+ * \brief Function for sending I2C frames when slave device has multiple multibyte-registers. It supports two-byte device address
+ *
+ * \param devAddr : Device address
+ * \param regAddr : Register address
+ * \param txBuff : Transmit buffer base address
+ * \param buffLen : Transmit buffer length
+ * \return True if slave device acknowledged the data, false otherwise
+ */
+bool BOARD_I2C_SendMultiByte(uint8_t devAddr, uint16_t regAddr, uint8_t *txBuff, uint8_t buffLen);
+
+/*!
+ * \brief Function for receiving I2C frames when slave device has multiple multibyte-registers. It supports two-byte device address
+ *
+ * \param devAddr : Device address
+ * \param regAddr : Register address
+ * \param rxBuff : Receive buffer base address
+ * \param bytesRead : Number of bytes read from slave device
+ * \return True if slave data was successfully read, false otherwise
+ */
+bool BOARD_I2C_ReadMultByte(uint8_t devAddr, uint16_t regAddr, uint8_t *rxBuff, uint8_t bytesRead);
+
 #endif /* BOARD_INIT_H_ */

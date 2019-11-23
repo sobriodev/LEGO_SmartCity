@@ -28,6 +28,12 @@
 #include "fsl_sdmmc_host.h"
 
 /* ----------------------------------------------------------------------------- */
+/* ------------------------------ PRIVATE MACROS ------------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+#define BOARD_I2C_MASTER_CLOCK_FREQUENCY 12000000
+
+/* ----------------------------------------------------------------------------- */
 /* ----------------------------- PRIVATE VARIABLES ----------------------------- */
 /* ----------------------------------------------------------------------------- */
 
@@ -41,7 +47,7 @@ extern ft5406_handle_t touch_handle;
 /* ----------------------------------------------------------------------------- */
 
 /* This function is used to cover the IP bug which the DATA4-7 pin should be configured */
-static void Board_InitSdifUnusedDataPin(void)
+static void BOARD_InitSdifUnusedDataPin(void)
 {
 	IOCON_PinMuxSet(IOCON, 4, 29,
 			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[4] */
@@ -51,6 +57,15 @@ static void Board_InitSdifUnusedDataPin(void)
 			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[6] */
 	IOCON_PinMuxSet(IOCON, 5, 0,
 			(IOCON_FUNC2 | IOCON_PIO_SLEW_MASK | IOCON_DIGITAL_EN | IOCON_MODE_PULLUP)); /* sd data[7] */
+}
+
+/* Init FLEXCOMM1 as I2C master */
+static void BOARD_InitI2C(void)
+{
+    /* Attach 12 MHz clock to FLEXCOMM1 (I2C master) */
+    CLOCK_AttachClk(kFRO12M_to_FLEXCOMM1);
+    RESET_PeripheralReset(kFC1_RST_SHIFT_RSTn);
+    BOARD_I2C_Init(I2C1, BOARD_I2C_MASTER_CLOCK_FREQUENCY);
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -131,11 +146,14 @@ void BOARD_Init(void)
 	/* Attach main clock to SDIF */
 	CLOCK_AttachClk(BOARD_SDIF_CLK_ATTACH);
 	/* This function is used to cover the IP bug which the DATA4-7 pin should be configured, otherwise the SDIF will not work */
-	Board_InitSdifUnusedDataPin();
+	BOARD_InitSdifUnusedDataPin();
 	/* Need call this function to clear the halt bit in clock divider register */
 	CLOCK_SetClkDiv(kCLOCK_DivSdioClk, (uint32_t)(SystemCoreClock / FSL_FEATURE_SDIF_MAX_SOURCE_CLOCK + 1U), true);
 	/* Set SD host interrupt priority */
 	NVIC_SetPriority(SD_HOST_IRQ, 5U);
+
+	/* Init I2C */
+	BOARD_InitI2C();
 }
 
 void BOARD_SetBacklightPercent(uint8_t percent)
@@ -191,4 +209,34 @@ bool BOARD_RTOSInit(void)
 void BOARD_SystemReset(void)
 {
 	NVIC_SystemReset();
+}
+
+bool BOARD_I2C_SendSingleReg(uint8_t devAddr, uint8_t txBuff)
+{
+	return (BOARD_I2C_Send(I2C1, devAddr, 0, 0, &txBuff, 1) == kStatus_Success);
+}
+
+bool BOARD_I2C_ReadSingleReg(uint8_t devAddr, uint8_t *rxBuff)
+{
+	return (BOARD_I2C_Receive(I2C1, devAddr, 0, 0, rxBuff, 1) == kStatus_Success);
+}
+
+bool BOARD_I2C_SendMultiReg(uint8_t devAddr, uint8_t regAddr, uint8_t txBuff)
+{
+	return (BOARD_I2C_Send(I2C1, devAddr, regAddr, 1, &txBuff, 1) == kStatus_Success);
+}
+
+bool BOARD_I2C_ReadMultiReg(uint8_t devAddr, uint8_t regAddr, uint8_t *rxBuff)
+{
+	return (BOARD_I2C_Receive(I2C1, devAddr, regAddr, 1, rxBuff, 1) == kStatus_Success);
+}
+
+bool BOARD_I2C_SendMultiByte(uint8_t devAddr, uint16_t regAddr, uint8_t *txBuff, uint8_t buffLen)
+{
+	return (BOARD_I2C_Send(I2C1, devAddr, regAddr, 2, txBuff, buffLen) == kStatus_Success);
+}
+
+bool BOARD_I2C_ReadMultByte(uint8_t devAddr, uint16_t regAddr, uint8_t *rxBuff, uint8_t bytesRead)
+{
+	return (BOARD_I2C_Receive(I2C1, devAddr, regAddr, 2, rxBuff, bytesRead) == kStatus_Success);
 }

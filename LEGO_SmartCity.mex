@@ -3,6 +3,7 @@
    <common>
       <processor>LPC54628J512</processor>
       <package>LPC54628J512ET180</package>
+      <board></board>
       <mcu_data>ksdk2_0</mcu_data>
       <cores selected="core0">
          <core name="Cortex-M4F" id="core0" description="M4 core"/>
@@ -663,6 +664,11 @@
                         <data>true</data>
                      </feature>
                   </dependency>
+                  <dependency resourceType="Peripheral" resourceId="FLEXCOMM1" description="Peripheral FLEXCOMM1 is not initialized" problem_level="1" source="Pins:BOARD_InitUserPins">
+                     <feature name="initialized" evaluation="equal">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
                   <dependency resourceType="SWComponent" resourceId="platform.drivers.common" description="Pins initialization requires the COMMON Driver in the project." problem_level="2" source="Pins:BOARD_InitUserPins">
                      <feature name="enabled" evaluation="equal" configuration="core0">
                         <data>true</data>
@@ -671,6 +677,8 @@
                </dependencies>
                <pins>
                   <pin peripheral="SCT0" signal="OUT, 5" pin_num="J14" pin_signal="PIO3_31/FC9_RTS_SCL_SSEL1/SCT0_OUT5/CTIMER4_MAT2/SCT0_GPI0/EMC_A(20)"/>
+                  <pin peripheral="FLEXCOMM1" signal="CTS_SDA_SSEL0" pin_num="F11" pin_signal="PIO0_13/FC1_CTS_SDA_SSEL0/UTICK_CAP0/CTIMER0_CAP0/SCT0_GPI0/ENET_RXD0"/>
+                  <pin peripheral="FLEXCOMM1" signal="RTS_SCL_SSEL1" pin_num="E13" pin_signal="PIO0_14/FC1_RTS_SCL_SSEL1/UTICK_CAP1/CTIMER0_CAP1/SCT0_GPI1/ENET_RXD1"/>
                </pins>
             </function>
          </functions_list>
