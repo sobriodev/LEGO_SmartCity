@@ -136,6 +136,6 @@ bool BOARD_I2C_SendMultiByte(uint8_t devAddr, uint16_t regAddr, uint8_t *txBuff,
  * \param bytesRead : Number of bytes read from slave device
  * \return True if slave data was successfully read, false otherwise
  */
-bool BOARD_I2C_ReadMultByte(uint8_t devAddr, uint16_t regAddr, uint8_t *rxBuff, uint8_t bytesRead);
+bool BOARD_I2C_ReadMultiByte(uint8_t devAddr, uint16_t regAddr, uint8_t *rxBuff, uint8_t bytesRead);
 
 #endif /* BOARD_INIT_H_ */
