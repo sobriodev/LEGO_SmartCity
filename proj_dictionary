@@ -48,3 +48,8 @@ aka
 qs
 reg
 multibyte
+defval
+pullup
+api
+ioconf
+deselected
