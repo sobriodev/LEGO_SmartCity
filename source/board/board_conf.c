@@ -27,6 +27,9 @@
 #include "sdcard_conf.h"
 #include "fsl_sdmmc_host.h"
 
+/* Lego */
+#include "lego.h"
+
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE MACROS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -74,7 +77,7 @@ static void BOARD_InitI2C(void)
 
 static void BOARD_StartupTask(void *pvParameters)
 {
-	/* SD card must be initialized first. Other routines uses settings struct */
+	/* SD card must be initialized first. Other routines use settings struct */
 	SDCARD_RTOSInit();
 
 	LOGGER_WRITELN(("Initializing SD card"));
@@ -87,6 +90,13 @@ static void BOARD_StartupTask(void *pvParameters)
     LOGGER_WRITELN(("Initializing HTTP server"));
     GUI_StartupChangeStep("Initializing HTTP server. Plug in Ethernet cable");
     HTTPSRV_Init();
+
+    /* Initialize I2C devices */
+    LOGGER_WRITELN(("Performing LEGO startup. Initializing I2C devices"));
+    GUI_StartupChangeStep("Performing LEGO startup. Initializing I2C devices");
+    if (!LEGO_PerformStartup()) {
+    	LOGGER_WRITELN(("LEGO startup failure"));
+    }
 
     /* Open desktop window */
     GUI_DesktopCreate();
