@@ -123,7 +123,6 @@ void BOARD_InitBacklightPWM(void)
     SCTIMER_StartTimer(SCT0, kSCTIMER_Counter_L);
 }
 
-
 void BOARD_Init(void)
 {
 	/* Debug console clock */
