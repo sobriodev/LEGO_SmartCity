@@ -32,11 +32,6 @@ MCP23017_StatusCode_t MCP23017_SendGeneric(const MCP23017_Chain_t *chain, uint8_
 
 	/* Send the data and return I2C status */
 	bool res = i2cSendFn(chain->chainBaseAddr + devNum, regAddr, regData);
-
-	if (!res) {
-		PRINTF("I2C ERROR");
-	}
-
 	MCP23017_SENDING_RES(res);
 }
 
