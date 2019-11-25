@@ -50,6 +50,7 @@ typedef enum {
  * \brief Control register channel bits
  */
 typedef enum {
+	TCA9548A_CHANNEL_NONE = 0x00,					//!< No channel is selected
 	TCA9548A_CHANNEL0 = TCA9548A_UINT8_BIT(0x00),	//!< Channel 0
 	TCA9548A_CHANNEL1 = TCA9548A_UINT8_BIT(0x01),	//!< Channel 1
 	TCA9548A_CHANNEL2 = TCA9548A_UINT8_BIT(0x02),	//!< Channel 2
@@ -73,13 +74,22 @@ typedef enum {
 void TCA9548A_Init(TCA9548A_SendFn_t sendFn, TCA9548A_ReceiveFn_t receiveFn);
 
 /*!
- * \brief Select active channels
+ * \brief Select active channels. It always results in sending I2C frames
  *
  * \param devAddr : I2C device address
  * \param channels : Bit 0 reflects the state of channel 0, ..., bit 7 reflects the state of channel 7. Bit set = channel selected, bit cleared = channel deselected
  * \return Instance of TCA9548A_Response_t
  */
 TCA9548A_Response_t TCA9548A_SelectChannels(uint8_t devAddr, uint8_t channels);
+
+/*!
+ * \brief Select active channels. This is optimized method which checks if local variable differs from desired value. I2C frames are sent only when required
+ *
+ * \param devAddr : I2C device address
+ * \param channels : Bit 0 reflects the state of channel 0, ..., bit 7 reflects the state of channel 7. Bit set = channel selected, bit cleared = channel deselected
+ * \return Instance of TCA9548A_Response_t
+ */
+TCA9548A_Response_t TCA9548A_SelectChannelsOptimized(uint8_t devAddr, uint8_t channels);
 
 /*!
  * \brief Read channels states

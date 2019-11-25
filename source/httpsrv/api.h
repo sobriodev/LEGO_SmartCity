@@ -10,4 +10,6 @@
 
 int32_t API_TestConn(HTTPSRV_CGI_REQ_STRUCT *param);
 
+int32_t API_LightControl(HTTPSRV_CGI_REQ_STRUCT *param);
+
 #endif /* HTTPSRV_API_H_ */
