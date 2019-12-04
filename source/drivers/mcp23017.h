@@ -275,6 +275,18 @@ static inline MCP23017_StatusCode_t MCP23017_PortWrite(const MCP23017_Chain_t *c
 }
 
 /*!
+ * \brief Set port masked logic state
+ *
+ * \param chain : Chain base address
+ * \param devNum : Device number in the chain (0-7)
+ * \param port : See MCP23017_Port_t for more information
+ * \param mask : Bit 0 reflects the position of pin 0, ..., bit 7 reflects the position of pin 7. Bit set = pin can be modified, bit cleared = pin cannot be modified
+ * \param states : Bit 0 reflects the state of pin 0, ..., bit 7 reflects the state of pin 7. Bit set = logic high, bit cleared = logic low
+ * \return Instance of MCP23017_StatusCode_t
+ */
+MCP23017_StatusCode_t MCP23017_PortWriteMasked(const MCP23017_Chain_t *chain, uint8_t devNum, MCP23017_Port_t port, uint8_t mask, uint8_t states);
+
+/*!
  * \brief Read port logic state
  *
  * \param chain : Chain base address

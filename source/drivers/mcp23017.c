@@ -101,6 +101,22 @@ MCP23017_StatusCode_t MCP23017_PinWrite(const MCP23017_Chain_t *chain, uint8_t d
 	return MCP23017_SendGeneric(chain, devNum, port, portStatus);
 }
 
+MCP23017_StatusCode_t MCP23017_PortWriteMasked(const MCP23017_Chain_t *chain, uint8_t devNum, MCP23017_Port_t port, uint8_t mask, uint8_t states)
+{
+	uint8_t portStatus;
+	MCP23017_StatusCode_t res = MCP23017_ReceiveGeneric(chain, devNum, port, &portStatus);
+
+	if (res != MCP23017_SUCCESS) {
+		return MCP23017_RECEIVING_ERR;
+	}
+
+	portStatus &= ~mask;
+	states &= mask;
+	uint8_t otp = portStatus | states;
+
+	return MCP23017_PortWrite(chain, devNum, port, otp);
+}
+
 MCP23017_StatusCode_t MCP23017_PinRead(const MCP23017_Chain_t *chain, uint8_t devNum, MCP23017_Port_t port, uint8_t pin, bool *dst)
 {
 	/* Check preconditions */
