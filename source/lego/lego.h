@@ -33,10 +33,33 @@ typedef struct {
 	MCP23017_Chain_t chain;		//!< MCP23017 chain info
 } LEGO_MCP23017Info_t;
 
+
+/*!
+ * \brief Group enum for convenience
+ */
+typedef enum {
+	LEGO_GROUP_A, 	//!< Brick Bank (10251)
+	LEGO_GROUP_B1,	//!< Assembly Square #1 (10255)
+	LEGO_GROUP_B2,	//!< Assembly Square #2 (10255)
+	LEGO_GROUP_C, 	//!< Parisian Restaurant (10243)
+	LEGO_GROUP_D, 	//!< Palace Cinema (10243)
+	LEGO_GROUP_E, 	//!< Train Station #1 (60050)
+	LEGO_GROUP_F, 	//!< Corner Garage (10264)
+	LEGO_GROUP_G, 	//!< Pet Shop #1 (10218)
+	LEGO_GROUP_H, 	//!< Pet Shop #2 (10218)
+	LEGO_GROUP_I, 	//!< Detective's Office (10246)
+	LEGO_GROUP_J, 	//!< Downtown dinner (10260)
+	LEGO_GROUP_K, 	//!< Park Street Townhouse #1 (31065)
+	LEGO_GROUP_L, 	//!< Park Street Townhouse #2 (31065)
+	LEGO_GROUP_M, 	//!< Train Station #2 (7997)
+	LEGO_GROUP_N  	//!< Roller Coaster (10261)
+} LEGO_LightGroup_t;
+
 /*!
  * \brief LEGO LED information
  */
 typedef struct {
+	uint32_t groupId;							//!< Group id (e.g. building id)
 	uint16_t lightId;							//!< Unique ID
 	const LEGO_MCP23017Info_t *mcp23017Info;	//!< See LEGO_MCP23017Info_t
 	uint8_t mcp23017DevNum; 					//!< MCP23017 device offset (0-7)
