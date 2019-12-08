@@ -124,13 +124,16 @@ int32_t API_LightControl(HTTPSRV_CGI_REQ_STRUCT *param)
 			}
 
 			/* Perform desired operation */
-			bool res;
+			bool res = false;
 			if (!strcmp(lightStat->valuestring, "on")) {
-				res = LEGO_LedControl(light, LEGO_LIGHT_ON);
+				//res = LEGO_LightControl(light, LEGO_LIGHT_ON);
+				res = LEGO_GroupControl(lightId->valueint, LEGO_LIGHT_ON);
 			} else if (!strcmp(lightStat->valuestring, "off")) {
-				res = LEGO_LedControl(light, LEGO_LIGHT_OFF);
+				//res = LEGO_LightControl(light, LEGO_LIGHT_OFF);
+				//res = LEGO_GroupControl(lightId->valueint, LEGO_LIGHT_OFF);
 			} else if (!strcmp(lightStat->valuestring, "toggle")) {
-				res = LEGO_LedControl(light, LEGO_LIGHT_TOGGLE);
+				//res = LEGO_LightControl(light, LEGO_LIGHT_TOGGLE);
+				//res = LEGO_GroupControl(lightId->valueint, LEGO_LIGHT_TOGGLE);
 			} else {
 				API_MAKE_CJOSN_STAT(monitor, response, HTTPSRV_CODE_BAD_REQ, "Unknown light operation");
 			}

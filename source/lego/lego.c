@@ -6,6 +6,10 @@
 /* emWin */
 #include "GUI.h"
 
+/* FreeRTOS */
+#include "FreeRTOS.h"
+#include "task.h"
+
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE MACROS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -14,153 +18,305 @@
 #define LEGO_MCP23017_CHAIN0		0x00
 #define LEGO_MCP23017_CHAIN0_DEV	8
 #define LEGO_MCP23017_CHAIN1		0x01
-#define LEGO_MCP23017_CHAIN1_DEV	2
-#define LEGO_MCP23017_CH(CH)		(&mcp23017Devices[(CH)])
+#define LEGO_MCP23017_CHAIN1_DEV	3
+#define LEGO_MCP23017_CH(CH)		(&mcp23017Chains[(CH)])
+
+/* MCP23017 devices - just for convenience macros */
+#define LEGO_CH0_DEV0_PA	(&mcp23017Devices[0])
+#define LEGO_CH0_DEV0_PB	(&mcp23017Devices[1])
+#define LEGO_CH0_DEV1_PA	(&mcp23017Devices[2])
+#define LEGO_CH0_DEV1_PB	(&mcp23017Devices[3])
+#define LEGO_CH0_DEV2_PA	(&mcp23017Devices[4])
+#define LEGO_CH0_DEV2_PB	(&mcp23017Devices[5])
+#define LEGO_CH0_DEV3_PA	(&mcp23017Devices[6])
+#define LEGO_CH0_DEV3_PB	(&mcp23017Devices[7])
+#define LEGO_CH0_DEV4_PA	(&mcp23017Devices[8])
+#define LEGO_CH0_DEV4_PB	(&mcp23017Devices[9])
+#define LEGO_CH0_DEV5_PA	(&mcp23017Devices[10])
+#define LEGO_CH0_DEV5_PB	(&mcp23017Devices[11])
+#define LEGO_CH0_DEV6_PA	(&mcp23017Devices[12])
+#define LEGO_CH0_DEV6_PB	(&mcp23017Devices[13])
+#define LEGO_CH0_DEV7_PA	(&mcp23017Devices[14])
+#define LEGO_CH0_DEV7_PB	(&mcp23017Devices[15])
+#define LEGO_CH1_DEV0_PA	(&mcp23017Devices[16])
+#define LEGO_CH1_DEV0_PB	(&mcp23017Devices[17])
+#define LEGO_CH1_DEV1_PA	(&mcp23017Devices[18])
+#define LEGO_CH1_DEV1_PB	(&mcp23017Devices[19])
+#define LEGO_CH1_DEV2_PA	(&mcp23017Devices[20])
+#define LEGO_CH1_DEV2_PB	(&mcp23017Devices[21])
+
+/* Animations */
+#define LEGO_PALACE_CINEMA_ANIM_FRAMES	3
+#define LEGO_ROLLER_COASTER_ANIM_FRAMES	10
 
 /* ----------------------------------------------------------------------------- */
 /* ---------------------------- PRIVATE VARIABLES ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-/* MCP23017 devices */
-static const LEGO_MCP23017Info_t mcp23017Devices[] = {
+/* Animation tasks handles */
+static TaskHandle_t cinemaPalaceTask;
+static TaskHandle_t rollerCoasterTask;
+
+/* MCP23017 device chains */
+static const LEGO_MCP23017Info_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
 		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } }
 };
 
-/* The table contains information about static lights only. Animated lights are stored in animation arrays */
+/* MCP23017 devices. Exclude masks are calculated during startup so it cannot be const */
+static LEGO_LightInfo_t mcp23017Devices[] = {
+		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 2, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 4, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 0x00 },
+		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A, 0x00 },
+		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B, 0x00 }
+};
+
+/* The table containing information about lights */
 static const LEGO_Light_t legoLights[] = {
 		/* GROUP A - Brick Bank (10251) */
-		{ LEGO_GROUP_A,  0,   LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_A,  1,   LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_A,  2,   LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_A,  3,   LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_A,  4,   LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_A,  5,   LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 4 },
+		{ 0,   LEGO_CH0_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Street lamp */
+		{ 1,   LEGO_CH0_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Laundry room */
+		{ 2,   LEGO_CH0_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Exterior lights */
+		{ 3,   LEGO_CH0_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Desk #1 */
+		{ 4,   LEGO_CH0_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Chandelier */
+		{ 5,   LEGO_CH0_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Desk #2 */
 		/* Group B1 - Assembly Square #1 (10255) */
-		{ LEGO_GROUP_B1, 6,   LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_B1, 7,   LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_B1, 8,   LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_B1, 9,   LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 3 },
-		{ LEGO_GROUP_B1, 10,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_B1, 11,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_B1, 12,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_B1, 13,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 7 },
-		{ LEGO_GROUP_B1, 14,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 2 },
-		{ LEGO_GROUP_B1, 15,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 3 },
-		{ LEGO_GROUP_B1, 16,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 4 },
-		{ LEGO_GROUP_B1, 17,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 5 },
-		{ LEGO_GROUP_B1, 18,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 6 },
-		{ LEGO_GROUP_B1, 19,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 7 },
-		{ LEGO_GROUP_B1, 20,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_B1, 21,  LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 1 },
+		{ 6,   LEGO_CH0_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Street lamp #1 */
+		{ 7,   LEGO_CH0_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Street lamp #2 */
+		{ 8,   LEGO_CH0_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Fountain */
+		{ 9,   LEGO_CH0_DEV1_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Room - 2nd floor */
+		{ 10,  LEGO_CH0_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Toilet - 2nd floor */
+		{ 11,  LEGO_CH0_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Glass-case #1 */
+		{ 12,  LEGO_CH0_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Exterior light - back */
+		{ 13,  LEGO_CH0_DEV1_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Glass-case #1  */
+		{ 14,  LEGO_CH0_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Exterior lights- front */
+		{ 15,  LEGO_CH0_DEV1_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Terrace */
+		{ 16,  LEGO_CH0_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Exterior lights - side */
+		{ 17,  LEGO_CH0_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Bakery */
+		{ 18,  LEGO_CH0_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Dentist office - UV light */
+		{ 19,  LEGO_CH0_DEV1_PA, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Flower shop */
+		{ 20,  LEGO_CH0_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Photo studio */
+		{ 21,  LEGO_CH0_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Dentist office */
 		/* Group B2 - Assembly Square #2 (10255) */
-		{ LEGO_GROUP_B2, 22,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_B2, 23,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_B2, 24,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_B2, 25,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_B2, 26,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_B2, 27,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_B2, 28,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_B2, 29,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_B2, 30,  LEGO_MCP23017_CH(0), 2, MCP23017_PORT_A, 2 },
+		{ 22,  LEGO_CH0_DEV2_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Dance studio */
+		{ 23,  LEGO_CH0_DEV2_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Cafe - table */
+		{ 24,  LEGO_CH0_DEV2_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Exterior lights #1 */
+		{ 25,  LEGO_CH0_DEV2_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Stairs - ground floor */
+		{ 26,  LEGO_CH0_DEV2_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Stairs - 2nd floor */
+		{ 27,  LEGO_CH0_DEV2_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Stairs - 1st floor */
+		{ 28,  LEGO_CH0_DEV2_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Music store */
+		{ 29,  LEGO_CH0_DEV2_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Exterior lights #2 */
+		{ 30,  LEGO_CH0_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Cafe */
 		/* Group C - Parisian Restaurant (10243) */
-		{ LEGO_GROUP_C,  31,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_C,  32,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_C,  33,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_C,  34,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_C,  35,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_C,  36,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_C,  37,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_C,  38,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_C,  39,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A, 3 },
-		{ LEGO_GROUP_C,  40,  LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A, 4 },
+		{ 31,  LEGO_CH0_DEV3_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Restaurant - table #1 */
+		{ 32,  LEGO_CH0_DEV3_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Exterior lights */
+		{ 33,  LEGO_CH0_DEV3_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Living room */
+		{ 34,  LEGO_CH0_DEV3_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #1 */
+		{ 35,  LEGO_CH0_DEV3_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #2 */
+		{ 36,  LEGO_CH0_DEV3_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Painting studio */
+		{ 37,  LEGO_CH0_DEV3_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #3 */
+		{ 38,  LEGO_CH0_DEV3_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #4 */
+		{ 39,  LEGO_CH0_DEV3_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Restaurant - table #2 */
+		{ 40,  LEGO_CH0_DEV3_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Street lamp */
 		/* Group D - Palace Cinema (10243) */
-		{ LEGO_GROUP_D,  41,  LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_D,  42,  LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_D,  43,  LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 7 },
-		{ LEGO_GROUP_D,  44,  LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_D,  45,  LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 3 },
+		{ 41,  LEGO_CH0_DEV4_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Exterior lights */
+		{ 42,  LEGO_CH0_DEV4_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Street lamp */
+		{ 43,  LEGO_CH0_DEV4_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Cinema hall - projector */
+		{ 44,  LEGO_CH0_DEV4_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Cinema hall */
+		{ 45,  LEGO_CH0_DEV4_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Cinema - ticket office */
 		/* Group E - Train Station #1 (60050) */
-		{ LEGO_GROUP_E,  46,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 6 },
-		{ LEGO_GROUP_E,  47,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 5 },
-		{ LEGO_GROUP_E,  48,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 4 },
-		{ LEGO_GROUP_E,  49,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 7 },
+		{ 46,  LEGO_CH0_DEV6_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Train station #1 */
+		{ 47,  LEGO_CH0_DEV6_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Train station #2 */
+		{ 48,  LEGO_CH0_DEV6_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Cash machine */
+		{ 49,  LEGO_CH0_DEV6_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Train depot */
 		/* Group F - Corner Garage (10264) */
-		{ LEGO_GROUP_F,  50,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_F,  51,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_F,  52,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_F,  53,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_F,  54,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_F,  55,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_F,  56,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_F,  57,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_F,  58,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 2 },
-		{ LEGO_GROUP_F,  59,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 4 },
-		{ LEGO_GROUP_F,  60,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 5 },
-		{ LEGO_GROUP_F,  61,  LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 6 },
+		{ 50,  LEGO_CH0_DEV5_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Exterior light - front */
+		{ 51,  LEGO_CH0_DEV5_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Terrace */
+		{ 52,  LEGO_CH0_DEV5_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Animal clinic */
+		{ 53,  LEGO_CH0_DEV5_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Gas station - pump */
+		{ 54,  LEGO_CH0_DEV5_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Exterior light - back */
+		{ 55,  LEGO_CH0_DEV5_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Car repair shop - exterior lights */
+		{ 56,  LEGO_CH0_DEV5_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Kitchen */
+		{ 57,  LEGO_CH0_DEV5_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Car repair shop - workshop */
+		{ 58,  LEGO_CH0_DEV5_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Car repair shop - office */
+		{ 59,  LEGO_CH0_DEV5_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Desk */
+		{ 60,  LEGO_CH0_DEV5_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Street lamp */
+		{ 61,  LEGO_CH0_DEV5_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Dining room */
 		/* Group G - Pet Shop #1 (10218) */
-		{ LEGO_GROUP_G,  62,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_G,  63,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 7 },
-		{ LEGO_GROUP_G,  64,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_G,  65,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 1 },
+		{ 62,  LEGO_CH0_DEV6_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Room under construction */
+		{ 63,  LEGO_CH0_DEV6_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Living room */
+		{ 64,  LEGO_CH0_DEV6_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Attic */
+		{ 65,  LEGO_CH0_DEV6_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Exterior light - back */
 		/* Group H - Pet Shop #2 (10218) */
-		{ LEGO_GROUP_H,  66,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_H,  67,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_H,  68,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_H,  69,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_H,  70,  LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 5 },
-		/* Group J - Detective's Office (10246) */
-		{ LEGO_GROUP_I,  71,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_I,  72,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_I,  73,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 2 },
-		{ LEGO_GROUP_I,  74,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_I,  75,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_I,  76,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_I,  77,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 4 },
-		{ LEGO_GROUP_I,  78,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 5 },
-		{ LEGO_GROUP_I,  79,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_I,  80,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_I,  81,  LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 6 },
+		{ 66,  LEGO_CH0_DEV6_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Pet shop */
+		{ 67,  LEGO_CH0_DEV6_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Attic */
+		{ 68,  LEGO_CH0_DEV6_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Street lamp */
+		{ 69,  LEGO_CH0_DEV6_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Stairs */
+		{ 70,  LEGO_CH0_DEV6_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Kitchen */
+		/* Group I - Detective's Office (10246) */
+		{ 71,  LEGO_CH0_DEV7_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Kitchen */
+		{ 72,  LEGO_CH0_DEV7_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Exterior light #1 */
+		{ 73,  LEGO_CH0_DEV7_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Toilet */
+		{ 74,  LEGO_CH0_DEV7_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Hairdresser #1 */
+		{ 75,  LEGO_CH0_DEV7_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Detective's office */
+		{ 76,  LEGO_CH0_DEV7_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Hairdresser #2 */
+		{ 77,  LEGO_CH0_DEV7_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Exterior light #2 */
+		{ 78,  LEGO_CH0_DEV7_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Exterior light #3 */
+		{ 79,  LEGO_CH0_DEV7_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Detective's office - desk */
+		{ 80,  LEGO_CH0_DEV7_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Game room */
+		{ 81,  LEGO_CH0_DEV7_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Street lamp */
 		/* Group J - Downtown dinner (10260) */
-		{ LEGO_GROUP_J,  82,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_J,  83,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_J,  84,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 2 },
-		{ LEGO_GROUP_J,  85,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_J,  86,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_J,  87,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_J,  88,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_J,  89,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_J,  90,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A, 3 },
-		{ LEGO_GROUP_J,  91,  LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A, 4 },
+		{ 82,  LEGO_CH1_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Recording studio #1 */
+		{ 83,  LEGO_CH1_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Street lamp */
+		{ 84,  LEGO_CH1_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Cafe #2 */
+		{ 85,  LEGO_CH1_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Gym #1 */
+		{ 86,  LEGO_CH1_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Exterior light #1 */
+		{ 87,  LEGO_CH1_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Cafe #2 */
+		{ 88,  LEGO_CH1_DEV0_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Gym #2 */
+		{ 89,  LEGO_CH1_DEV0_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Exterior light #2 */
+		{ 90,  LEGO_CH1_DEV0_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Living room */
+		{ 91,  LEGO_CH1_DEV0_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Recording studio #2 */
 		/* Group K - Park Street Townhouse #1 (31065) */
-		{ LEGO_GROUP_K,  92,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 4 },
-		{ LEGO_GROUP_K,  93,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 6 },
-		{ LEGO_GROUP_K,  94,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 5 },
+		{ 92,  LEGO_CH1_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K } }, /* Room */
+		{ 93,  LEGO_CH1_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K } }, /* Terrace #1 */
+		{ 94,  LEGO_CH1_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K } }, /* Terrace #2 */
 		/* Group L - Park Street Townhouse #2 (31065) */
-		{ LEGO_GROUP_L,  95,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 2 },
-		{ LEGO_GROUP_L,  96,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_L,  97,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 0 },
+		{ 95,  LEGO_CH1_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L } }, /* Exterior light */
+		{ 96,  LEGO_CH1_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L } }, /* Street lamp */
+		{ 97,  LEGO_CH1_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L } }, /* Room */
 		/* Group M - Train Station #2 (7997) */
-		{ LEGO_GROUP_M,  98,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 0 },
-		{ LEGO_GROUP_M,  99,  LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 5 },
-		{ LEGO_GROUP_M,  100, LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 4 },
-		{ LEGO_GROUP_M,  101, LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 6 },
-		{ LEGO_GROUP_M,  102, LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 1 },
-		{ LEGO_GROUP_M,  103, LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 2 },
+		{ 98,  LEGO_CH1_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station #1 */
+		{ 99,  LEGO_CH1_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station - 1st floor */
+		{ 100, LEGO_CH1_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station - board */
+		{ 101, LEGO_CH1_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station #2 */
+		{ 102, LEGO_CH1_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Exterior light #1 */
+		{ 103, LEGO_CH1_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Exterior light #2 */
 		/* Group N - Roller Coaster (10261) */
-		{ LEGO_GROUP_N,  104, LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A, 0 },
-		{ LEGO_GROUP_N,  105, LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A, 1 },
-		{ LEGO_GROUP_N,  106, LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A, 2 },
-		{ LEGO_GROUP_N,  107, LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B, 3 },
-		{ LEGO_GROUP_N,  108, LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B, 7 },
+		{ 104, LEGO_CH1_DEV2_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Roller Coaster - gates */
+		{ 105, LEGO_CH1_DEV2_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Tickets */
+		{ 106, LEGO_CH1_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Ice-cream shop */
+		{ 107, LEGO_CH1_DEV2_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Candy floss shop */
+		{ 108, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Floodlights */
+		/* Animation #1 - Palace Cinema (10243) */
+		{ 109, LEGO_CH0_DEV4_PB, 0, { LEGO_GROUP_EXCLUDED } }, /* Animation on/off */
+		{ 110, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM0, LEGO_GROUP_EXCLUDED } }, /* Frame #1 */
+		{ 111, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM0, LEGO_GROUP_EXCLUDED } }, /* Frame #2 */
+		{ 112, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM0, LEGO_GROUP_EXCLUDED } }, /* Frame #3 */
+		/* Animation #2 - Palace Cinema (10243) */
+		{ 113, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #1 */
+		{ 114, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #2 */
+		{ 115, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #3 */
+		{ 116, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #4 */
+		{ 117, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #5 */
+		{ 118, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #6 */
+		{ 119, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #7 */
+		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #8 */
+		{ 121, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #9 */
+		{ 122, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #10 */
 };
+
+/* ----------------------------------------------------------------------------- */
+/* ------------------------------- PRIVATE FUNCTIONS --------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+/* Check if specified light has searched group */
+static bool LEGO_HasGroup(const LEGO_Light_t *light, uint32_t groupId)
+{
+	for (uint8_t i = 0; i < LEGO_LIGHT_MAX_GROUPS; i++) {
+		if (light->groupsId[i] == groupId) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/* Calculate exclude masks for each MCP23017 device */
+static void LEGO_CalcExcludeMasks(void)
+{
+	const LEGO_Light_t *light;
+	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
+		light = &legoLights[i];
+		if (LEGO_HasGroup(light, LEGO_GROUP_EXCLUDED)) {
+			/* Removing constness here is better than keeping non-const devices pointer during the runtime */
+			MCP23017_UINT8_BIT_SET(((LEGO_LightInfo_t *) light->lightInfo)->excludeMask, light->mcp23017Pin);
+		}
+	}
+}
+
+/* Turn on/off all lights (without excluded ones) */
+static LEGO_LightOpRes_t LEGO_AllLightsControl(uint8_t portStates)
+{
+	const LEGO_LightInfo_t *dev;
+	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Devices); i++) {
+		dev = &mcp23017Devices[i];
+
+		/* Change mux channel and update pin latches */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, dev->mcp23017Info->channel) != TCA9548A_SUCCESS) {
+			taskEXIT_CRITICAL();
+			return LEGO_I2C_ERR;
+		}
+		if (MCP23017_PortWriteMasked(&dev->mcp23017Info->chain, dev->mcp23017DevNum, dev->mcp23017Port, ~dev->excludeMask, portStates) != MCP23017_SUCCESS) {
+			taskEXIT_CRITICAL();
+			return LEGO_I2C_ERR;
+		}
+		taskEXIT_CRITICAL();
+	}
+
+	return LEGO_OP_PERFORMED;
+}
+
+/* ----------------------------------------------------------------------------- */
+/* -------------------------------- FREERTOS TASKS ----------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+/* Task for Cinema Palace Animation */
+static void LEGO_PalaceCinemaTask(void *pvParameters)
+{
+	vTaskSuspend(NULL);
+}
+
+/* Task for Roller Coaster Animation */
+static void LEGO_RollerCoasterTask(void *pvParameters)
+{
+	vTaskSuspend(NULL);
+}
 
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
+bool LEGO_RTOSInit(void)
+{
+	BaseType_t cinemaTask = xTaskCreate(LEGO_PalaceCinemaTask, LEGO_TASK_PALACE_CINEMA_NAME, LEGO_TASK_PALACE_CINEMA_STACK, NULL, LEGO_TASK_PALACE_CINEMA_PRIO, &cinemaPalaceTask);
+	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &rollerCoasterTask);
+
+	return (cinemaTask == pdPASS && coasterTask == pdPASS);
+}
+
 bool LEGO_PerformStartup(void)
 {
+	/* Calculate exclude masks */
+	LEGO_CalcExcludeMasks();
+
 	/* Set TCA9548A and MCP23017 send/receive I2C functions */
 	TCA9548A_Init(BOARD_I2C_SendSingleReg, BOARD_I2C_ReadSingleReg);
 	MCP23017_Init(BOARD_I2C_SendMultiReg, BOARD_I2C_ReadMultiReg);
@@ -168,31 +324,31 @@ bool LEGO_PerformStartup(void)
 	bool response = true;
 
 	/* MCP23017 init */
-	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Devices); i++) {
+	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Chains); i++) {
 
 		/* Select correct I2C channel */
-		TCA9548A_Response_t tcaRes = TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, mcp23017Devices[i].channel);
+		TCA9548A_Response_t tcaRes = TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, mcp23017Chains[i].channel);
 		if (tcaRes != TCA9548A_SUCCESS) {
-			LOGGER_WRITELN(("LEGO startup problem. Cannot choose TCA9548A channel (mask #%d). Response code %d", mcp23017Devices[i].channel, tcaRes));
+			LOGGER_WRITELN(("LEGO startup problem. Cannot choose TCA9548A channel (mask #%d). Response code %d", mcp23017Chains[i].channel, tcaRes));
 			response = false;
 			continue;
 		}
 
-		MCP23017_StatusCode_t mcpRes = MCP23017_ChainInit(&mcp23017Devices[i].chain, 0x00);
+		MCP23017_StatusCode_t mcpRes = MCP23017_ChainInit(&mcp23017Chains[i].chain, 0x00);
 		if (mcpRes != MCP23017_SUCCESS) {
 			LOGGER_WRITELN(("LEGO startup problem. Cannot initialize MCP23017 chain #%d. Status code %d", i, mcpRes));
 			response = false;
 		}
 
 		/* By default all pins are output with logic high (lights off) */
-		for (uint8_t j = 0; j < mcp23017Devices[i].chain.numDevices; j++) {
-			if (MCP23017_PortSetDirection(&mcp23017Devices[i].chain, j, MCP23017_PORT_A, 0x00) != MCP23017_SUCCESS ||
-				MCP23017_PortSetDirection(&mcp23017Devices[i].chain, j, MCP23017_PORT_B, 0x00) != MCP23017_SUCCESS) {
+		for (uint8_t j = 0; j < mcp23017Chains[i].chain.numDevices; j++) {
+			if (MCP23017_PortSetDirection(&mcp23017Chains[i].chain, j, MCP23017_PORT_A, 0x00) != MCP23017_SUCCESS ||
+				MCP23017_PortSetDirection(&mcp23017Chains[i].chain, j, MCP23017_PORT_B, 0x00) != MCP23017_SUCCESS) {
 				response = false;
 			}
 
-			if (MCP23017_PortWrite(&mcp23017Devices[i].chain, j, MCP23017_PORT_A, 0xFF) != MCP23017_SUCCESS ||
-				MCP23017_PortWrite(&mcp23017Devices[i].chain, j, MCP23017_PORT_B, 0xFF) != MCP23017_SUCCESS) {
+			if (MCP23017_PortWrite(&mcp23017Chains[i].chain, j, MCP23017_PORT_A, 0xFF) != MCP23017_SUCCESS ||
+				MCP23017_PortWrite(&mcp23017Chains[i].chain, j, MCP23017_PORT_B, 0xFF) != MCP23017_SUCCESS) {
 				response = false;
 			}
 		}
@@ -212,36 +368,89 @@ const LEGO_Light_t *LEGO_GetLightById(int16_t id)
 	return NULL;
 }
 
-bool LEGO_LedControl(const LEGO_Light_t *light, LEGO_LightOp_t op)
+uint8_t LEGO_GetLightsByGroup(uint32_t groupId, LEGO_GroupSearchRes_t *searchRes)
 {
-	assert(light != NULL);
+	uint8_t devUsed = 0;
+	const LEGO_Light_t *light;
+	LEGO_GroupSearchRes_t *resRow;
 
-	/* Change multiplexer channel */
-	TCA9548A_Response_t tcaRes = TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, light->mcp23017Info->channel);
-	if (tcaRes != TCA9548A_SUCCESS) {
-		LOGGER_WRITELN(("Cannot select TCA9548A channel. I2C error. Status code %d", tcaRes));
-		return false;
+	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
+		light = &legoLights[i];
+		/* If light has group append it to the result buffer */
+		if (LEGO_HasGroup(light, groupId)) {
+			bool devFound;
+			for (uint8_t j = 0; j < devUsed; j++) {
+				resRow = &searchRes[j];
+				devFound = false;
+				if (resRow->lightInfo == light->lightInfo) {
+					/* Update entry */
+					MCP23017_UINT8_BIT_SET(resRow->mask, light->mcp23017Pin);
+					devFound = true;
+					break;
+				}
+			}
+			/* Create new entry */
+			if (!devFound) {
+				searchRes[devUsed].lightInfo = light->lightInfo;
+				searchRes[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
+				devUsed++;
+			}
+		}
+ 	}
+
+	return devUsed;
+}
+
+LEGO_LightOpRes_t LEGO_GroupControl(uint32_t groupId, LEGO_LightOp_t op)
+{
+	/* Search lights */
+	LEGO_GroupSearchRes_t searchBuff[GUI_COUNTOF(mcp23017Devices)];
+	uint8_t dev = LEGO_GetLightsByGroup(groupId, searchBuff);
+
+	if (!dev) {
+		return LEGO_ID_NOT_FOUND;
 	}
 
-	MCP23017_StatusCode_t mcpRes;
+	const LEGO_GroupSearchRes_t *buffRow;
+	const LEGO_LightInfo_t *lightInfo;
+	uint8_t sendVal;
 
-	/* Perform desired operation */
-	switch (op) {
-	case LEGO_LIGHT_ON:
-		mcpRes = MCP23017_PinWrite(&light->mcp23017Info->chain, light->mcp23017DevNum, light->mcp23017Port, light->mcp23017Pin, MCP23017_PIN_LOW);
-		break;
-	case LEGO_LIGHT_OFF:
-		mcpRes = MCP23017_PinWrite(&light->mcp23017Info->chain, light->mcp23017DevNum, light->mcp23017Port, light->mcp23017Pin, MCP23017_PIN_HIGH);
-		break;
-	case LEGO_LIGHT_TOGGLE:
-		mcpRes = MCP23017_PinToggle(&light->mcp23017Info->chain, light->mcp23017DevNum, light->mcp23017Port, light->mcp23017Pin);
-		break;
+	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Devices); i++) {
+		buffRow = &searchBuff[i];
+
+		/* Change i2c mux channel */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, buffRow->lightInfo->mcp23017Info->channel) != TCA9548A_SUCCESS) {
+			taskEXIT_CRITICAL();
+			return LEGO_I2C_ERR;
+		}
+
+		lightInfo = buffRow->lightInfo;
+
+		switch (op) {
+		case LEGO_LIGHT_ON:
+			sendVal = 0x00;
+			break;
+		case LEGO_LIGHT_OFF:
+			sendVal = 0xFF;
+			break;
+		case LEGO_LIGHT_TOGGLE:
+			/* Current port state must be read */
+			if (MCP23017_PortRead(&lightInfo->mcp23017Info->chain, lightInfo->mcp23017DevNum, lightInfo->mcp23017Port, &sendVal) != MCP23017_SUCCESS) {
+				taskEXIT_CRITICAL();
+				return LEGO_I2C_ERR;
+			}
+			sendVal = ~sendVal;
+			break;
+		}
+
+		/* Send new port states */
+		if (MCP23017_PortWriteMasked(&lightInfo->mcp23017Info->chain, lightInfo->mcp23017DevNum, lightInfo->mcp23017Port, buffRow->mask, sendVal) != MCP23017_SUCCESS) {
+			taskEXIT_CRITICAL();
+			return LEGO_I2C_ERR;
+		}
+		taskEXIT_CRITICAL();
 	}
 
-	if (mcpRes != MCP23017_SUCCESS) {
-		LOGGER_WRITELN(("MCP23017 pin writing error. Status code %d", mcpRes));
-		return false;
-	}
-
-	return true;
+	return LEGO_OP_PERFORMED;
 }
