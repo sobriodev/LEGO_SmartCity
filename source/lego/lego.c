@@ -58,35 +58,35 @@ static TaskHandle_t cinemaPalaceTask;
 static TaskHandle_t rollerCoasterTask;
 
 /* MCP23017 device chains */
-static const LEGO_MCP23017Info_t mcp23017Chains[] = {
+static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
 		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } }
 };
 
 /* MCP23017 devices. Exclude masks are calculated during startup so it cannot be const */
-static LEGO_LightInfo_t mcp23017Devices[] = {
-		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 2, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 4, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B, 0x00 },
-		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A, 0x00 },
-		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B, 0x00 }
+static LEGO_MCP23017Info_t mcp23017Devices[] = {
+		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 2, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 2, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 3, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 3, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 4, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 4, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 5, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 5, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 6, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 6, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(0), 7, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(0), 7, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(1), 0, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(1), 0, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B }
 };
 
 /* The table containing information about lights */
@@ -216,21 +216,21 @@ static const LEGO_Light_t legoLights[] = {
 		{ 107, LEGO_CH1_DEV2_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Candy floss shop */
 		{ 108, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Floodlights */
 		/* Animation #1 - Palace Cinema (10243) */
-		{ 109, LEGO_CH0_DEV4_PB, 0, { LEGO_GROUP_EXCLUDED } }, /* Animation on/off */
-		{ 110, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM0, LEGO_GROUP_EXCLUDED } }, /* Frame #1 */
-		{ 111, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM0, LEGO_GROUP_EXCLUDED } }, /* Frame #2 */
-		{ 112, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM0, LEGO_GROUP_EXCLUDED } }, /* Frame #3 */
+		{ 109, LEGO_CH0_DEV4_PB, 0, {} }, /* Animation on/off */
+		{ 110, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM0 } }, /* Frame #1 */
+		{ 111, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM0 } }, /* Frame #2 */
+		{ 112, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM0 } }, /* Frame #3 */
 		/* Animation #2 - Palace Cinema (10243) */
-		{ 113, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #1 */
-		{ 114, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #2 */
-		{ 115, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #3 */
-		{ 116, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #4 */
-		{ 117, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #5 */
-		{ 118, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #6 */
-		{ 119, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #7 */
-		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #8 */
-		{ 121, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #9 */
-		{ 122, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM1, LEGO_GROUP_EXCLUDED } }, /* Frame #10 */
+		{ 113, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM1 } }, /* Frame #1 */
+		{ 114, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM1 } }, /* Frame #2 */
+		{ 115, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM1 } }, /* Frame #3 */
+		{ 116, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM1 } }, /* Frame #4 */
+		{ 117, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM1 } }, /* Frame #5 */
+		{ 118, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM1 } }, /* Frame #6 */
+		{ 119, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM1 } }, /* Frame #7 */
+		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM1 } }, /* Frame #8 */
+		{ 121, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM1 } }, /* Frame #9 */
+		{ 122, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM1 } }, /* Frame #10 */
 };
 
 /* ----------------------------------------------------------------------------- */
@@ -248,40 +248,15 @@ static bool LEGO_HasGroup(const LEGO_Light_t *light, uint32_t groupId)
 	return false;
 }
 
-/* Calculate exclude masks for each MCP23017 device */
-static void LEGO_CalcExcludeMasks(void)
+/* Check if specified light has searched id */
+static inline bool LEGO_HasId(const LEGO_Light_t *light, uint32_t id)
 {
-	const LEGO_Light_t *light;
-	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
-		light = &legoLights[i];
-		if (LEGO_HasGroup(light, LEGO_GROUP_EXCLUDED)) {
-			/* Removing constness here is better than keeping non-const devices pointer during the runtime */
-			MCP23017_UINT8_BIT_SET(((LEGO_LightInfo_t *) light->lightInfo)->excludeMask, light->mcp23017Pin);
-		}
-	}
+	return light->lightId == id;
 }
 
-/* Turn on/off all lights (without excluded ones) */
-static LEGO_LightOpRes_t LEGO_AllLightsControl(uint8_t portStates)
+static inline bool LEGO_CompareOnOffTime(const LEGO_Light_t *light, uint32_t time)
 {
-	const LEGO_LightInfo_t *dev;
-	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Devices); i++) {
-		dev = &mcp23017Devices[i];
-
-		/* Change mux channel and update pin latches */
-		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, dev->mcp23017Info->channel) != TCA9548A_SUCCESS) {
-			taskEXIT_CRITICAL();
-			return LEGO_I2C_ERR;
-		}
-		if (MCP23017_PortWriteMasked(&dev->mcp23017Info->chain, dev->mcp23017DevNum, dev->mcp23017Port, ~dev->excludeMask, portStates) != MCP23017_SUCCESS) {
-			taskEXIT_CRITICAL();
-			return LEGO_I2C_ERR;
-		}
-		taskEXIT_CRITICAL();
-	}
-
-	return LEGO_OP_PERFORMED;
+	return true;
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -300,6 +275,12 @@ static void LEGO_RollerCoasterTask(void *pvParameters)
 	vTaskSuspend(NULL);
 }
 
+static void LEGO_AutoModeTask(void)
+{
+	/* Copy auto mode enabled pins to the buffer */
+
+}
+
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -314,9 +295,6 @@ bool LEGO_RTOSInit(void)
 
 bool LEGO_PerformStartup(void)
 {
-	/* Calculate exclude masks */
-	LEGO_CalcExcludeMasks();
-
 	/* Set TCA9548A and MCP23017 send/receive I2C functions */
 	TCA9548A_Init(BOARD_I2C_SendSingleReg, BOARD_I2C_ReadSingleReg);
 	MCP23017_Init(BOARD_I2C_SendMultiReg, BOARD_I2C_ReadMultiReg);
@@ -357,32 +335,32 @@ bool LEGO_PerformStartup(void)
 	return response;
 }
 
-const LEGO_Light_t *LEGO_GetLightById(int16_t id)
-{
-	/* GUI_COUNTOF defined in emWin library */
-	for (uint16_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
-		if (legoLights[i].lightId == id) {
-			return &legoLights[i];
-		}
-	}
-	return NULL;
-}
-
-uint8_t LEGO_GetLightsByGroup(uint32_t groupId, LEGO_GroupSearchRes_t *searchRes)
+uint8_t LEGO_SearchLights(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes)
 {
 	uint8_t devUsed = 0;
 	const LEGO_Light_t *light;
-	LEGO_GroupSearchRes_t *resRow;
+	LEGO_SearchRes_t *resRow;
 
 	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
 		light = &legoLights[i];
-		/* If light has group append it to the result buffer */
-		if (LEGO_HasGroup(light, groupId)) {
+
+		/* Search */
+		bool result;
+		switch (searchPattern) {
+		case LEGO_SEARCH_ID:
+			result = LEGO_HasId(light, id);
+			break;
+		case LEGO_SEARCH_GROUP:
+			result = LEGO_HasGroup(light, id);
+			break;
+		}
+
+		if (result) {
 			bool devFound;
 			for (uint8_t j = 0; j < devUsed; j++) {
 				resRow = &searchRes[j];
 				devFound = false;
-				if (resRow->lightInfo == light->lightInfo) {
+				if (resRow->mcp23017Info == light->mcp23017Info) {
 					/* Update entry */
 					MCP23017_UINT8_BIT_SET(resRow->mask, light->mcp23017Pin);
 					devFound = true;
@@ -391,7 +369,7 @@ uint8_t LEGO_GetLightsByGroup(uint32_t groupId, LEGO_GroupSearchRes_t *searchRes
 			}
 			/* Create new entry */
 			if (!devFound) {
-				searchRes[devUsed].lightInfo = light->lightInfo;
+				searchRes[devUsed].mcp23017Info = light->mcp23017Info;
 				searchRes[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
 				devUsed++;
 			}
@@ -401,31 +379,31 @@ uint8_t LEGO_GetLightsByGroup(uint32_t groupId, LEGO_GroupSearchRes_t *searchRes
 	return devUsed;
 }
 
-LEGO_LightOpRes_t LEGO_GroupControl(uint32_t groupId, LEGO_LightOp_t op)
+LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op)
 {
 	/* Search lights */
-	LEGO_GroupSearchRes_t searchBuff[GUI_COUNTOF(mcp23017Devices)];
-	uint8_t dev = LEGO_GetLightsByGroup(groupId, searchBuff);
+	LEGO_SearchRes_t searchBuff[GUI_COUNTOF(mcp23017Devices)];
+	uint8_t devFound = LEGO_SearchLights(searchPattern, id, searchBuff);
 
-	if (!dev) {
+	if (!devFound) {
 		return LEGO_ID_NOT_FOUND;
 	}
 
-	const LEGO_GroupSearchRes_t *buffRow;
-	const LEGO_LightInfo_t *lightInfo;
+	const LEGO_SearchRes_t *buffRow;
+	const LEGO_MCP23017Info_t *mcp23017Info;
 	uint8_t sendVal;
 
-	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Devices); i++) {
+	for (uint8_t i = 0; i < devFound; i++) {
 		buffRow = &searchBuff[i];
 
 		/* Change i2c mux channel */
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, buffRow->lightInfo->mcp23017Info->channel) != TCA9548A_SUCCESS) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, buffRow->mcp23017Info->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
 			taskEXIT_CRITICAL();
 			return LEGO_I2C_ERR;
 		}
 
-		lightInfo = buffRow->lightInfo;
+		mcp23017Info = buffRow->mcp23017Info;
 
 		switch (op) {
 		case LEGO_LIGHT_ON:
@@ -436,7 +414,7 @@ LEGO_LightOpRes_t LEGO_GroupControl(uint32_t groupId, LEGO_LightOp_t op)
 			break;
 		case LEGO_LIGHT_TOGGLE:
 			/* Current port state must be read */
-			if (MCP23017_PortRead(&lightInfo->mcp23017Info->chain, lightInfo->mcp23017DevNum, lightInfo->mcp23017Port, &sendVal) != MCP23017_SUCCESS) {
+			if (MCP23017_PortRead(&mcp23017Info->i2cDevInfo->chain, mcp23017Info->mcp23017DevNum, mcp23017Info->mcp23017Port, &sendVal) != MCP23017_SUCCESS) {
 				taskEXIT_CRITICAL();
 				return LEGO_I2C_ERR;
 			}
@@ -445,7 +423,7 @@ LEGO_LightOpRes_t LEGO_GroupControl(uint32_t groupId, LEGO_LightOp_t op)
 		}
 
 		/* Send new port states */
-		if (MCP23017_PortWriteMasked(&lightInfo->mcp23017Info->chain, lightInfo->mcp23017DevNum, lightInfo->mcp23017Port, buffRow->mask, sendVal) != MCP23017_SUCCESS) {
+		if (MCP23017_PortWriteMasked(&mcp23017Info->i2cDevInfo->chain, mcp23017Info->mcp23017DevNum, mcp23017Info->mcp23017Port, buffRow->mask, sendVal) != MCP23017_SUCCESS) {
 			taskEXIT_CRITICAL();
 			return LEGO_I2C_ERR;
 		}

@@ -33,25 +33,23 @@
 typedef struct {
 	TCA9548A_Channel_t channel; //!< TCA9548A channel
 	MCP23017_Chain_t chain;		//!< MCP23017 chain info
-} LEGO_MCP23017Info_t;
+} LEGO_I2CDev_t;
 
 /*!
  * \brief Structure which uniquely identifies device on the I2C bus
  * \note According to the MCP23017 manual port A and B are identified as separate instances
  */
 typedef struct {
-	const LEGO_MCP23017Info_t *mcp23017Info;	//!< See LEGO_MCP23017Info_t for more information
+	const LEGO_I2CDev_t *i2cDevInfo;			//!< See LEGO_I2CDev_t for more information
 	uint8_t mcp23017DevNum;						//!< MCP23017 device offset (0-7)
 	MCP23017_Port_t mcp23017Port;       		//!< MCP23017 port
-	uint8_t	excludeMask;						//!< Bit 0 contains information about pin 0, ... bit 7 contains information about pin 7. Bit set = pin excluded from normal operations (e.g. animation pin)
-} LEGO_LightInfo_t;
+} LEGO_MCP23017Info_t;
 
 /*!
  * \brief Groups enum for convenience
  */
 typedef enum {
 	LEGO_GROUP_BROADCAST = 1,	//!< Broadcast group
-	LEGO_GROUP_EXCLUDED,		//!< Excluded from normal operations (e.g. animation pins)
 	/* Building groups */
 	LEGO_GROUP_A , 				//!< Brick Bank (10251)
 	LEGO_GROUP_B1,				//!< Assembly Square #1 (10255)
@@ -77,8 +75,8 @@ typedef enum {
  * \brief LEGO Light information
  */
 typedef struct {
-	uint16_t lightId;							//!< Unique ID
-	const LEGO_LightInfo_t *lightInfo;			//!< See LEGO_LightInfo_t
+	uint32_t lightId;							//!< Unique ID
+	const LEGO_MCP23017Info_t *mcp23017Info;	//!< See LEGO_MCP23017Info_t
 	uint8_t mcp23017Pin;						//!< MCP23017 pin
 	uint32_t groupsId[LEGO_LIGHT_MAX_GROUPS];	//!< Specific groups the light belongs to
 } LEGO_Light_t;
@@ -93,12 +91,21 @@ typedef enum {
 } LEGO_LightOp_t;
 
 /*!
- * \brief Buffer used in group search
+ * \brief Buffer used in search
  */
 typedef struct {
-	const LEGO_LightInfo_t *lightInfo;	//!< See LEGO_LightInfo_t
-	uint8_t mask;						//!< Bit 0 contains information about pin 0, ..., bit 7 contains information about pin 7. Bit set = pin has specified group, bit cleared = pin has not specified group
-} LEGO_GroupSearchRes_t;
+	const LEGO_MCP23017Info_t *mcp23017Info;	//!< LEGO_MCP23017Info_t
+	uint8_t mask;								//!< Bit 0 contains information about pin 0, ..., bit 7 contains information about pin 7. Bit set = pin has specified id, bit cleared = pin has not specified id
+	uint8_t userField;							//!< Bit 0 contains information about pin state 0, ..., bit 7 contains information about pin state 7. This field is for user only
+} LEGO_SearchRes_t;
+
+/*!
+ * \brief Search patterns
+ */
+typedef enum {
+	LEGO_SEARCH_ID,  	//!< Search by id
+	LEGO_SEARCH_GROUP	//!< Search by group
+} LEGO_SearchPattern_t;
 
 /*!
  * \brief Possible return values when using API functions
@@ -128,30 +135,15 @@ bool LEGO_RTOSInit(void);
 bool LEGO_PerformStartup(void);
 
 /*!
- * \brief Find light instance using unique Id
+ * \brief Search all lights with specified search pattern
  *
- * \param id : Light Id
- * \return Searched light structure base address or NULL if nothing was found
+ * \param : Search pattern. See LEGO_SearchPattern_t
+ * \param id : Searched id
+ * \param lightBuff : See LEGO_SearchRes_t for more information. The buffer must be as big as needed, otherwise the memory will be overridden
+ * \return The number of i2c devices whose pins have specified id
  */
-const LEGO_Light_t *LEGO_GetLightById(int16_t id);
+uint8_t LEGO_SearchLights(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes);
 
-/*!
- * \brief Search all lights with specified group
- *
- * \param groupId : Group id
- * \param lightBuff : See LEGO_GroupSearchRes_t for more information. The buffer must be as big as needed, otherwise the memory will be overridden
- *
- * \return The number of i2c devices whose pins have specified group
- */
-uint8_t LEGO_GetLightsByGroup(uint32_t groupId, LEGO_GroupSearchRes_t *searchRes);
-
-/*!
- * \brief Group control function
- *
- * \param groupId : Group id
- * \param op : Desired operation. See LEGO_LightOp_t for more information
- * \return Instance of LEGO_LightOpRes_t
- */
-LEGO_LightOpRes_t LEGO_GroupControl(uint32_t groupId, LEGO_LightOp_t op);
+LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op);
 
 #endif /* LEGO_LEGO_H_ */

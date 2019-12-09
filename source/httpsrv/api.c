@@ -117,17 +117,11 @@ int32_t API_LightControl(HTTPSRV_CGI_REQ_STRUCT *param)
 				API_MAKE_CJOSN_STAT(monitor, response, HTTPSRV_CODE_BAD_REQ, "JSON field missing");
 			}
 
-			/* Find desired light instance */
-			const LEGO_Light_t *light = LEGO_GetLightById(lightId->valueint);
-			if (light == NULL) {
-				API_MAKE_CJOSN_STAT(monitor, response, HTTPSRV_CODE_NOT_FOUND, "Required light id does not exist");
-			}
-
 			/* Perform desired operation */
 			bool res = false;
 			if (!strcmp(lightStat->valuestring, "on")) {
 				//res = LEGO_LightControl(light, LEGO_LIGHT_ON);
-				res = LEGO_GroupControl(lightId->valueint, LEGO_LIGHT_ON);
+				//res = LEGO_GroupControl(lightId->valueint, LEGO_LIGHT_ON);
 			} else if (!strcmp(lightStat->valuestring, "off")) {
 				//res = LEGO_LightControl(light, LEGO_LIGHT_OFF);
 				//res = LEGO_GroupControl(lightId->valueint, LEGO_LIGHT_OFF);
