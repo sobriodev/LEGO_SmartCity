@@ -22,6 +22,9 @@
 #define LEGO_TASK_ROLLER_COASTER_NAME		"TASK_COASTER"
 #define LEGO_TASK_ROLLER_COASTER_STACK		0x200
 #define LEGO_TASK_ROLLER_COASTER_PRIO		(tskIDLE_PRIORITY + 2)
+#define LEGO_TASK_AUTO_MODE_NAME			"TASK_LEGO_AUTO"
+#define LEGO_TASK_AUTO_MODE_STACK			0x400
+#define LEGO_TASK_AUTO_MODE_PRIO			(tskIDLE_PRIORITY + 2)
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- DATA TYPES --------------------------------- */
@@ -79,6 +82,7 @@ typedef struct {
 	const LEGO_MCP23017Info_t *mcp23017Info;	//!< See LEGO_MCP23017Info_t
 	uint8_t mcp23017Pin;						//!< MCP23017 pin
 	uint32_t groupsId[LEGO_LIGHT_MAX_GROUPS];	//!< Specific groups the light belongs to
+	uint8_t autoModePercentage;					//!< If 0 the light does not act in automatic mode. Otherwise greater value = the light will be turning on more often
 } LEGO_Light_t;
 
 /*!
@@ -96,15 +100,14 @@ typedef enum {
 typedef struct {
 	const LEGO_MCP23017Info_t *mcp23017Info;	//!< LEGO_MCP23017Info_t
 	uint8_t mask;								//!< Bit 0 contains information about pin 0, ..., bit 7 contains information about pin 7. Bit set = pin has specified id, bit cleared = pin has not specified id
-	uint8_t userField;							//!< Bit 0 contains information about pin state 0, ..., bit 7 contains information about pin state 7. This field is for user only
 } LEGO_SearchRes_t;
 
 /*!
  * \brief Search patterns
  */
 typedef enum {
-	LEGO_SEARCH_ID,  	//!< Search by id
-	LEGO_SEARCH_GROUP	//!< Search by group
+	LEGO_SEARCH_ID,  		//!< Search by id
+	LEGO_SEARCH_GROUP,		//!< Search by group
 } LEGO_SearchPattern_t;
 
 /*!
@@ -137,12 +140,14 @@ bool LEGO_PerformStartup(void);
 /*!
  * \brief Search all lights with specified search pattern
  *
+ * \param lights : Lights table base address
+ * \param lightsCnt : The number of lights
  * \param : Search pattern. See LEGO_SearchPattern_t
  * \param id : Searched id
  * \param lightBuff : See LEGO_SearchRes_t for more information. The buffer must be as big as needed, otherwise the memory will be overridden
  * \return The number of i2c devices whose pins have specified id
  */
-uint8_t LEGO_SearchLights(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes);
+uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes);
 
 LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op);
 

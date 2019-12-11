@@ -98,11 +98,11 @@ static void BOARD_StartupTask(void *pvParameters)
     	LOGGER_WRITELN(("LEGO startup failure"));
     }
 
-//    LOGGER_WRITELN(("Initializing LEGO RTOS"));
-//    GUI_StartupChangeStep("Initializing LEGO RTOS");
-//    if (!LEGO_RTOSInit()) {
-//    	LOGGER_WRITELN(("LEGO RTOS init failure. Check heap and stack usage"));
-//    }
+    LOGGER_WRITELN(("Initializing LEGO RTOS"));
+    GUI_StartupChangeStep("Initializing LEGO RTOS");
+    if (!LEGO_RTOSInit()) {
+    	LOGGER_WRITELN(("LEGO RTOS init failure. Check heap and stack usage"));
+    }
 
     /* Open desktop window */
     GUI_DesktopCreate();

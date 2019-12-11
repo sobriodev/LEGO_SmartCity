@@ -2,6 +2,7 @@
 #include "board_conf.h"
 #include "logger.h"
 #include "assert.h"
+#include "stdlib.h"
 
 /* emWin */
 #include "GUI.h"
@@ -50,10 +51,21 @@
 #define LEGO_ROLLER_COASTER_ANIM_FRAMES	10
 
 /* ----------------------------------------------------------------------------- */
+/* ---------------------------- PRIVATE DATA TYPES ----------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+typedef struct {
+	const LEGO_MCP23017Info_t *mcp23017Info;	//!< LEGO_MCP23017Info_t
+	uint8_t mask;								//!< Bit 0 contains information about pin 0, ..., bit 7 contains information about pin 7. Bit set = pin has auto mode enabled, bit cleared = pin has not auto mode enabled
+	uint8_t portState;							//!< New port state
+} LEGO_AutoModeEntity_t;
+
+/* ----------------------------------------------------------------------------- */
 /* ---------------------------- PRIVATE VARIABLES ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
 /* Animation tasks handles */
+static TaskHandle_t autoModeTask;
 static TaskHandle_t cinemaPalaceTask;
 static TaskHandle_t rollerCoasterTask;
 
@@ -63,8 +75,8 @@ static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } }
 };
 
-/* MCP23017 devices. Exclude masks are calculated during startup so it cannot be const */
-static LEGO_MCP23017Info_t mcp23017Devices[] = {
+/* MCP23017 devices */
+static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_A },
 		{ LEGO_MCP23017_CH(0), 0, MCP23017_PORT_B },
 		{ LEGO_MCP23017_CH(0), 1, MCP23017_PORT_A },
@@ -92,29 +104,29 @@ static LEGO_MCP23017Info_t mcp23017Devices[] = {
 /* The table containing information about lights */
 static const LEGO_Light_t legoLights[] = {
 		/* GROUP A - Brick Bank (10251) */
-		{ 0,   LEGO_CH0_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Street lamp */
-		{ 1,   LEGO_CH0_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Laundry room */
-		{ 2,   LEGO_CH0_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Exterior lights */
-		{ 3,   LEGO_CH0_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Desk #1 */
-		{ 4,   LEGO_CH0_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Chandelier */
-		{ 5,   LEGO_CH0_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A } }, /* Desk #2 */
+		{ 0,   LEGO_CH0_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 20 }, /* Street lamp */
+		{ 1,   LEGO_CH0_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 50 }, /* Laundry room */
+		{ 2,   LEGO_CH0_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 99 }, /* Exterior lights */
+		{ 3,   LEGO_CH0_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 40 }, /* Desk #1 */
+		{ 4,   LEGO_CH0_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 50 }, /* Chandelier */
+		{ 5,   LEGO_CH0_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 60 }, /* Desk #2 */
 		/* Group B1 - Assembly Square #1 (10255) */
-		{ 6,   LEGO_CH0_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Street lamp #1 */
-		{ 7,   LEGO_CH0_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Street lamp #2 */
-		{ 8,   LEGO_CH0_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Fountain */
-		{ 9,   LEGO_CH0_DEV1_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Room - 2nd floor */
-		{ 10,  LEGO_CH0_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Toilet - 2nd floor */
-		{ 11,  LEGO_CH0_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Glass-case #1 */
-		{ 12,  LEGO_CH0_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Exterior light - back */
-		{ 13,  LEGO_CH0_DEV1_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Glass-case #1  */
-		{ 14,  LEGO_CH0_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Exterior lights- front */
-		{ 15,  LEGO_CH0_DEV1_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Terrace */
-		{ 16,  LEGO_CH0_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Exterior lights - side */
-		{ 17,  LEGO_CH0_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Bakery */
-		{ 18,  LEGO_CH0_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Dentist office - UV light */
-		{ 19,  LEGO_CH0_DEV1_PA, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Flower shop */
-		{ 20,  LEGO_CH0_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Photo studio */
-		{ 21,  LEGO_CH0_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 } }, /* Dentist office */
+		{ 6,   LEGO_CH0_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 1 }, /* Street lamp #1 */
+		{ 7,   LEGO_CH0_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 2 }, /* Street lamp #2 */
+		{ 8,   LEGO_CH0_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 3 }, /* Fountain */
+		{ 9,   LEGO_CH0_DEV1_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 4 }, /* Room - 2nd floor */
+		{ 10,  LEGO_CH0_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 5 }, /* Toilet - 2nd floor */
+		{ 11,  LEGO_CH0_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 6 }, /* Glass-case #1 */
+		{ 12,  LEGO_CH0_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 7 }, /* Exterior light - back */
+		{ 13,  LEGO_CH0_DEV1_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 20 }, /* Glass-case #1  */
+		{ 14,  LEGO_CH0_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 30 }, /* Exterior lights- front */
+		{ 15,  LEGO_CH0_DEV1_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 40 }, /* Terrace */
+		{ 16,  LEGO_CH0_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 50 }, /* Exterior lights - side */
+		{ 17,  LEGO_CH0_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 60 }, /* Bakery */
+		{ 18,  LEGO_CH0_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 70 }, /* Dentist office - UV light */
+		{ 19,  LEGO_CH0_DEV1_PA, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 80 }, /* Flower shop */
+		{ 20,  LEGO_CH0_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 90 }, /* Photo studio */
+		{ 21,  LEGO_CH0_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 95 }, /* Dentist office */
 		/* Group B2 - Assembly Square #2 (10255) */
 		{ 22,  LEGO_CH0_DEV2_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Dance studio */
 		{ 23,  LEGO_CH0_DEV2_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Cafe - table */
@@ -251,12 +263,64 @@ static bool LEGO_HasGroup(const LEGO_Light_t *light, uint32_t groupId)
 /* Check if specified light has searched id */
 static inline bool LEGO_HasId(const LEGO_Light_t *light, uint32_t id)
 {
-	return light->lightId == id;
+	return (light->lightId == id);
 }
 
-static inline bool LEGO_CompareOnOffTime(const LEGO_Light_t *light, uint32_t time)
+/* Compare random value with light percentage */
+static inline bool LEGO_CompareOnOffTime(const LEGO_Light_t *light, uint32_t comp)
 {
-	return true;
+	return (light->autoModePercentage < comp);
+}
+
+/* Calculate auto-mode frames */
+static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t autoModeLightsCnt, LEGO_AutoModeEntity_t *devInfo, uint8_t compVal)
+{
+	uint8_t devUsed = 0;
+
+	const LEGO_Light_t *light;
+	for (uint8_t i = 0; i < autoModeLightsCnt; i++) {
+		light = autoModeLights[i];
+
+		/* Check whether light should be turned on or off */
+		bool onOff = LEGO_CompareOnOffTime(light, compVal);
+
+		LEGO_AutoModeEntity_t *devRow;
+		bool devFound;
+		for (uint8_t i = 0; i < devUsed; i++) {
+			devFound = false;
+			devRow = &devInfo[i];
+			if (light->mcp23017Info == devRow->mcp23017Info) {
+				/* Update entry */
+				devFound = true;
+				MCP23017_UINT8_BIT_SET(devRow->mask, light->mcp23017Pin);
+
+				/* Save valid pin state */
+				if (onOff) {
+					MCP23017_UINT8_BIT_SET(devRow->portState, light->mcp23017Pin);
+				} else {
+					MCP23017_UINT8_BIT_CLEAR(devRow->portState, light->mcp23017Pin);
+				}
+
+				break;
+			}
+		}
+		if (!devFound) {
+			/* Create new entry */
+			devInfo[devUsed].mcp23017Info = light->mcp23017Info;
+			devInfo[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
+
+			/* Save valid pin state */
+			if (onOff) {
+				devInfo[devUsed].portState = MCP23017_UINT8_BIT(light->mcp23017Pin);
+			} else {
+				devInfo[devUsed].portState = 0x00;
+			}
+
+			devUsed++;
+		}
+	}
+
+	return devUsed;
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -275,10 +339,47 @@ static void LEGO_RollerCoasterTask(void *pvParameters)
 	vTaskSuspend(NULL);
 }
 
-static void LEGO_AutoModeTask(void)
+static void LEGO_AutoModeTask(void *pvParameters)
 {
-	/* Copy auto mode enabled pins to the buffer */
+	/* Devices buffer */
+	LEGO_AutoModeEntity_t devices[GUI_COUNTOF(mcp23017Devices)];
 
+	/* Auto-mode lights buffer */
+	const LEGO_Light_t *autoModeLights[GUI_COUNTOF(legoLights)];
+	uint8_t autoModeLightsCnt = 0;
+
+	/* Copy auto mode lights pointers into internal buffer. This is done only once during task startup */
+	const LEGO_Light_t *light;
+	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
+		light = &legoLights[i];
+		if (light->autoModePercentage) {
+			autoModeLights[autoModeLightsCnt] = light;
+			autoModeLightsCnt++;
+		}
+	}
+
+	/* Seed random generator */
+	srand(UINT32_MAX);
+
+	/* Task loop */
+	while (1) {
+		uint8_t random = rand() % 101; /* Range (0, 100] */
+		uint8_t devCnt = LEGO_AutoModeUpdate(autoModeLights, autoModeLightsCnt, devices, random);
+
+		const LEGO_AutoModeEntity_t *dev;
+		for (uint8_t i = 0; i < devCnt; i++) {
+			dev = &devices[i];
+
+			/* Update MCP23017 port data */
+			taskENTER_CRITICAL();
+			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, dev->mcp23017Info->i2cDevInfo->channel)) {
+				MCP23017_PortWriteMasked(&dev->mcp23017Info->i2cDevInfo->chain, dev->mcp23017Info->mcp23017DevNum, dev->mcp23017Info->mcp23017Port, dev->mask, dev->portState);
+			}
+			taskEXIT_CRITICAL();
+		}
+
+		vTaskDelay(pdMS_TO_TICKS(2000));
+	}
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -289,8 +390,9 @@ bool LEGO_RTOSInit(void)
 {
 	BaseType_t cinemaTask = xTaskCreate(LEGO_PalaceCinemaTask, LEGO_TASK_PALACE_CINEMA_NAME, LEGO_TASK_PALACE_CINEMA_STACK, NULL, LEGO_TASK_PALACE_CINEMA_PRIO, &cinemaPalaceTask);
 	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &rollerCoasterTask);
+	BaseType_t autoTask	= xTaskCreate(LEGO_AutoModeTask, LEGO_TASK_AUTO_MODE_NAME, LEGO_TASK_AUTO_MODE_STACK, NULL, LEGO_TASK_AUTO_MODE_PRIO, &autoModeTask);
 
-	return (cinemaTask == pdPASS && coasterTask == pdPASS);
+	return (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS);
 }
 
 bool LEGO_PerformStartup(void)
@@ -335,14 +437,14 @@ bool LEGO_PerformStartup(void)
 	return response;
 }
 
-uint8_t LEGO_SearchLights(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes)
+uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes)
 {
 	uint8_t devUsed = 0;
 	const LEGO_Light_t *light;
 	LEGO_SearchRes_t *resRow;
 
-	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
-		light = &legoLights[i];
+	for (uint8_t i = 0; i < lightsCnt; i++) {
+		light = &lights[i];
 
 		/* Search */
 		bool result;
@@ -383,7 +485,7 @@ LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_
 {
 	/* Search lights */
 	LEGO_SearchRes_t searchBuff[GUI_COUNTOF(mcp23017Devices)];
-	uint8_t devFound = LEGO_SearchLights(searchPattern, id, searchBuff);
+	uint8_t devFound = LEGO_SearchLights(legoLights, GUI_COUNTOF(legoLights), searchPattern, id, searchBuff);
 
 	if (!devFound) {
 		return LEGO_ID_NOT_FOUND;
