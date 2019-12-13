@@ -69,6 +69,11 @@ static TaskHandle_t autoModeTask;
 static TaskHandle_t cinemaPalaceTask;
 static TaskHandle_t rollerCoasterTask;
 
+/* Delay for tasks (the can be changed during runtime) */
+static uint32_t autoModeDelayMs = 5000;
+static uint32_t cinemaPalaceDelayMs = 150;
+static uint32_t rollerCoasterDelayMs = 150;
+
 /* MCP23017 device chains */
 static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
@@ -101,148 +106,132 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B }
 };
 
-/* The table containing information about lights */
+/* The table containing information about static lights only */
 static const LEGO_Light_t legoLights[] = {
 		/* GROUP A - Brick Bank (10251) */
-		{ 0,   LEGO_CH0_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 20 }, /* Street lamp */
-		{ 1,   LEGO_CH0_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 50 }, /* Laundry room */
-		{ 2,   LEGO_CH0_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 99 }, /* Exterior lights */
-		{ 3,   LEGO_CH0_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 40 }, /* Desk #1 */
-		{ 4,   LEGO_CH0_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 50 }, /* Chandelier */
-		{ 5,   LEGO_CH0_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A }, 60 }, /* Desk #2 */
+		{ 0,   LEGO_CH0_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
+		{ 1,   LEGO_CH0_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Laundry room */
+		{ 2,   LEGO_CH0_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights */
+		{ 3,   LEGO_CH0_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_INTERIOR }, LEGO_PERC_SMALL_OBJ }, /* Desk #1 */
+		{ 4,   LEGO_CH0_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_INTERIOR }, LEGO_PERC_LONG }, /* Chandelier */
+		{ 5,   LEGO_CH0_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_INTERIOR }, LEGO_PERC_SMALL_OBJ }, /* Desk #2 */
 		/* Group B1 - Assembly Square #1 (10255) */
-		{ 6,   LEGO_CH0_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 1 }, /* Street lamp #1 */
-		{ 7,   LEGO_CH0_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 2 }, /* Street lamp #2 */
-		{ 8,   LEGO_CH0_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 3 }, /* Fountain */
-		{ 9,   LEGO_CH0_DEV1_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 4 }, /* Room - 2nd floor */
-		{ 10,  LEGO_CH0_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 5 }, /* Toilet - 2nd floor */
-		{ 11,  LEGO_CH0_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 6 }, /* Glass-case #1 */
-		{ 12,  LEGO_CH0_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 7 }, /* Exterior light - back */
-		{ 13,  LEGO_CH0_DEV1_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 20 }, /* Glass-case #1  */
-		{ 14,  LEGO_CH0_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 30 }, /* Exterior lights- front */
-		{ 15,  LEGO_CH0_DEV1_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 40 }, /* Terrace */
-		{ 16,  LEGO_CH0_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 50 }, /* Exterior lights - side */
-		{ 17,  LEGO_CH0_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 60 }, /* Bakery */
-		{ 18,  LEGO_CH0_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 70 }, /* Dentist office - UV light */
-		{ 19,  LEGO_CH0_DEV1_PA, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 80 }, /* Flower shop */
-		{ 20,  LEGO_CH0_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 90 }, /* Photo studio */
-		{ 21,  LEGO_CH0_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1 }, 95 }, /* Dentist office */
+		{ 6,   LEGO_CH0_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp #1 */
+		{ 7,   LEGO_CH0_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp #2 */
+		{ 8,   LEGO_CH0_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_EXTERIOR }, LEGO_PERC_LONG }, /* Fountain */
+		{ 9,   LEGO_CH0_DEV1_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Room - 2nd floor */
+		{ 10,  LEGO_CH0_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Toilet - 2nd floor */
+		{ 11,  LEGO_CH0_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_LONG }, /* Glass-case #1 */
+		{ 12,  LEGO_CH0_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light - back */
+		{ 13,  LEGO_CH0_DEV1_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_LONG }, /* Glass-case #1  */
+		{ 14,  LEGO_CH0_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights- front */
+		{ 15,  LEGO_CH0_DEV1_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Terrace */
+		{ 16,  LEGO_CH0_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights - side */
+		{ 17,  LEGO_CH0_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Bakery */
+		{ 18,  LEGO_CH0_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_FAST_OBJ }, /* Dentist office - UV light */
+		{ 19,  LEGO_CH0_DEV1_PA, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Flower shop */
+		{ 20,  LEGO_CH0_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Photo studio */
+		{ 21,  LEGO_CH0_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B1, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Dentist office */
 		/* Group B2 - Assembly Square #2 (10255) */
-		{ 22,  LEGO_CH0_DEV2_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Dance studio */
-		{ 23,  LEGO_CH0_DEV2_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Cafe - table */
-		{ 24,  LEGO_CH0_DEV2_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Exterior lights #1 */
-		{ 25,  LEGO_CH0_DEV2_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Stairs - ground floor */
-		{ 26,  LEGO_CH0_DEV2_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Stairs - 2nd floor */
-		{ 27,  LEGO_CH0_DEV2_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Stairs - 1st floor */
-		{ 28,  LEGO_CH0_DEV2_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Music store */
-		{ 29,  LEGO_CH0_DEV2_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Exterior lights #2 */
-		{ 30,  LEGO_CH0_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2 } }, /* Cafe */
+		{ 22,  LEGO_CH0_DEV2_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Dance studio */
+		{ 23,  LEGO_CH0_DEV2_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Cafe - table */
+		{ 24,  LEGO_CH0_DEV2_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights #1 */
+		{ 25,  LEGO_CH0_DEV2_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Stairs - ground floor */
+		{ 26,  LEGO_CH0_DEV2_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Stairs - 2nd floor */
+		{ 27,  LEGO_CH0_DEV2_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Stairs - 1st floor */
+		{ 28,  LEGO_CH0_DEV2_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Music store */
+		{ 29,  LEGO_CH0_DEV2_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights #2 */
+		{ 30,  LEGO_CH0_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_B2, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Cafe */
 		/* Group C - Parisian Restaurant (10243) */
-		{ 31,  LEGO_CH0_DEV3_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Restaurant - table #1 */
-		{ 32,  LEGO_CH0_DEV3_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Exterior lights */
-		{ 33,  LEGO_CH0_DEV3_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Living room */
-		{ 34,  LEGO_CH0_DEV3_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #1 */
-		{ 35,  LEGO_CH0_DEV3_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #2 */
-		{ 36,  LEGO_CH0_DEV3_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Painting studio */
-		{ 37,  LEGO_CH0_DEV3_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #3 */
-		{ 38,  LEGO_CH0_DEV3_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Balcony #4 */
-		{ 39,  LEGO_CH0_DEV3_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Restaurant - table #2 */
-		{ 40,  LEGO_CH0_DEV3_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C } }, /* Street lamp */
+		{ 31,  LEGO_CH0_DEV3_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Restaurant - table #1 */
+		{ 32,  LEGO_CH0_DEV3_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights */
+		{ 33,  LEGO_CH0_DEV3_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Living room */
+		{ 34,  LEGO_CH0_DEV3_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Balcony #1 */
+		{ 35,  LEGO_CH0_DEV3_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Balcony #2 */
+		{ 36,  LEGO_CH0_DEV3_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Painting studio */
+		{ 37,  LEGO_CH0_DEV3_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Balcony #3 */
+		{ 38,  LEGO_CH0_DEV3_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Balcony #4 */
+		{ 39,  LEGO_CH0_DEV3_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Restaurant - table #2 */
+		{ 40,  LEGO_CH0_DEV3_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_C, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
 		/* Group D - Palace Cinema (10243) */
-		{ 41,  LEGO_CH0_DEV4_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Exterior lights */
-		{ 42,  LEGO_CH0_DEV4_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Street lamp */
-		{ 43,  LEGO_CH0_DEV4_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Cinema hall - projector */
-		{ 44,  LEGO_CH0_DEV4_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Cinema hall */
-		{ 45,  LEGO_CH0_DEV4_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D } }, /* Cinema - ticket office */
+		{ 41,  LEGO_CH0_DEV4_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior lights */
+		{ 42,  LEGO_CH0_DEV4_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
+		{ 43,  LEGO_CH0_DEV4_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D, LEGO_GROUP_INTERIOR }, LEGO_PERC_FAST_OBJ }, /* Cinema hall - projector */
+		{ 44,  LEGO_CH0_DEV4_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Cinema hall */
+		{ 45,  LEGO_CH0_DEV4_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_D, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Cinema - ticket office */
 		/* Group E - Train Station #1 (60050) */
-		{ 46,  LEGO_CH0_DEV6_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Train station #1 */
-		{ 47,  LEGO_CH0_DEV6_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Train station #2 */
-		{ 48,  LEGO_CH0_DEV6_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Cash machine */
-		{ 49,  LEGO_CH0_DEV6_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E } }, /* Train depot */
+		{ 46,  LEGO_CH0_DEV6_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_INTERIOR }, LEGO_PERC_CAFES }, /* Train station #1 */
+		{ 47,  LEGO_CH0_DEV6_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_INTERIOR }, LEGO_PERC_CAFES }, /* Train station #2 */
+		{ 48,  LEGO_CH0_DEV6_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_EXTERIOR }, LEGO_PERC_FAST_OBJ }, /* Cash machine */
+		{ 49,  LEGO_CH0_DEV6_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_EXTERIOR }, LEGO_PERC_LONG }, /* Train depot */
 		/* Group F - Corner Garage (10264) */
-		{ 50,  LEGO_CH0_DEV5_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Exterior light - front */
-		{ 51,  LEGO_CH0_DEV5_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Terrace */
-		{ 52,  LEGO_CH0_DEV5_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Animal clinic */
-		{ 53,  LEGO_CH0_DEV5_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Gas station - pump */
-		{ 54,  LEGO_CH0_DEV5_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Exterior light - back */
-		{ 55,  LEGO_CH0_DEV5_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Car repair shop - exterior lights */
-		{ 56,  LEGO_CH0_DEV5_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Kitchen */
-		{ 57,  LEGO_CH0_DEV5_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Car repair shop - workshop */
-		{ 58,  LEGO_CH0_DEV5_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Car repair shop - office */
-		{ 59,  LEGO_CH0_DEV5_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Desk */
-		{ 60,  LEGO_CH0_DEV5_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Street lamp */
-		{ 61,  LEGO_CH0_DEV5_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F } }, /* Dining room */
+		{ 50,  LEGO_CH0_DEV5_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light - front */
+		{ 51,  LEGO_CH0_DEV5_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Terrace */
+		{ 52,  LEGO_CH0_DEV5_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Animal clinic */
+		{ 53,  LEGO_CH0_DEV5_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_EXTERIOR }, LEGO_PERC_LONG }, /* Gas station - pump */
+		{ 54,  LEGO_CH0_DEV5_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light - back */
+		{ 55,  LEGO_CH0_DEV5_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Car repair shop - exterior lights */
+		{ 56,  LEGO_CH0_DEV5_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Kitchen */
+		{ 57,  LEGO_CH0_DEV5_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Car repair shop - workshop */
+		{ 58,  LEGO_CH0_DEV5_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Car repair shop - office */
+		{ 59,  LEGO_CH0_DEV5_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_INTERIOR }, LEGO_PERC_SMALL_OBJ }, /* Desk */
+		{ 60,  LEGO_CH0_DEV5_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
+		{ 61,  LEGO_CH0_DEV5_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Dining room */
 		/* Group G - Pet Shop #1 (10218) */
-		{ 62,  LEGO_CH0_DEV6_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Room under construction */
-		{ 63,  LEGO_CH0_DEV6_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Living room */
-		{ 64,  LEGO_CH0_DEV6_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Attic */
-		{ 65,  LEGO_CH0_DEV6_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G } }, /* Exterior light - back */
+		{ 62,  LEGO_CH0_DEV6_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Room under construction */
+		{ 63,  LEGO_CH0_DEV6_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Living room */
+		{ 64,  LEGO_CH0_DEV6_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Attic */
+		{ 65,  LEGO_CH0_DEV6_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_G, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light - back */
 		/* Group H - Pet Shop #2 (10218) */
-		{ 66,  LEGO_CH0_DEV6_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Pet shop */
-		{ 67,  LEGO_CH0_DEV6_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Attic */
-		{ 68,  LEGO_CH0_DEV6_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Street lamp */
-		{ 69,  LEGO_CH0_DEV6_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Stairs */
-		{ 70,  LEGO_CH0_DEV6_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H } }, /* Kitchen */
+		{ 66,  LEGO_CH0_DEV6_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Pet shop */
+		{ 67,  LEGO_CH0_DEV6_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Attic */
+		{ 68,  LEGO_CH0_DEV6_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
+		{ 69,  LEGO_CH0_DEV6_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Stairs */
+		{ 70,  LEGO_CH0_DEV6_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_H, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Kitchen */
 		/* Group I - Detective's Office (10246) */
-		{ 71,  LEGO_CH0_DEV7_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Kitchen */
-		{ 72,  LEGO_CH0_DEV7_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Exterior light #1 */
-		{ 73,  LEGO_CH0_DEV7_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Toilet */
-		{ 74,  LEGO_CH0_DEV7_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Hairdresser #1 */
-		{ 75,  LEGO_CH0_DEV7_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Detective's office */
-		{ 76,  LEGO_CH0_DEV7_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Hairdresser #2 */
-		{ 77,  LEGO_CH0_DEV7_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Exterior light #2 */
-		{ 78,  LEGO_CH0_DEV7_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Exterior light #3 */
-		{ 79,  LEGO_CH0_DEV7_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Detective's office - desk */
-		{ 80,  LEGO_CH0_DEV7_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Game room */
-		{ 81,  LEGO_CH0_DEV7_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I } }, /* Street lamp */
+		{ 71,  LEGO_CH0_DEV7_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Kitchen */
+		{ 72,  LEGO_CH0_DEV7_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #1 */
+		{ 73,  LEGO_CH0_DEV7_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Toilet */
+		{ 74,  LEGO_CH0_DEV7_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Hairdresser #1 */
+		{ 75,  LEGO_CH0_DEV7_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Detective's office */
+		{ 76,  LEGO_CH0_DEV7_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Hairdresser #2 */
+		{ 77,  LEGO_CH0_DEV7_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #2 */
+		{ 78,  LEGO_CH0_DEV7_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #3 */
+		{ 79,  LEGO_CH0_DEV7_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_SMALL_OBJ }, /* Detective's office - desk */
+		{ 80,  LEGO_CH0_DEV7_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Game room */
+		{ 81,  LEGO_CH0_DEV7_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_I, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
 		/* Group J - Downtown dinner (10260) */
-		{ 82,  LEGO_CH1_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Recording studio #1 */
-		{ 83,  LEGO_CH1_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Street lamp */
-		{ 84,  LEGO_CH1_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Cafe #2 */
-		{ 85,  LEGO_CH1_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Gym #1 */
-		{ 86,  LEGO_CH1_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Exterior light #1 */
-		{ 87,  LEGO_CH1_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Cafe #2 */
-		{ 88,  LEGO_CH1_DEV0_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Gym #2 */
-		{ 89,  LEGO_CH1_DEV0_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Exterior light #2 */
-		{ 90,  LEGO_CH1_DEV0_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Living room */
-		{ 91,  LEGO_CH1_DEV0_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J } }, /* Recording studio #2 */
+		{ 82,  LEGO_CH1_DEV0_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Recording studio #1 */
+		{ 83,  LEGO_CH1_DEV0_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
+		{ 84,  LEGO_CH1_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_CAFES }, /* Cafe #2 */
+		{ 85,  LEGO_CH1_DEV0_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Gym #1 */
+		{ 86,  LEGO_CH1_DEV0_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #1 */
+		{ 87,  LEGO_CH1_DEV0_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_CAFES }, /* Cafe #2 */
+		{ 88,  LEGO_CH1_DEV0_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Gym #2 */
+		{ 89,  LEGO_CH1_DEV0_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #2 */
+		{ 90,  LEGO_CH1_DEV0_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Living room */
+		{ 91,  LEGO_CH1_DEV0_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_J, LEGO_GROUP_INTERIOR }, LEGO_PERC_COMPANIES }, /* Recording studio #2 */
 		/* Group K - Park Street Townhouse #1 (31065) */
-		{ 92,  LEGO_CH1_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K } }, /* Room */
-		{ 93,  LEGO_CH1_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K } }, /* Terrace #1 */
-		{ 94,  LEGO_CH1_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K } }, /* Terrace #2 */
+		{ 92,  LEGO_CH1_DEV1_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Room */
+		{ 93,  LEGO_CH1_DEV1_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Terrace #1 */
+		{ 94,  LEGO_CH1_DEV1_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_K, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Terrace #2 */
 		/* Group L - Park Street Townhouse #2 (31065) */
-		{ 95,  LEGO_CH1_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L } }, /* Exterior light */
-		{ 96,  LEGO_CH1_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L } }, /* Street lamp */
-		{ 97,  LEGO_CH1_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L } }, /* Room */
+		{ 95,  LEGO_CH1_DEV1_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light */
+		{ 96,  LEGO_CH1_DEV1_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
+		{ 97,  LEGO_CH1_DEV1_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_L, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Room */
 		/* Group M - Train Station #2 (7997) */
-		{ 98,  LEGO_CH1_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station #1 */
-		{ 99,  LEGO_CH1_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station - 1st floor */
-		{ 100, LEGO_CH1_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station - board */
-		{ 101, LEGO_CH1_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Train station #2 */
-		{ 102, LEGO_CH1_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Exterior light #1 */
-		{ 103, LEGO_CH1_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M } }, /* Exterior light #2 */
+		{ 98,  LEGO_CH1_DEV1_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Train station #1 */
+		{ 99,  LEGO_CH1_DEV1_PB, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Train station - 1st floor */
+		{ 100, LEGO_CH1_DEV1_PB, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M, LEGO_GROUP_EXTERIOR }, LEGO_PERC_LONG }, /* Train station - board */
+		{ 101, LEGO_CH1_DEV1_PB, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M, LEGO_GROUP_INTERIOR }, LEGO_PERC_ROOMS }, /* Train station #2 */
+		{ 102, LEGO_CH1_DEV1_PB, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #1 */
+		{ 103, LEGO_CH1_DEV1_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_M, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light #2 */
 		/* Group N - Roller Coaster (10261) */
-		{ 104, LEGO_CH1_DEV2_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Roller Coaster - gates */
-		{ 105, LEGO_CH1_DEV2_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Tickets */
-		{ 106, LEGO_CH1_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Ice-cream shop */
-		{ 107, LEGO_CH1_DEV2_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Candy floss shop */
-		{ 108, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N } }, /* Floodlights */
-		/* Animation #1 - Palace Cinema (10243) */
-		{ 109, LEGO_CH0_DEV4_PB, 0, {} }, /* Animation on/off */
-		{ 110, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM0 } }, /* Frame #1 */
-		{ 111, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM0 } }, /* Frame #2 */
-		{ 112, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM0 } }, /* Frame #3 */
-		/* Animation #2 - Palace Cinema (10243) */
-		{ 113, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM1 } }, /* Frame #1 */
-		{ 114, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM1 } }, /* Frame #2 */
-		{ 115, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM1 } }, /* Frame #3 */
-		{ 116, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM1 } }, /* Frame #4 */
-		{ 117, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM1 } }, /* Frame #5 */
-		{ 118, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM1 } }, /* Frame #6 */
-		{ 119, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM1 } }, /* Frame #7 */
-		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM1 } }, /* Frame #8 */
-		{ 121, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM1 } }, /* Frame #9 */
-		{ 122, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM1 } }, /* Frame #10 */
+		{ 104, LEGO_CH1_DEV2_PA, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Roller Coaster - gates */
+		{ 105, LEGO_CH1_DEV2_PA, 1, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Tickets */
+		{ 106, LEGO_CH1_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Ice-cream shop */
+		{ 107, LEGO_CH1_DEV2_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Candy floss shop */
+		{ 108, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Floodlights */
 };
 
 /* ----------------------------------------------------------------------------- */
@@ -273,7 +262,7 @@ static inline bool LEGO_CompareOnOffTime(const LEGO_Light_t *light, uint32_t com
 }
 
 /* Calculate auto-mode frames */
-static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t autoModeLightsCnt, LEGO_AutoModeEntity_t *devInfo, uint8_t compVal)
+static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t autoModeLightsCnt, LEGO_AutoModeEntity_t *devInfo)
 {
 	uint8_t devUsed = 0;
 
@@ -282,7 +271,8 @@ static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t 
 		light = autoModeLights[i];
 
 		/* Check whether light should be turned on or off */
-		bool onOff = LEGO_CompareOnOffTime(light, compVal);
+		uint8_t random = rand() % 100 + 1; /* Range [1, 100] */
+		bool onOff = LEGO_CompareOnOffTime(light, random);
 
 		LEGO_AutoModeEntity_t *devRow;
 		bool devFound;
@@ -323,6 +313,51 @@ static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t 
 	return devUsed;
 }
 
+/* Search lights */
+static uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes)
+{
+	uint8_t devUsed = 0;
+	const LEGO_Light_t *light;
+	LEGO_SearchRes_t *resRow;
+
+	for (uint8_t i = 0; i < lightsCnt; i++) {
+		light = &lights[i];
+
+		/* Search */
+		bool result;
+		switch (searchPattern) {
+		case LEGO_SEARCH_ID:
+			result = LEGO_HasId(light, id);
+			break;
+		case LEGO_SEARCH_GROUP:
+			result = LEGO_HasGroup(light, id);
+			break;
+		}
+
+		if (result) {
+			bool devFound;
+			for (uint8_t j = 0; j < devUsed; j++) {
+				resRow = &searchRes[j];
+				devFound = false;
+				if (resRow->mcp23017Info == light->mcp23017Info) {
+					/* Update entry */
+					MCP23017_UINT8_BIT_SET(resRow->mask, light->mcp23017Pin);
+					devFound = true;
+					break;
+				}
+			}
+			/* Create new entry */
+			if (!devFound) {
+				searchRes[devUsed].mcp23017Info = light->mcp23017Info;
+				searchRes[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
+				devUsed++;
+			}
+		}
+ 	}
+
+	return devUsed;
+}
+
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- FREERTOS TASKS ----------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -330,15 +365,42 @@ static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t 
 /* Task for Cinema Palace Animation */
 static void LEGO_PalaceCinemaTask(void *pvParameters)
 {
-	vTaskSuspend(NULL);
+	uint8_t mask = 0x07;
+	uint8_t states[4] = {0b00000000, 0b00000100, 0b00000110, 0b00000111};
+	uint8_t i;
+	while (1) {
+		for (i = 0; i < 4; i++) {
+			taskENTER_CRITICAL();
+			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+				MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, states[i]);
+			}
+			taskEXIT_CRITICAL();
+			vTaskDelay(pdMS_TO_TICKS(cinemaPalaceDelayMs));
+		}
+	}
 }
 
 /* Task for Roller Coaster Animation */
 static void LEGO_RollerCoasterTask(void *pvParameters)
 {
-	vTaskSuspend(NULL);
+	uint8_t mask1 = 0b11111000;
+	uint8_t mask2 = 0b00110111;
+	uint8_t states[2] = {0x00, 0xFF};
+	uint8_t i = 0;
+	while (1) {
+		for (i = 0; i < 2; i++) {
+			taskENTER_CRITICAL();
+			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH1_DEV2_PA->i2cDevInfo->channel)) {
+				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_A, mask1, states[i]);
+				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_B, mask2, states[i]);
+			}
+			taskEXIT_CRITICAL();
+			vTaskDelay(pdMS_TO_TICKS(rollerCoasterDelayMs));
+		}
+	}
 }
 
+/* Task for auto mode */
 static void LEGO_AutoModeTask(void *pvParameters)
 {
 	/* Devices buffer */
@@ -363,8 +425,7 @@ static void LEGO_AutoModeTask(void *pvParameters)
 
 	/* Task loop */
 	while (1) {
-		uint8_t random = rand() % 101; /* Range (0, 100] */
-		uint8_t devCnt = LEGO_AutoModeUpdate(autoModeLights, autoModeLightsCnt, devices, random);
+		uint8_t devCnt = LEGO_AutoModeUpdate(autoModeLights, autoModeLightsCnt, devices);
 
 		const LEGO_AutoModeEntity_t *dev;
 		for (uint8_t i = 0; i < devCnt; i++) {
@@ -378,7 +439,7 @@ static void LEGO_AutoModeTask(void *pvParameters)
 			taskEXIT_CRITICAL();
 		}
 
-		vTaskDelay(pdMS_TO_TICKS(2000));
+		vTaskDelay(pdMS_TO_TICKS(autoModeDelayMs));
 	}
 }
 
@@ -392,7 +453,15 @@ bool LEGO_RTOSInit(void)
 	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &rollerCoasterTask);
 	BaseType_t autoTask	= xTaskCreate(LEGO_AutoModeTask, LEGO_TASK_AUTO_MODE_NAME, LEGO_TASK_AUTO_MODE_STACK, NULL, LEGO_TASK_AUTO_MODE_PRIO, &autoModeTask);
 
-	return (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS);
+	if (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS) {
+		/* Task suspended on startup */
+		vTaskSuspend(cinemaPalaceTask);
+		vTaskSuspend(rollerCoasterTask);
+		vTaskSuspend(autoModeTask);
+		return true;
+	}
+
+	return false;
 }
 
 bool LEGO_PerformStartup(void)
@@ -435,50 +504,6 @@ bool LEGO_PerformStartup(void)
 	}
 
 	return response;
-}
-
-uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes)
-{
-	uint8_t devUsed = 0;
-	const LEGO_Light_t *light;
-	LEGO_SearchRes_t *resRow;
-
-	for (uint8_t i = 0; i < lightsCnt; i++) {
-		light = &lights[i];
-
-		/* Search */
-		bool result;
-		switch (searchPattern) {
-		case LEGO_SEARCH_ID:
-			result = LEGO_HasId(light, id);
-			break;
-		case LEGO_SEARCH_GROUP:
-			result = LEGO_HasGroup(light, id);
-			break;
-		}
-
-		if (result) {
-			bool devFound;
-			for (uint8_t j = 0; j < devUsed; j++) {
-				resRow = &searchRes[j];
-				devFound = false;
-				if (resRow->mcp23017Info == light->mcp23017Info) {
-					/* Update entry */
-					MCP23017_UINT8_BIT_SET(resRow->mask, light->mcp23017Pin);
-					devFound = true;
-					break;
-				}
-			}
-			/* Create new entry */
-			if (!devFound) {
-				searchRes[devUsed].mcp23017Info = light->mcp23017Info;
-				searchRes[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
-				devUsed++;
-			}
-		}
- 	}
-
-	return devUsed;
 }
 
 LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op)
@@ -533,4 +558,42 @@ LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_
 	}
 
 	return LEGO_OP_PERFORMED;
+}
+
+void LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
+{
+	TaskHandle_t handle;
+
+	switch (animId) {
+	case LEGO_ANIM_AUTO_MODE:
+		handle = autoModeTask;
+		break;
+	case LEGO_ANIM_CINEMA_PALACE:
+		handle = cinemaPalaceTask;
+		break;
+	case LEGO_ANIM_ROLLER_COASTER:
+		handle = rollerCoasterTask;
+		break;
+	}
+
+	if (onOff) {
+		vTaskSuspend(handle);
+	} else {
+		vTaskResume(handle);
+	}
+}
+
+void LEGO_AnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
+{
+	switch (animId) {
+	case LEGO_ANIM_AUTO_MODE:
+		autoModeDelayMs = delayMs;
+		break;
+	case LEGO_ANIM_CINEMA_PALACE:
+		cinemaPalaceDelayMs = delayMs;
+		break;
+	case LEGO_ANIM_ROLLER_COASTER:
+		rollerCoasterDelayMs = delayMs;
+		break;
+	}
 }

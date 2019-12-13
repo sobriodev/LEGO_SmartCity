@@ -49,6 +49,15 @@ typedef struct {
 } LEGO_MCP23017Info_t;
 
 /*!
+ * \brief Animations used
+ */
+typedef enum {
+	LEGO_ANIM_AUTO_MODE,  		//!< Auto mode
+	LEGO_ANIM_CINEMA_PALACE, 	//!< Cinema palace
+	LEGO_ANIM_ROLLER_COASTER 	//!< Roller Coaster
+} LEGO_Anim_t;
+
+/*!
  * \brief Groups enum for convenience
  */
 typedef enum {
@@ -69,10 +78,26 @@ typedef enum {
 	LEGO_GROUP_L, 				//!< Park Street Townhouse #2 (31065)
 	LEGO_GROUP_M, 				//!< Train Station #2 (7997)
 	LEGO_GROUP_N,  				//!< Roller Coaster (10261)
-	/* Animations */
-	LEGO_GROUP_ANIM0,			//!< Animation 0
-	LEGO_GROUP_ANIM1			//!< Animation 1
+	/* Other groups and presets */
+	LEGO_GROUP_STREET,			//!< Street lights
+	LEGO_GROUP_INTERIOR,		//!< Interior lights
+	LEGO_GROUP_EXTERIOR			//!< Exterior lights
 } LEGO_LightGroup_t;
+
+/*!
+ * \brief Lightning time percentage in auto-mode
+ */
+typedef enum {
+	LEGO_PERC_DISABLE = 0,		//!< Disabled in auto-mode
+	LEGO_PERC_STREET = 80,   	//!< Street objects
+	LEGO_PERC_EXTERIOR = 70, 	//!< Exterior lights
+	LEGO_PERC_ROOMS = 50,    	//!< Rooms
+	LEGO_PERC_CAFES = 70,    	//!< Cafes/restaurants
+	LEGO_PERC_COMPANIES = 60,	//!< Companies/services
+	LEGO_PERC_SMALL_OBJ = 70,	//!< Small objects
+	LEGO_PERC_FAST_OBJ = 5,  	//!< Fast blinking
+	LEGO_PERC_LONG = 75      	//!< Long lightning time
+} LEGO_AutoModePercentage_t;
 
 /*!
  * \brief LEGO Light information
@@ -138,17 +163,29 @@ bool LEGO_RTOSInit(void);
 bool LEGO_PerformStartup(void);
 
 /*!
- * \brief Search all lights with specified search pattern
+ * \brief Lights control function
  *
- * \param lights : Lights table base address
- * \param lightsCnt : The number of lights
- * \param : Search pattern. See LEGO_SearchPattern_t
- * \param id : Searched id
- * \param lightBuff : See LEGO_SearchRes_t for more information. The buffer must be as big as needed, otherwise the memory will be overridden
- * \return The number of i2c devices whose pins have specified id
+ * \param searchPattern : See LEGO_SearchPattern_t
+ * \param id : Searched light/group id
+ * \param op : See LEGO_LightOp_t
+ * \return Instance of LEGO_LightOpRes_t
  */
-uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes);
-
 LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op);
+
+/*!
+ * \brief Enable/disable specified animation
+ *
+ * \param animId : See LEGO_Anim_t
+ * \param onOff : True for enabling, false for disabling
+ */
+void LEGO_AnimControl(LEGO_Anim_t animId, bool onOff);
+
+/*!
+ * \brief Set specified animation delay
+ *
+ * \param animId :  See LEGO_Anim_t
+ * \param delayMs : Delay in milliseconds
+ */
+void LEGO_AnimDelay(LEGO_Anim_t animId, uint32_t delayMs);
 
 #endif /* LEGO_LEGO_H_ */
