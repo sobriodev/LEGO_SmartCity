@@ -8,6 +8,10 @@
 #include "mcp23017.h"
 #include "tca9548a.h"
 
+/* FreeRTOS */
+#include "FreeRTOS.h"
+#include "task.h"
+
 /* ----------------------------------------------------------------------------- */
 /* ---------------------------------- MACROS ----------------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -53,7 +57,7 @@ typedef struct {
  */
 typedef enum {
 	LEGO_ANIM_AUTO_MODE,  		//!< Auto mode
-	LEGO_ANIM_CINEMA_PALACE, 	//!< Cinema palace
+	LEGO_ANIM_PALACE_CINEMA, 	//!< Palace cinema
 	LEGO_ANIM_ROLLER_COASTER 	//!< Roller Coaster
 } LEGO_Anim_t;
 
@@ -61,27 +65,30 @@ typedef enum {
  * \brief Groups enum for convenience
  */
 typedef enum {
-	LEGO_GROUP_BROADCAST = 1,	//!< Broadcast group
+	LEGO_GROUP_BROADCAST = 1,		//!< Broadcast group
 	/* Building groups */
-	LEGO_GROUP_A , 				//!< Brick Bank (10251)
-	LEGO_GROUP_B1,				//!< Assembly Square #1 (10255)
-	LEGO_GROUP_B2,				//!< Assembly Square #2 (10255)
-	LEGO_GROUP_C, 				//!< Parisian Restaurant (10243)
-	LEGO_GROUP_D, 				//!< Palace Cinema (10243)
-	LEGO_GROUP_E, 				//!< Train Station #1 (60050)
-	LEGO_GROUP_F, 				//!< Corner Garage (10264)
-	LEGO_GROUP_G, 				//!< Pet Shop #1 (10218)
-	LEGO_GROUP_H, 				//!< Pet Shop #2 (10218)
-	LEGO_GROUP_I, 				//!< Detective's Office (10246)
-	LEGO_GROUP_J, 				//!< Downtown dinner (10260)
-	LEGO_GROUP_K, 				//!< Park Street Townhouse #1 (31065)
-	LEGO_GROUP_L, 				//!< Park Street Townhouse #2 (31065)
-	LEGO_GROUP_M, 				//!< Train Station #2 (7997)
-	LEGO_GROUP_N,  				//!< Roller Coaster (10261)
+	LEGO_GROUP_A , 					//!< Brick Bank (10251)
+	LEGO_GROUP_B1,					//!< Assembly Square #1 (10255)
+	LEGO_GROUP_B2,					//!< Assembly Square #2 (10255)
+	LEGO_GROUP_C, 					//!< Parisian Restaurant (10243)
+	LEGO_GROUP_D, 					//!< Palace Cinema (10243)
+	LEGO_GROUP_E, 					//!< Train Station #1 (60050)
+	LEGO_GROUP_F, 					//!< Corner Garage (10264)
+	LEGO_GROUP_G, 					//!< Pet Shop #1 (10218)
+	LEGO_GROUP_H, 					//!< Pet Shop #2 (10218)
+	LEGO_GROUP_I, 						//!< Detective's Office (10246)
+	LEGO_GROUP_J, 					//!< Downtown dinner (10260)
+	LEGO_GROUP_K, 					//!< Park Street Townhouse #1 (31065)
+	LEGO_GROUP_L, 					//!< Park Street Townhouse #2 (31065)
+	LEGO_GROUP_M, 					//!< Train Station #2 (7997)
+	LEGO_GROUP_N,  					//!< Roller Coaster (10261)
 	/* Other groups and presets */
-	LEGO_GROUP_STREET,			//!< Street lights
-	LEGO_GROUP_INTERIOR,		//!< Interior lights
-	LEGO_GROUP_EXTERIOR			//!< Exterior lights
+	LEGO_GROUP_STREET,				//!< Street lights
+	LEGO_GROUP_INTERIOR,			//!< Interior lights
+	LEGO_GROUP_EXTERIOR,			//!< Exterior lights
+	/* Animations */
+	LEGO_GROUP_ANIM_PALACE_CINEMA,	//!< Palace cinema animations
+	LEGO_GROUP_ANIM_ROLLER_COASTER  //!< Roller Coaster animations
 } LEGO_LightGroup_t;
 
 /*!
@@ -152,6 +159,16 @@ typedef struct {
 	bool state;		  //!< Pin state (1 = light turned on, 0 = light turned off)
 } LEGO_LightStatus_t;
 
+/*!
+ * \brief Animation info structure
+ */
+typedef struct {
+	TaskHandle_t taskHandle; //!< Task handle
+	uint32_t delayMs;		 //!< Delay in milliseconds
+	bool onOff;				 //!< True if animation enabled, false if disabled
+} LEGO_AnimInfo_t;
+
+
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -203,8 +220,9 @@ LEGO_LightOpRes_t LEGO_GetLightsStatus(LEGO_SearchPattern_t searchPattern, uint3
  *
  * \param animId : See LEGO_Anim_t
  * \param onOff : True for enabling, false for disabling
+ * \return Instance of LEGO_LightOpRes_t
  */
-void LEGO_AnimControl(LEGO_Anim_t animId, bool onOff);
+LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff);
 
 /*!
  * \brief Set specified animation delay
@@ -212,6 +230,14 @@ void LEGO_AnimControl(LEGO_Anim_t animId, bool onOff);
  * \param animId :  See LEGO_Anim_t
  * \param delayMs : Delay in milliseconds
  */
-void LEGO_AnimDelay(LEGO_Anim_t animId, uint32_t delayMs);
+void LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs);
+
+/*!
+ * \brief Get info about specific animation
+ *
+ * \param anim: See LEGO_Anim_t
+ * \return Pointer to info or NULL if nothing was found
+ */
+const LEGO_AnimInfo_t *LEGO_GetAnimInfo(LEGO_Anim_t anim);
 
 #endif /* LEGO_LEGO_H_ */

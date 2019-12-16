@@ -7,10 +7,6 @@
 /* emWin */
 #include "GUI.h"
 
-/* FreeRTOS */
-#include "FreeRTOS.h"
-#include "task.h"
-
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE MACROS ------------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -50,6 +46,11 @@
 #define LEGO_PALACE_CINEMA_ANIM_FRAMES	3
 #define LEGO_ROLLER_COASTER_ANIM_FRAMES	10
 
+/* Just for convenience */
+#define LEGO_AUTO_MODE_INFO()		(&animInfo[0])
+#define LEGO_PALACE_CINEMA_INFO()	(&animInfo[1])
+#define LEGO_ROLLER_COASTER_INFO()	(&animInfo[2])
+
 /* ----------------------------------------------------------------------------- */
 /* ---------------------------- PRIVATE DATA TYPES ----------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -71,15 +72,15 @@ typedef struct {
 /* ---------------------------- PRIVATE VARIABLES ------------------------------ */
 /* ----------------------------------------------------------------------------- */
 
-/* Animation tasks handles */
-static TaskHandle_t autoModeTask;
-static TaskHandle_t cinemaPalaceTask;
-static TaskHandle_t rollerCoasterTask;
-
-/* Delay for tasks (the can be changed during runtime) */
-static uint32_t autoModeDelayMs = 5000;
-static uint32_t cinemaPalaceDelayMs = 150;
-static uint32_t rollerCoasterDelayMs = 150;
+/* Animation settings */
+static LEGO_AnimInfo_t animInfo[] = {
+		/* Auto-mode */
+		{ NULL, 5000, false},
+		/* Palace cinema */
+		{ NULL, 150, false },
+		/* Roller coaster */
+		{ NULL, 150, false },
+};
 
 /* MCP23017 device chains */
 static const LEGO_I2CDev_t mcp23017Chains[] = {
@@ -113,7 +114,7 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B }
 };
 
-/* The table containing information about static lights only */
+/* The table containing information about lights */
 static const LEGO_Light_t legoLights[] = {
 		/* GROUP A - Brick Bank (10251) */
 		{ 0,   LEGO_CH0_DEV0_PB, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_A, LEGO_GROUP_STREET }, LEGO_PERC_STREET }, /* Street lamp */
@@ -239,6 +240,22 @@ static const LEGO_Light_t legoLights[] = {
 		{ 106, LEGO_CH1_DEV2_PA, 2, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Ice-cream shop */
 		{ 107, LEGO_CH1_DEV2_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Candy floss shop */
 		{ 108, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Floodlights */
+		/* Animation #1 - Palace Cinema (10243) */
+		{ 0, LEGO_CH0_DEV4_PB, 0, {} }, /* Animation on/off. Not used in current version */
+		{ 1, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #1 */
+		{ 2, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #2 */
+		{ 3, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #3 */
+		/* Animation #2 - Roller Coaster (10261)*/
+		{ 0, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #1 */
+		{ 1, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #2 */
+		{ 2, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #3 */
+		{ 3, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #4 */
+		{ 4, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #5 */
+		{ 5, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #6 */
+		{ 6, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #7 */
+		{ 7, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #8 */
+		{ 8, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #9 */
+		{ 9, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #10 */
 };
 
 /* ----------------------------------------------------------------------------- */
@@ -407,7 +424,7 @@ static void LEGO_PalaceCinemaTask(void *pvParameters)
 				MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, states[i]);
 			}
 			taskEXIT_CRITICAL();
-			vTaskDelay(pdMS_TO_TICKS(cinemaPalaceDelayMs));
+			vTaskDelay(pdMS_TO_TICKS(LEGO_PALACE_CINEMA_INFO()->delayMs));
 		}
 	}
 }
@@ -427,7 +444,7 @@ static void LEGO_RollerCoasterTask(void *pvParameters)
 				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_B, mask2, states[i]);
 			}
 			taskEXIT_CRITICAL();
-			vTaskDelay(pdMS_TO_TICKS(rollerCoasterDelayMs));
+			vTaskDelay(pdMS_TO_TICKS(LEGO_ROLLER_COASTER_INFO()->delayMs));
 		}
 	}
 }
@@ -472,7 +489,7 @@ static void LEGO_AutoModeTask(void *pvParameters)
 			taskEXIT_CRITICAL();
 		}
 
-		vTaskDelay(pdMS_TO_TICKS(autoModeDelayMs));
+		vTaskDelay(pdMS_TO_TICKS(LEGO_AUTO_MODE_INFO()->delayMs));
 	}
 }
 
@@ -482,15 +499,16 @@ static void LEGO_AutoModeTask(void *pvParameters)
 
 bool LEGO_RTOSInit(void)
 {
-	BaseType_t cinemaTask = xTaskCreate(LEGO_PalaceCinemaTask, LEGO_TASK_PALACE_CINEMA_NAME, LEGO_TASK_PALACE_CINEMA_STACK, NULL, LEGO_TASK_PALACE_CINEMA_PRIO, &cinemaPalaceTask);
-	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &rollerCoasterTask);
-	BaseType_t autoTask	= xTaskCreate(LEGO_AutoModeTask, LEGO_TASK_AUTO_MODE_NAME, LEGO_TASK_AUTO_MODE_STACK, NULL, LEGO_TASK_AUTO_MODE_PRIO, &autoModeTask);
+	/* Create animation tasks */
+	BaseType_t cinemaTask = xTaskCreate(LEGO_PalaceCinemaTask, LEGO_TASK_PALACE_CINEMA_NAME, LEGO_TASK_PALACE_CINEMA_STACK, NULL, LEGO_TASK_PALACE_CINEMA_PRIO, &LEGO_PALACE_CINEMA_INFO()->taskHandle);
+	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &LEGO_ROLLER_COASTER_INFO()->taskHandle);
+	BaseType_t autoTask	= xTaskCreate(LEGO_AutoModeTask, LEGO_TASK_AUTO_MODE_NAME, LEGO_TASK_AUTO_MODE_STACK, NULL, LEGO_TASK_AUTO_MODE_PRIO, &LEGO_AUTO_MODE_INFO()->taskHandle);
 
 	if (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS) {
 		/* Task suspended on startup */
-		vTaskSuspend(cinemaPalaceTask);
-		vTaskSuspend(rollerCoasterTask);
-		vTaskSuspend(autoModeTask);
+		vTaskSuspend(LEGO_PALACE_CINEMA_INFO()->taskHandle);
+		vTaskSuspend(LEGO_ROLLER_COASTER_INFO()->taskHandle);
+		vTaskSuspend(LEGO_AUTO_MODE_INFO()->taskHandle);
 		return true;
 	}
 
@@ -651,40 +669,89 @@ LEGO_LightOpRes_t LEGO_GetLightsStatus(LEGO_SearchPattern_t searchPattern, uint3
 	return LEGO_OP_PERFORMED;
 }
 
-void LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
+LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 {
-	TaskHandle_t handle;
-
-	switch (animId) {
-	case LEGO_ANIM_AUTO_MODE:
-		handle = autoModeTask;
-		break;
-	case LEGO_ANIM_CINEMA_PALACE:
-		handle = cinemaPalaceTask;
-		break;
-	case LEGO_ANIM_ROLLER_COASTER:
-		handle = rollerCoasterTask;
-		break;
-	}
+	LEGO_AnimInfo_t *info;
 
 	if (onOff) {
-		vTaskSuspend(handle);
+		/* If animation should be turned on just resume specific task */
+		switch (animId) {
+		case LEGO_ANIM_AUTO_MODE:
+			info = LEGO_AUTO_MODE_INFO();
+			break;
+		case LEGO_ANIM_PALACE_CINEMA:
+			info = LEGO_PALACE_CINEMA_INFO();
+			break;
+		case LEGO_ANIM_ROLLER_COASTER:
+			info = LEGO_ROLLER_COASTER_INFO();
+			break;
+		}
+
+		/* Resume task and set onOff flag */
+		vTaskResume(info->taskHandle);
+		info->onOff = true;
+		return LEGO_OP_PERFORMED;
+
 	} else {
-		vTaskResume(handle);
+		LEGO_LightOpRes_t res;
+
+		switch (animId) {
+		case LEGO_ANIM_AUTO_MODE:
+			/* In auto-mode just suspend the task */
+			vTaskSuspend(LEGO_AUTO_MODE_INFO()->taskHandle);
+			LEGO_AUTO_MODE_INFO()->onOff = false;
+			res = LEGO_OP_PERFORMED;
+			break;
+		case LEGO_ANIM_PALACE_CINEMA:
+			/* Palace cinema - drive pins low */
+			vTaskSuspend(LEGO_PALACE_CINEMA_INFO()->taskHandle);
+			LEGO_PALACE_CINEMA_INFO()->onOff = false;
+			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_PALACE_CINEMA, LEGO_LIGHT_OFF);
+			break;
+		case LEGO_ANIM_ROLLER_COASTER:
+			/* Roller Coaster - drive pins high */
+			vTaskSuspend(LEGO_ROLLER_COASTER_INFO()->taskHandle);
+			LEGO_ROLLER_COASTER_INFO()->onOff = false;
+			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_ROLLER_COASTER, LEGO_LIGHT_ON);
+			break;
+		}
+
+		return res;
 	}
 }
 
-void LEGO_AnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
+void LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
 {
 	switch (animId) {
 	case LEGO_ANIM_AUTO_MODE:
-		autoModeDelayMs = delayMs;
+		LEGO_AUTO_MODE_INFO()->delayMs = delayMs;
 		break;
-	case LEGO_ANIM_CINEMA_PALACE:
-		cinemaPalaceDelayMs = delayMs;
+	case LEGO_ANIM_PALACE_CINEMA:
+		LEGO_PALACE_CINEMA_INFO()->delayMs = delayMs;
 		break;
 	case LEGO_ANIM_ROLLER_COASTER:
-		rollerCoasterDelayMs = delayMs;
+		LEGO_ROLLER_COASTER_INFO()->delayMs = delayMs;
 		break;
 	}
+}
+
+const LEGO_AnimInfo_t *LEGO_GetAnimInfo(LEGO_Anim_t anim)
+{
+	const LEGO_AnimInfo_t *info;
+
+	switch (anim) {
+	case LEGO_ANIM_AUTO_MODE:
+		info = LEGO_AUTO_MODE_INFO();
+		break;
+	case LEGO_ANIM_PALACE_CINEMA:
+		info = LEGO_PALACE_CINEMA_INFO();
+		break;
+	case LEGO_ANIM_ROLLER_COASTER:
+		info = LEGO_ROLLER_COASTER_INFO();
+		break;
+	default:
+		info =  NULL;
+	}
+
+	return info;
 }
