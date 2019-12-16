@@ -144,6 +144,14 @@ typedef enum {
 	LEGO_OP_PERFORMED  	//!< Success
 } LEGO_LightOpRes_t;
 
+/*!
+ * \brief Structure for reading pin state
+ */
+typedef struct {
+	uint32_t lightId; //!< Unique id
+	bool state;		  //!< Pin state (1 = light turned on, 0 = light turned off)
+} LEGO_LightStatus_t;
+
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -163,6 +171,13 @@ bool LEGO_RTOSInit(void);
 bool LEGO_PerformStartup(void);
 
 /*!
+ * \brief Get total number of lights used
+ *
+ * \return The number of lights
+ */
+uint8_t LEGO_LightsCnt();
+
+/*!
  * \brief Lights control function
  *
  * \param searchPattern : See LEGO_SearchPattern_t
@@ -171,6 +186,17 @@ bool LEGO_PerformStartup(void);
  * \return Instance of LEGO_LightOpRes_t
  */
 LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op);
+
+/*!
+ * \brief Get lights status
+ *
+ * \param searchPattern : See LEGO_SearchPattern_t
+ * \param id : Searched light/group id
+ * \param statusBuff : The output buffer address will be written here
+ * \param lightsFound : Output buffer for storing the number of lights found
+ * \return Instance of LEGO_LightOpRes_t
+ */
+LEGO_LightOpRes_t LEGO_GetLightsStatus(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightStatus_t **statusBuff, uint8_t *lightsFound);
 
 /*!
  * \brief Enable/disable specified animation

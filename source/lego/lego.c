@@ -54,10 +54,17 @@
 /* ---------------------------- PRIVATE DATA TYPES ----------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+/* Light search status */
 typedef struct {
-	const LEGO_MCP23017Info_t *mcp23017Info;	//!< LEGO_MCP23017Info_t
-	uint8_t mask;								//!< Bit 0 contains information about pin 0, ..., bit 7 contains information about pin 7. Bit set = pin has auto mode enabled, bit cleared = pin has not auto mode enabled
-	uint8_t portState;							//!< New port state
+	uint8_t devUsed;
+	uint8_t pinsUsed;
+} LEGO_SearchStatus_t;
+
+/* Auto-mode device status */
+typedef struct {
+	const LEGO_MCP23017Info_t *mcp23017Info;
+	uint8_t mask;
+	uint8_t portState;
 } LEGO_AutoModeEntity_t;
 
 /* ----------------------------------------------------------------------------- */
@@ -261,10 +268,24 @@ static inline bool LEGO_CompareOnOffTime(const LEGO_Light_t *light, uint32_t com
 	return (light->autoModePercentage < comp);
 }
 
-/* Calculate auto-mode frames */
-static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t autoModeLightsCnt, LEGO_AutoModeEntity_t *devInfo)
+/* Get light id from device info */
+static bool LEGO_DevInfoToId(const LEGO_MCP23017Info_t *dev, uint8_t pin, uint32_t *res)
 {
-	uint8_t devUsed = 0;
+	for (uint8_t i = 0; i < GUI_COUNTOF(legoLights); i++) {
+		if (legoLights[i].mcp23017Info == dev && legoLights[i].mcp23017Pin == pin) {
+			*res = legoLights[i].lightId;
+			return true;
+		}
+	}
+	return false;
+}
+
+/* Calculate auto-mode frames */
+static void LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t autoModeLightsCnt, LEGO_AutoModeEntity_t *devInfo, LEGO_SearchStatus_t *status)
+{
+	/* Clear status fields */
+	status->devUsed = 0;
+	status->pinsUsed = 0;
 
 	const LEGO_Light_t *light;
 	for (uint8_t i = 0; i < autoModeLightsCnt; i++) {
@@ -276,13 +297,16 @@ static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t 
 
 		LEGO_AutoModeEntity_t *devRow;
 		bool devFound;
-		for (uint8_t i = 0; i < devUsed; i++) {
+		for (uint8_t i = 0; i < status->devUsed; i++) {
 			devFound = false;
 			devRow = &devInfo[i];
 			if (light->mcp23017Info == devRow->mcp23017Info) {
 				/* Update entry */
 				devFound = true;
 				MCP23017_UINT8_BIT_SET(devRow->mask, light->mcp23017Pin);
+
+				/* Update status */
+				status->pinsUsed++;
 
 				/* Save valid pin state */
 				if (onOff) {
@@ -296,27 +320,30 @@ static uint8_t LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t 
 		}
 		if (!devFound) {
 			/* Create new entry */
-			devInfo[devUsed].mcp23017Info = light->mcp23017Info;
-			devInfo[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
+			devInfo[status->devUsed].mcp23017Info = light->mcp23017Info;
+			devInfo[status->devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
+
+			/* Update status */
+			status->devUsed++;
+			status->pinsUsed++;
 
 			/* Save valid pin state */
 			if (onOff) {
-				devInfo[devUsed].portState = MCP23017_UINT8_BIT(light->mcp23017Pin);
+				devInfo[status->devUsed].portState = MCP23017_UINT8_BIT(light->mcp23017Pin);
 			} else {
-				devInfo[devUsed].portState = 0x00;
+				devInfo[status->devUsed].portState = 0x00;
 			}
-
-			devUsed++;
 		}
 	}
-
-	return devUsed;
 }
 
 /* Search lights */
-static uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes)
+static void LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_SearchRes_t *searchRes, LEGO_SearchStatus_t *status)
 {
-	uint8_t devUsed = 0;
+	/* Clear status fields */
+	status->devUsed = 0;
+	status->pinsUsed = 0;
+
 	const LEGO_Light_t *light;
 	LEGO_SearchRes_t *resRow;
 
@@ -336,26 +363,31 @@ static uint8_t LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, 
 
 		if (result) {
 			bool devFound;
-			for (uint8_t j = 0; j < devUsed; j++) {
+			for (uint8_t j = 0; j < status->devUsed; j++) {
 				resRow = &searchRes[j];
 				devFound = false;
 				if (resRow->mcp23017Info == light->mcp23017Info) {
 					/* Update entry */
 					MCP23017_UINT8_BIT_SET(resRow->mask, light->mcp23017Pin);
 					devFound = true;
+
+					/* Update status */
+					status->pinsUsed++;
+
 					break;
 				}
 			}
 			/* Create new entry */
 			if (!devFound) {
-				searchRes[devUsed].mcp23017Info = light->mcp23017Info;
-				searchRes[devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
-				devUsed++;
+				searchRes[status->devUsed].mcp23017Info = light->mcp23017Info;
+				searchRes[status->devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
+
+				/* Update status */
+				status->devUsed++;
+				status->pinsUsed++;
 			}
 		}
  	}
-
-	return devUsed;
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -425,10 +457,11 @@ static void LEGO_AutoModeTask(void *pvParameters)
 
 	/* Task loop */
 	while (1) {
-		uint8_t devCnt = LEGO_AutoModeUpdate(autoModeLights, autoModeLightsCnt, devices);
+		LEGO_SearchStatus_t searchStatus;
+		LEGO_AutoModeUpdate(autoModeLights, autoModeLightsCnt, devices, &searchStatus);
 
 		const LEGO_AutoModeEntity_t *dev;
-		for (uint8_t i = 0; i < devCnt; i++) {
+		for (uint8_t i = 0; i < searchStatus.devUsed; i++) {
 			dev = &devices[i];
 
 			/* Update MCP23017 port data */
@@ -506,13 +539,19 @@ bool LEGO_PerformStartup(void)
 	return response;
 }
 
+uint8_t LEGO_LightsCnt()
+{
+	return GUI_COUNTOF(legoLights);
+}
+
 LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightOp_t op)
 {
 	/* Search lights */
 	LEGO_SearchRes_t searchBuff[GUI_COUNTOF(mcp23017Devices)];
-	uint8_t devFound = LEGO_SearchLights(legoLights, GUI_COUNTOF(legoLights), searchPattern, id, searchBuff);
+	LEGO_SearchStatus_t searchStatus;
+	LEGO_SearchLights(legoLights, GUI_COUNTOF(legoLights), searchPattern, id, searchBuff, &searchStatus);
 
-	if (!devFound) {
+	if (!searchStatus.devUsed) {
 		return LEGO_ID_NOT_FOUND;
 	}
 
@@ -520,7 +559,7 @@ LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_
 	const LEGO_MCP23017Info_t *mcp23017Info;
 	uint8_t sendVal;
 
-	for (uint8_t i = 0; i < devFound; i++) {
+	for (uint8_t i = 0; i < searchStatus.devUsed; i++) {
 		buffRow = &searchBuff[i];
 
 		/* Change i2c mux channel */
@@ -556,6 +595,58 @@ LEGO_LightOpRes_t LEGO_LightsControl(LEGO_SearchPattern_t searchPattern, uint32_
 		}
 		taskEXIT_CRITICAL();
 	}
+
+	return LEGO_OP_PERFORMED;
+}
+
+LEGO_LightOpRes_t LEGO_GetLightsStatus(LEGO_SearchPattern_t searchPattern, uint32_t id, LEGO_LightStatus_t **statusBuff, uint8_t *lightsFound)
+{
+	/* Should be static -> less runtime cost */
+	static LEGO_LightStatus_t response[GUI_COUNTOF(legoLights)];
+
+	/* Search lights */
+	LEGO_SearchRes_t searchBuff[GUI_COUNTOF(mcp23017Devices)];
+	LEGO_SearchStatus_t searchStatus;
+	LEGO_SearchLights(legoLights, GUI_COUNTOF(legoLights), searchPattern, id, searchBuff, &searchStatus);
+
+	if (!searchStatus.devUsed) {
+		return LEGO_ID_NOT_FOUND;
+	}
+
+	uint8_t found = 0;
+
+	const LEGO_SearchRes_t *searchRow;
+	for (uint8_t i = 0; i < searchStatus.devUsed; i++) {
+		searchRow = &searchBuff[i];
+
+		/* Read port status */
+		uint8_t portStatus;
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, searchRow->mcp23017Info->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
+			taskEXIT_CRITICAL();
+			return LEGO_I2C_ERR;
+		}
+		if (MCP23017_PortRead(&searchRow->mcp23017Info->i2cDevInfo->chain, searchRow->mcp23017Info->mcp23017DevNum, searchRow->mcp23017Info->mcp23017Port, &portStatus) != MCP23017_SUCCESS) {
+			taskEXIT_CRITICAL();
+			return LEGO_I2C_ERR;
+		}
+		taskEXIT_CRITICAL();
+
+		/* Iterate over all pins and store results */
+		for (uint8_t i = 0; i < MCP23017_PORT_PINS; i++) {
+			if (MCP23017_UINT8_IS_BIT_SET(searchRow->mask, i)) {
+				uint32_t lightId;
+				LEGO_DevInfoToId(searchRow->mcp23017Info, i, &lightId);
+				/* Store output info */
+				response[found].lightId = lightId;
+				response[found].state = !MCP23017_UINT8_IS_BIT_SET(portStatus, i);
+				found++;
+			}
+		}
+	}
+
+	*lightsFound = found;
+	*statusBuff = response;
 
 	return LEGO_OP_PERFORMED;
 }
