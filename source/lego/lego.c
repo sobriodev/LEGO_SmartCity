@@ -751,7 +751,7 @@ LEGO_LightOpRes_t LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
 		return LEGO_ID_NOT_FOUND;
 	}
 
-	/* Check if delay is inside valid range */
+	/* Check if delay is inside the valid range */
 	if (delayMs < min || delayMs > max) {
 		return LEGO_RANGE_ERROR;
 	}

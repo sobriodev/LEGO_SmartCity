@@ -157,7 +157,7 @@ typedef enum {
 	LEGO_ID_NOT_FOUND,	//!< Id not found
 	LEGO_I2C_ERR,		//!< I2C error
 	LEGO_OP_PERFORMED,  //!< Success
-	LEGO_RANGE_ERROR	//!< Value outside valid range
+	LEGO_RANGE_ERROR	//!< Value outside the valid range
 } LEGO_LightOpRes_t;
 
 /*!

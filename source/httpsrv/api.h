@@ -13,7 +13,7 @@
 
 /* Animation api names */
 #define API_ANIM_STATUS_NAME		"lego-anim-status"
-#define API_ANIM_DELAY_NAME			"lego_anim_delay"
+#define API_ANIM_DELAY_NAME			"lego-anim-delay"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */

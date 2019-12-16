@@ -36,7 +36,7 @@ static char postBuffer[API_POST_BUFFER_MAX_LEN];
 const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[] = {
 	{ API_LIGHT_CONTROL_NAME, API_LightControl },
 	{ API_ANIM_STATUS_NAME, API_AnimStatus },
-	{ API_ANIM_DELAY_NAME, NULL },
+	{ API_ANIM_DELAY_NAME, API_AnimDelay },
     {0, 0} /* Do not remove */
 };
 
@@ -143,7 +143,7 @@ bool API_LightControlParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_SearchPatte
 	if (!strcmp(operation->valuestring, "on")) {
 		*op = LEGO_LIGHT_ON;
 	} else if (!strcmp(operation->valuestring, "off")) {
-		*op = LEGO_LIGHT_ON;
+		*op = LEGO_LIGHT_OFF;
 	} else if (!strcmp(operation->valuestring, "toggle")) {
 		*op = LEGO_LIGHT_TOGGLE;
 	}
@@ -263,6 +263,63 @@ bool API_AnimStatusParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_Anim_t *animI
 	cJSON_Delete(json);
 	return success;
 }
+
+/* Create JSON when using GET method of animation delay api function */
+char *API_AnimDelayMakeJsonGet(const LEGO_AnimInfo_t *animInfo)
+{
+	char *outputStr = NULL;
+	cJSON *json = cJSON_CreateObject();
+	API_CJSON_APPEND_HOOK(json);
+
+	/* Add status field */
+	API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(json, "status", HTTPSRV_CODE_OK));
+
+	/* Add animation status */
+	API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(json, "animDelayMs", animInfo->delayMs));
+
+	outputStr = cJSON_Print(json);
+
+	end:
+	cJSON_Delete(json);
+	return outputStr;
+}
+
+/* Parse POST method of animation delay api function */
+bool API_AnimDelayParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_Anim_t *animId, uint32_t *delayMs)
+{
+	bool success = true;
+
+	/* Read POST data */
+	uint32_t length = (request->content_length > API_POST_BUFFER_MAX_LEN) ? API_POST_BUFFER_MAX_LEN : request->content_length;
+	uint32_t bytesRead = HTTPSRV_cgi_read(request->ses_handle, postBuffer, length);
+	if (!bytesRead) {
+		return false;
+	}
+	postBuffer[request->content_length] = '\0';
+
+	/* Parse JSON */
+	cJSON *json = cJSON_Parse(postBuffer);
+	if (json == NULL) {
+		success = false;
+		goto end;
+	}
+
+	cJSON *id = cJSON_GetObjectItemCaseSensitive(json, "id");
+	cJSON *delay = cJSON_GetObjectItemCaseSensitive(json, "animDelayMs");
+
+	if (id == NULL || delay == NULL || !cJSON_IsNumber(id) || !cJSON_IsNumber(delay)) {
+		success = false;
+		goto end;
+	}
+
+	*animId = id->valueint;
+	*delayMs = delay->valueint;
+
+	end:
+	cJSON_Delete(json);
+	return success;
+}
+
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -431,6 +488,86 @@ int32_t API_AnimStatus(HTTPSRV_CGI_REQ_STRUCT *request)
 			break;
 		}
 		default:
-			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET method is supported here");
+			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET/POST methods are supported here");
 	}
+}
+
+int32_t API_AnimDelay(HTTPSRV_CGI_REQ_STRUCT *request)
+{
+    HTTPSRV_CGI_RES_STRUCT response = {0};
+    response.ses_handle = request->ses_handle;
+
+    switch (request->request_method) {
+		case HTTPSRV_REQ_GET: {
+
+			/* Parse query string. The function is the same as in animation status */
+			LEGO_Anim_t animId;
+			if (!API_AnimStatusParseGet(request->query_string, &animId)) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Missing/invalid query string parameters");
+			}
+
+			/* Perform operation */
+			const LEGO_AnimInfo_t *animInfo;
+			LEGO_LightOpRes_t res = LEGO_GetAnimInfo(animId, &animInfo);
+
+			char *jsonOutput;
+			switch (res) {
+			case LEGO_ID_NOT_FOUND:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_NOT_FOUND, "Requested ID not found");
+				break;
+			case LEGO_OP_PERFORMED:
+				jsonOutput = API_AnimDelayMakeJsonGet(animInfo);
+				if (jsonOutput == NULL) {
+					API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+				} else {
+					/* Write response and free cJSON allocated string */
+					API_MakeJsonResponse(&response, 200, jsonOutput);
+					HTTPSRV_cgi_write(&response);
+					free(jsonOutput);
+					return response.content_length;
+				}
+				break;
+			default:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+			}
+
+			break;
+		}
+		case HTTPSRV_REQ_POST: {
+
+			/* Only JSON body is supported */
+			if (request->content_type != HTTPSRV_CONTENT_TYPE_JSON) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_UNSUPPORTED_MEDIA, "Only JSON content type is supported");
+			}
+
+			/* Parse JSON body */
+			LEGO_Anim_t animId;
+			uint32_t delayMs;
+			if (!API_AnimDelayParsePost(request, &animId, &delayMs)) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "JSON parsing error. Check fields correctness");
+			}
+
+			/* Perform operation */
+			LEGO_LightOpRes_t res = LEGO_SetAnimDelay(animId, delayMs);
+
+			switch (res) {
+			case LEGO_ID_NOT_FOUND:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_NOT_FOUND, "Requested ID not found");
+				break;
+			case LEGO_RANGE_ERROR:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Delay outside the valid range");
+				break;
+			case LEGO_OP_PERFORMED:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_OK, "Success");
+				break;
+			default:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+			}
+
+			break;
+
+		}
+		default:
+			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET/POST methods are supported here");
+		}
 }
