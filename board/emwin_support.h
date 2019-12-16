@@ -43,7 +43,7 @@
 #define GUI_MEMORY_ADDR (SDRAM_BASE_ADDR)
 
 /* Display framebuffer */
-#define GUI_BUFFERS 2
+#define GUI_BUFFERS 4
 #define VRAM_ADDR (GUI_MEMORY_ADDR + GUI_NUMBYTES)
 #define VRAM_SIZE (LCD_HEIGHT * LCD_WIDTH * LCD_BITS_PER_PIXEL / 8)
 

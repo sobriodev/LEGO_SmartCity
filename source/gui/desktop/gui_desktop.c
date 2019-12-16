@@ -9,6 +9,7 @@
 #include "conv.h"
 #include "confirm.h"
 #include "gui_settings.h"
+#include "background.h"
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -56,8 +57,8 @@ void GUI_DesktopCallback(WM_MESSAGE *pMsg)
 		b = BUTTON_CreateEx(200, 50, 60, 60, selfWin, WM_CF_SHOW, 0, GUI_ID_BUTTON0);
 		break;
 	case WM_PAINT:
-		GUI_SetBkColor(GUI_LIGHTBLUE);
 		GUI_Clear();
+		GUI_DrawBitmap(&bmBackground, 0, 0);
 		break;
 	case MSG_VK: /* Virtual keyboard returned */
 		switch (pMsg->Data.v) {

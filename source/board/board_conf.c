@@ -3,6 +3,7 @@
 #include "pin_mux.h"
 #include "fsl_sctimer.h"
 #include "fsl_iocon.h"
+#include "fsl_spifi.h"
 
 #include "gui_conf.h"
 #include "gui_startup.h"
@@ -36,6 +37,21 @@
 
 #define BOARD_I2C_MASTER_CLOCK_FREQUENCY 12000000
 
+/* Board QSPI Flash */
+#define BOARD_FLASH_SPIFI SPIFI0
+#define PAGE_SIZE (256)
+#define SECTOR_SIZE (4096)
+#define EXAMPLE_SPI_BAUDRATE (96000000)
+#define FLASH_W25Q
+#define COMMAND_NUM (6)
+#define READ (0)
+#define PROGRAM_PAGE (1)
+#define GET_STATUS (2)
+#define ERASE_SECTOR (3)
+#define WRITE_ENABLE (4)
+#define WRITE_REGISTER (5)
+
+
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PRIVATE VARIABLES ----------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -48,6 +64,66 @@ extern ft5406_handle_t touch_handle;
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------ PRIVATE FUNCTIONS ---------------------------- */
 /* ----------------------------------------------------------------------------- */
+
+/* Initialize the QSPI Flash memory. */
+void BOARD_InitQSPI(void)
+{
+	spifi_config_t config = {0};
+	uint32_t sourceClockFreq;
+	uint8_t val = 0;
+
+#if defined FLASH_W25Q
+	spifi_command_t command[COMMAND_NUM] = {
+			{PAGE_SIZE, false, kSPIFI_DataInput, 1, kSPIFI_CommandDataQuad, kSPIFI_CommandOpcodeAddrThreeBytes, 0x6B},
+			{PAGE_SIZE, false, kSPIFI_DataOutput, 0, kSPIFI_CommandDataQuad, kSPIFI_CommandOpcodeAddrThreeBytes, 0x32},
+			{1, false, kSPIFI_DataInput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x05},
+			{0, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeAddrThreeBytes, 0x20},
+			{0, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x06},
+			{1, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x31}};
+#define QUAD_MODE_VAL 0x02
+#elif defined FLASH_MX25R
+	spifi_command_t command[COMMAND_NUM] = {
+			{PAGE_SIZE, false, kSPIFI_DataInput, 1, kSPIFI_CommandDataQuad, kSPIFI_CommandOpcodeAddrThreeBytes, 0x6B},
+			{PAGE_SIZE, false, kSPIFI_DataOutput, 0, kSPIFI_CommandOpcodeSerial, kSPIFI_CommandOpcodeAddrThreeBytes, 0x38},
+			{1, false, kSPIFI_DataInput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x05},
+			{0, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeAddrThreeBytes, 0x20},
+			{0, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x06},
+			{1, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x01}};
+#define QUAD_MODE_VAL 0x40
+#else /* Use MT25Q */
+	spifi_command_t command[COMMAND_NUM] = {
+			{PAGE_SIZE, false, kSPIFI_DataInput, 1, kSPIFI_CommandDataQuad, kSPIFI_CommandOpcodeAddrThreeBytes, 0x6B},
+			{PAGE_SIZE, false, kSPIFI_DataOutput, 0, kSPIFI_CommandOpcodeSerial, kSPIFI_CommandOpcodeAddrThreeBytes, 0x38},
+			{1, false, kSPIFI_DataInput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x05},
+			{0, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeAddrThreeBytes, 0x20},
+			{0, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x06},
+			{1, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x61}};
+#endif
+
+	BOARD_BootClockFROHF96M(); /* Boot up FROHF96M for SPIFI to use*/
+	CLOCK_AttachClk(kFRO_HF_to_SPIFI_CLK);
+	sourceClockFreq = CLOCK_GetFroHfFreq();
+	/* Set the clock divider */
+	CLOCK_SetClkDiv(kCLOCK_DivSpifiClk, sourceClockFreq / EXAMPLE_SPI_BAUDRATE, false);
+	/* Initialize SPIFI */
+	SPIFI_GetDefaultConfig(&config);
+	SPIFI_Init(BOARD_FLASH_SPIFI, &config);
+#if defined QUAD_MODE_VAL
+	/* Enable Quad mode */
+	SPIFI_SetCommand(BOARD_FLASH_SPIFI, &command[WRITE_ENABLE]);
+	SPIFI_SetCommand(BOARD_FLASH_SPIFI, &command[WRITE_REGISTER]);
+	SPIFI_WriteDataByte(BOARD_FLASH_SPIFI, QUAD_MODE_VAL);
+	/* Check WIP bit */
+	val = 0;
+	do{
+		SPIFI_SetCommand(BOARD_FLASH_SPIFI, &command[GET_STATUS]);
+		while ((BOARD_FLASH_SPIFI->STAT & SPIFI_STAT_INTRQ_MASK) == 0U);
+		val = SPIFI_ReadDataByte(BOARD_FLASH_SPIFI);
+	} while (val & 0x1);
+#endif
+	/* Setup memory command */
+	SPIFI_SetMemoryCommand(BOARD_FLASH_SPIFI, &command[READ]);
+}
 
 /* This function is used to cover the IP bug which the DATA4-7 pin should be configured */
 static void BOARD_InitSdifUnusedDataPin(void)
@@ -157,6 +233,7 @@ void BOARD_Init(void)
 	BOARD_BootClockPLL220M();
 	BOARD_InitDebugConsole();
 	BOARD_InitSDRAM();
+	BOARD_InitQSPI();
 
 	/* Attach main clock to SDIF */
 	CLOCK_AttachClk(BOARD_SDIF_CLK_ATTACH);
