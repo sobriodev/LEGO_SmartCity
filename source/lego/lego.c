@@ -241,21 +241,21 @@ static const LEGO_Light_t legoLights[] = {
 		{ 107, LEGO_CH1_DEV2_PB, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Candy floss shop */
 		{ 108, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_BROADCAST, LEGO_GROUP_N, LEGO_GROUP_EXTERIOR }, LEGO_PERC_CAFES }, /* Floodlights */
 		/* Animation #1 - Palace Cinema (10243) */
-		{ 0, LEGO_CH0_DEV4_PB, 0, {} }, /* Animation on/off. Not used in current version */
-		{ 1, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #1 */
-		{ 2, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #2 */
-		{ 3, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #3 */
+		//{ 109, LEGO_CH0_DEV4_PB, 0, {} }, /* Animation on/off. Not used in current version */
+		{ 110, LEGO_CH0_DEV4_PA, 0, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #1 */
+		{ 111, LEGO_CH0_DEV4_PA, 1, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #2 */
+		{ 112, LEGO_CH0_DEV4_PA, 2, { LEGO_GROUP_ANIM_PALACE_CINEMA } }, /* Frame #3 */
 		/* Animation #2 - Roller Coaster (10261)*/
-		{ 0, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #1 */
-		{ 1, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #2 */
-		{ 2, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #3 */
-		{ 3, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #4 */
-		{ 4, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #5 */
-		{ 5, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #6 */
-		{ 6, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #7 */
-		{ 7, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #8 */
-		{ 8, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #9 */
-		{ 9, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #10 */
+		{ 113, LEGO_CH1_DEV2_PA, 3, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #1 */
+		{ 114, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #2 */
+		{ 115, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #3 */
+		{ 116, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #4 */
+		{ 117, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #5 */
+		{ 118, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #6 */
+		{ 119, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #7 */
+		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #8 */
+		{ 121, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #9 */
+		{ 122, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #10 */
 };
 
 /* ----------------------------------------------------------------------------- */
@@ -685,6 +685,8 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 		case LEGO_ANIM_ROLLER_COASTER:
 			info = LEGO_ROLLER_COASTER_INFO();
 			break;
+		default:
+			return LEGO_ID_NOT_FOUND;
 		}
 
 		/* Resume task and set onOff flag */
@@ -714,44 +716,65 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 			LEGO_ROLLER_COASTER_INFO()->onOff = false;
 			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_ROLLER_COASTER, LEGO_LIGHT_ON);
 			break;
+		default:
+			res = LEGO_ID_NOT_FOUND;
+			break;
 		}
 
 		return res;
 	}
 }
 
-void LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
+LEGO_LightOpRes_t LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
 {
+	uint32_t min;
+	uint32_t max;
+	LEGO_AnimInfo_t *info;
+
 	switch (animId) {
 	case LEGO_ANIM_AUTO_MODE:
-		LEGO_AUTO_MODE_INFO()->delayMs = delayMs;
-		break;
-	case LEGO_ANIM_PALACE_CINEMA:
-		LEGO_PALACE_CINEMA_INFO()->delayMs = delayMs;
-		break;
-	case LEGO_ANIM_ROLLER_COASTER:
-		LEGO_ROLLER_COASTER_INFO()->delayMs = delayMs;
-		break;
-	}
-}
-
-const LEGO_AnimInfo_t *LEGO_GetAnimInfo(LEGO_Anim_t anim)
-{
-	const LEGO_AnimInfo_t *info;
-
-	switch (anim) {
-	case LEGO_ANIM_AUTO_MODE:
 		info = LEGO_AUTO_MODE_INFO();
+		min = LEGO_AUTO_MODE_DELAY_MIN;
+		max = LEGO_AUTO_MODE_DELAY_MAX;
 		break;
 	case LEGO_ANIM_PALACE_CINEMA:
 		info = LEGO_PALACE_CINEMA_INFO();
+		min = LEGO_PALACE_CINEMA_DELAY_MIN;
+		max = LEGO_PALACE_CINEMA_DELAY_MAX;
 		break;
 	case LEGO_ANIM_ROLLER_COASTER:
 		info = LEGO_ROLLER_COASTER_INFO();
+		min = LEGO_ROLLER_COASTER_DELAY_MIN;
+		max = LEGO_ROLLER_COASTER_DELAY_MAX;
 		break;
 	default:
-		info =  NULL;
+		return LEGO_ID_NOT_FOUND;
 	}
 
-	return info;
+	/* Check if delay is inside valid range */
+	if (delayMs < min || delayMs > max) {
+		return LEGO_RANGE_ERROR;
+	}
+
+	info->delayMs = delayMs;
+	return LEGO_OP_PERFORMED;
+}
+
+LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp)
+{
+	switch (anim) {
+	case LEGO_ANIM_AUTO_MODE:
+		*otp = LEGO_AUTO_MODE_INFO();
+		break;
+	case LEGO_ANIM_PALACE_CINEMA:
+		*otp = LEGO_PALACE_CINEMA_INFO();
+		break;
+	case LEGO_ANIM_ROLLER_COASTER:
+		*otp = LEGO_ROLLER_COASTER_INFO();
+		break;
+	default:
+		return LEGO_ID_NOT_FOUND;
+	}
+
+	return LEGO_OP_PERFORMED;
 }

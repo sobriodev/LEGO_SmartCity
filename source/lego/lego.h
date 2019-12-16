@@ -30,6 +30,14 @@
 #define LEGO_TASK_AUTO_MODE_STACK			0x400
 #define LEGO_TASK_AUTO_MODE_PRIO			(tskIDLE_PRIORITY + 2)
 
+/* Animation delays valid ranges in ms */
+#define LEGO_AUTO_MODE_DELAY_MIN			2000
+#define LEGO_AUTO_MODE_DELAY_MAX			60000
+#define LEGO_PALACE_CINEMA_DELAY_MIN		150
+#define LEGO_PALACE_CINEMA_DELAY_MAX		5000
+#define LEGO_ROLLER_COASTER_DELAY_MIN		150
+#define LEGO_ROLLER_COASTER_DELAY_MAX		5000
+
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- DATA TYPES --------------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -148,7 +156,8 @@ typedef enum {
 typedef enum {
 	LEGO_ID_NOT_FOUND,	//!< Id not found
 	LEGO_I2C_ERR,		//!< I2C error
-	LEGO_OP_PERFORMED  	//!< Success
+	LEGO_OP_PERFORMED,  //!< Success
+	LEGO_RANGE_ERROR	//!< Value outside valid range
 } LEGO_LightOpRes_t;
 
 /*!
@@ -229,15 +238,17 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff);
  *
  * \param animId :  See LEGO_Anim_t
  * \param delayMs : Delay in milliseconds
+ * \return Instance of LEGO_LightOpRes_t
  */
-void LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs);
+LEGO_LightOpRes_t LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs);
 
 /*!
  * \brief Get info about specific animation
  *
  * \param anim: See LEGO_Anim_t
- * \return Pointer to info or NULL if nothing was found
+ * \param otp : Output buffer
+ * \return Instance of LEGO_LightOpRes_t
  */
-const LEGO_AnimInfo_t *LEGO_GetAnimInfo(LEGO_Anim_t anim);
+LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp);
 
 #endif /* LEGO_LEGO_H_ */

@@ -35,8 +35,8 @@ static char postBuffer[API_POST_BUFFER_MAX_LEN];
 /* Api table */
 const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[] = {
 	{ API_LIGHT_CONTROL_NAME, API_LightControl },
-	{ API_ALL_CONTROL_NAME, NULL },
-	{ API_ANIM_CONTROL, NULL },
+	{ API_ANIM_STATUS_NAME, API_AnimStatus },
+	{ API_ANIM_DELAY_NAME, NULL },
     {0, 0} /* Do not remove */
 };
 
@@ -111,7 +111,7 @@ bool API_LightControlParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_SearchPatte
 	/* Parse JSON */
 	cJSON *json = cJSON_Parse(postBuffer);
 	if (json == NULL) {
-		success = 0;
+		success = false;
 		goto end;
 	}
 
@@ -164,8 +164,6 @@ char *API_LightControlCreateJsonGet(const LEGO_LightStatus_t *status, uint8_t le
 {
 	char *outputStr = NULL;
 	cJSON *json = cJSON_CreateObject();
-
-	/* JSON creation error */
 	API_CJSON_APPEND_HOOK(json);
 
 	/* Add status field */
@@ -194,6 +192,78 @@ char *API_LightControlCreateJsonGet(const LEGO_LightStatus_t *status, uint8_t le
 	cJSON_Delete(json);
 }
 
+/* Parse GET method of animation status api function */
+bool API_AnimStatusParseGet(char *qs, LEGO_Anim_t *animId)
+{
+	/* Parse query string */
+	QS_Param_t params[1];
+	uint8_t paramsFound = QS_Parse(qs, params, 1);
+	const QS_Param_t *id = QS_GetParam("id", params, paramsFound);
+
+	if (!QS_PARAM_EXISTS(id) || !QS_PARAM_IS_INT(id)) {
+		return false;
+	}
+
+	*animId = id->value.valueInt;
+	return true;
+}
+
+/* Create JSON when using GET method of animation status api function */
+char *API_AnimStatusMakeJsonGet(const LEGO_AnimInfo_t *animInfo)
+{
+	char *outputStr = NULL;
+	cJSON *json = cJSON_CreateObject();
+	API_CJSON_APPEND_HOOK(json);
+
+	/* Add status field */
+	API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(json, "status", HTTPSRV_CODE_OK));
+
+	/* Add animation status */
+	API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(json, "animStatus", animInfo->onOff));
+
+	outputStr = cJSON_Print(json);
+
+	end:
+	cJSON_Delete(json);
+	return outputStr;
+}
+
+/* Parse POST method of animation status api function */
+bool API_AnimStatusParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_Anim_t *animId, bool *onOff)
+{
+	bool success = true;
+
+	/* Read POST data */
+	uint32_t length = (request->content_length > API_POST_BUFFER_MAX_LEN) ? API_POST_BUFFER_MAX_LEN : request->content_length;
+	uint32_t bytesRead = HTTPSRV_cgi_read(request->ses_handle, postBuffer, length);
+	if (!bytesRead) {
+		return false;
+	}
+	postBuffer[request->content_length] = '\0';
+
+	/* Parse JSON */
+	cJSON *json = cJSON_Parse(postBuffer);
+	if (json == NULL) {
+		success = false;
+		goto end;
+	}
+
+	cJSON *id = cJSON_GetObjectItemCaseSensitive(json, "id");
+	cJSON *op = cJSON_GetObjectItemCaseSensitive(json, "animStatus");
+
+	if (id == NULL || op == NULL || !cJSON_IsNumber(id) || !cJSON_IsNumber(op)) {
+		success = false;
+		goto end;
+	}
+
+	*animId = id->valueint;
+	*onOff = op->valueint;
+
+	end:
+	cJSON_Delete(json);
+	return success;
+}
+
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -202,7 +272,7 @@ char *API_LightControlCreateJsonGet(const LEGO_LightStatus_t *status, uint8_t le
 int32_t API_LightControl(HTTPSRV_CGI_REQ_STRUCT *request)
 {
     HTTPSRV_CGI_RES_STRUCT response = {0};
-    response.ses_handle  = request->ses_handle;
+    response.ses_handle = request->ses_handle;
 
     switch (request->request_method) {
 		/* GET request - return light state */
@@ -285,4 +355,82 @@ int32_t API_LightControl(HTTPSRV_CGI_REQ_STRUCT *request)
 		default:
 			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET and POST methods are supported here");
     }
+}
+
+int32_t API_AnimStatus(HTTPSRV_CGI_REQ_STRUCT *request)
+{
+    HTTPSRV_CGI_RES_STRUCT response = {0};
+    response.ses_handle = request->ses_handle;
+
+    switch (request->request_method) {
+    	/* GET request - return animation status */
+		case HTTPSRV_REQ_GET: {
+
+			/* Parse query string */
+			LEGO_Anim_t animId;
+			if (!API_AnimStatusParseGet(request->query_string, &animId)) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Missing/invalid query string parameters");
+			}
+
+			/* Perform operation */
+			const LEGO_AnimInfo_t *animInfo;
+			LEGO_LightOpRes_t res = LEGO_GetAnimInfo(animId, &animInfo);
+
+			char *jsonOutput;
+			switch (res) {
+			case LEGO_ID_NOT_FOUND:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_NOT_FOUND, "Requested ID not found");
+				break;
+			case LEGO_OP_PERFORMED:
+				jsonOutput = API_AnimStatusMakeJsonGet(animInfo);
+				if (jsonOutput == NULL) {
+					API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+				} else {
+					/* Write response and free cJSON allocated string */
+					API_MakeJsonResponse(&response, 200, jsonOutput);
+					HTTPSRV_cgi_write(&response);
+					free(jsonOutput);
+					return response.content_length;
+				}
+				break;
+			default:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+			}
+
+			break;
+		}
+		/* POST request - set animation status */
+		case HTTPSRV_REQ_POST: {
+
+			/* Only JSON body is supported */
+			if (request->content_type != HTTPSRV_CONTENT_TYPE_JSON) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_UNSUPPORTED_MEDIA, "Only JSON content type is supported");
+			}
+
+			/* Parse JSON body */
+			LEGO_Anim_t animId;
+			bool onOff;
+			if (!API_AnimStatusParsePost(request, &animId, &onOff)) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "JSON parsing error. Check fields correctness");
+			}
+
+			/* Perform operation */
+			LEGO_LightOpRes_t res = LEGO_AnimControl(animId, onOff);
+
+			switch (res) {
+			case LEGO_ID_NOT_FOUND:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_NOT_FOUND, "Requested ID not found");
+				break;
+			case LEGO_OP_PERFORMED:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_OK, "Success");
+				break;
+			default:
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+			}
+
+			break;
+		}
+		default:
+			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET method is supported here");
+	}
 }
