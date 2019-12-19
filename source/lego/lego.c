@@ -16,6 +16,8 @@
 #define LEGO_MCP23017_CHAIN0_DEV	8
 #define LEGO_MCP23017_CHAIN1		0x01
 #define LEGO_MCP23017_CHAIN1_DEV	3
+#define LEGO_MCP23017_CHAIN2		0x02
+#define LEGO_MCP23017_CHAIN2_DEV	1
 #define LEGO_MCP23017_CH(CH)		(&mcp23017Chains[(CH)])
 
 /* MCP23017 devices - just for convenience macros */
@@ -35,12 +37,16 @@
 #define LEGO_CH0_DEV6_PB	(&mcp23017Devices[13])
 #define LEGO_CH0_DEV7_PA	(&mcp23017Devices[14])
 #define LEGO_CH0_DEV7_PB	(&mcp23017Devices[15])
+
 #define LEGO_CH1_DEV0_PA	(&mcp23017Devices[16])
 #define LEGO_CH1_DEV0_PB	(&mcp23017Devices[17])
 #define LEGO_CH1_DEV1_PA	(&mcp23017Devices[18])
 #define LEGO_CH1_DEV1_PB	(&mcp23017Devices[19])
 #define LEGO_CH1_DEV2_PA	(&mcp23017Devices[20])
 #define LEGO_CH1_DEV2_PB	(&mcp23017Devices[21])
+
+#define LEGO_CH2_DEV0_PA	(&mcp23017Devices[22])
+#define LEGO_CH2_DEV0_PB	(&mcp23017Devices[23])
 
 /* Animations */
 #define LEGO_PALACE_CINEMA_ANIM_FRAMES	3
@@ -50,6 +56,10 @@
 #define LEGO_AUTO_MODE_INFO()		(&animInfo[0])
 #define LEGO_PALACE_CINEMA_INFO()	(&animInfo[1])
 #define LEGO_ROLLER_COASTER_INFO()	(&animInfo[2])
+
+/* VL6180X related */
+#define VL6180X_DEV0				0x00
+#define VL6180X_DEV0_DEVICES		10
 
 /* ----------------------------------------------------------------------------- */
 /* ---------------------------- PRIVATE DATA TYPES ----------------------------- */
@@ -85,7 +95,8 @@ static LEGO_AnimInfo_t animInfo[] = {
 /* MCP23017 device chains */
 static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
-		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } }
+		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } },
+		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR } }
 };
 
 /* MCP23017 devices */
@@ -111,7 +122,26 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_A },
 		{ LEGO_MCP23017_CH(1), 1, MCP23017_PORT_B },
 		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_A },
-		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B }
+		{ LEGO_MCP23017_CH(1), 2, MCP23017_PORT_B },
+		{ LEGO_MCP23017_CH(2), 0, MCP23017_PORT_A },
+		{ LEGO_MCP23017_CH(2), 0, MCP23017_PORT_B },
+};
+
+/* VL6180X devices */
+static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 2, VL6180X_I2C_ADDR + 1 } };
+
+/* Smart parking places. Occupied flag is changed during runtime so it cannot be const */
+static LEGO_ParkingPlace_t parkingPlaces[] = {
+		{ 0, &vl6180xDevices, 0, LEGO_CH2_DEV0_PA, 0 },
+		{ 1, &vl6180xDevices, 1, LEGO_CH2_DEV0_PA, 1 },
+		{ 2, &vl6180xDevices, 2, LEGO_CH2_DEV0_PA, 2 },
+		{ 3, &vl6180xDevices, 3, LEGO_CH2_DEV0_PA, 3 },
+		{ 4, &vl6180xDevices, 4, LEGO_CH2_DEV0_PA, 4 },
+		{ 5, &vl6180xDevices, 5, LEGO_CH2_DEV0_PA, 5 },
+		{ 6, &vl6180xDevices, 6, LEGO_CH2_DEV0_PA, 6 },
+		{ 7, &vl6180xDevices, 7, LEGO_CH2_DEV0_PA, 7 },
+		{ 8, &vl6180xDevices, 8, LEGO_CH2_DEV0_PB, 7 },
+		{ 9, &vl6180xDevices, 9, LEGO_CH2_DEV0_PB, 6 }
 };
 
 /* The table containing information about lights */
@@ -261,6 +291,79 @@ static const LEGO_Light_t legoLights[] = {
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- PRIVATE FUNCTIONS --------------------------- */
 /* ----------------------------------------------------------------------------- */
+
+/* Get parking place from device info */
+static LEGO_ParkingPlace_t *LEGO_VL6180XInfoToParkingPlace(const VL6180X_Devices_t *dev, uint8_t devNum)
+{
+	LEGO_ParkingPlace_t *place;
+	for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
+		place = &parkingPlaces[i];
+		if (&place->vl6180xInfo->devices == dev && place->vl6180xDevNum == devNum) {
+			return place;
+		}
+	}
+	return NULL;
+}
+
+/* VL6180X chip enable */
+static bool LEGO_VL6180XEnablePin(const VL6180X_Devices_t *dev, uint8_t devNum)
+{
+	LEGO_ParkingPlace_t *place = LEGO_VL6180XInfoToParkingPlace(dev, devNum);
+
+	if (place == NULL) {
+		return false;
+	}
+
+	/* Drive CE pin high - vl6180x device wake up */
+	taskENTER_CRITICAL();
+	if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
+		taskEXIT_CRITICAL();
+		return false;
+	}
+	if (MCP23017_PinWrite(&place->mcp23017CEInfo->i2cDevInfo->chain, place->mcp23017CEInfo->mcp23017DevNum, place->mcp23017CEInfo->mcp23017Port, place->mcp23017CEPin, MCP23017_PIN_HIGH)) {
+		taskEXIT_CRITICAL();
+		return false;
+	}
+	taskEXIT_CRITICAL();
+
+	return true;
+}
+
+/* Smart parking startup */
+static void LEGO_SmartParkingStartup()
+{
+	/* Set functions pointers */
+	VL6180X_Init(BOARD_I2C_SendMultiByte, BOARD_I2C_ReadMultiByte, LEGO_VL6180XEnablePin);
+
+	/* Clear CE pins - all devices in shutdown mode */
+	LEGO_ParkingPlace_t *place;
+	for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
+		place = &parkingPlaces[i];
+
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
+			LOGGER_WRITELN(("VL6180X initializing error"));
+			return;
+			taskEXIT_CRITICAL();
+		}
+		if (MCP23017_PinWrite(&place->mcp23017CEInfo->i2cDevInfo->chain, place->mcp23017CEInfo->mcp23017DevNum, place->mcp23017CEInfo->mcp23017Port, place->mcp23017CEPin, MCP23017_PIN_LOW)) {
+			LOGGER_WRITELN(("VL6180X initializing error"));
+			taskEXIT_CRITICAL();
+			return;
+		}
+		taskEXIT_CRITICAL();
+	}
+
+	if (VL6180X_DevInit(&vl6180xDevices.devices) != VL6180X_SUCCESS) {
+		LOGGER_WRITELN(("VL6180X initializing error"));
+		return;
+	}
+
+	/* Start range measurements in continuous mode */
+	for (uint8_t i = 0; i < vl6180xDevices.devices.numDevices; i++) {
+		VL6180X_StartRangeMesurements(&vl6180xDevices.devices, i);
+	}
+}
 
 /* Check if specified light has searched group */
 static bool LEGO_HasGroup(const LEGO_Light_t *light, uint32_t groupId)
@@ -553,6 +656,9 @@ bool LEGO_PerformStartup(void)
 			}
 		}
 	}
+
+	/* VL6180x init */
+	LEGO_SmartParkingStartup();
 
 	return response;
 }

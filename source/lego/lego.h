@@ -7,6 +7,7 @@
 /* I2C devices */
 #include "mcp23017.h"
 #include "tca9548a.h"
+#include "vl6180x.h"
 
 /* FreeRTOS */
 #include "FreeRTOS.h"
@@ -177,6 +178,25 @@ typedef struct {
 	bool onOff;				 //!< True if animation enabled, false if disabled
 } LEGO_AnimInfo_t;
 
+/*!
+ * \brief VL6180X info
+ */
+typedef struct {
+	TCA9548A_Channel_t tca9548aChannel; //!< TCA9548A channel
+	VL6180X_Devices_t devices;			//!< VL6180X devices
+} LEGO_VL6180XInfo_t;
+
+/*!
+ * \brief Parking place structure
+ */
+typedef struct {
+	uint8_t placeId;							//!< Unique ID
+	const LEGO_VL6180XInfo_t *vl6180xInfo;		//!< VL6810X info
+	uint8_t vl6180xDevNum;						//!< VL6180X device number
+	const LEGO_MCP23017Info_t *mcp23017CEInfo;	//!< MCP23017 info */
+	uint8_t mcp23017CEPin;						//!< MCP23017 chip-enable pin */
+	bool occupied;								//!< True if place is occupied, false otherwise
+} LEGO_ParkingPlace_t;
 
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
