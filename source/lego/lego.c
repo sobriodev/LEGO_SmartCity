@@ -596,6 +596,37 @@ static void LEGO_AutoModeTask(void *pvParameters)
 	}
 }
 
+/* Task for parking places */
+static void LEGO_ParkingTask(void *pvParameters)
+{
+	while (1) {
+		LEGO_ParkingPlace_t *place;
+		for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
+			place = &parkingPlaces[i];
+
+			taskENTER_CRITICAL();
+			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->vl6180xInfo->tca9548aChannel) == TCA9548A_SUCCESS) {
+				/* Read range */
+				uint8_t range;
+				if (VL6180X_ReadRange(&place->vl6180xInfo->devices, place->vl6180xDevNum, &range) == VL6180X_SUCCESS) {
+					/* Update status */
+					if (range > LEGO_PARKING_TRESHOLD) {
+						place->occupied = false;
+					} else {
+						place->occupied = true;
+					}
+					LOGGER_WRITELN(("Place id %d, status: %d", place->placeId, place->occupied));
+				}
+				/* Clear int status */
+				VL6180X_ClearIntStatus(&place->vl6180xInfo->devices, place->vl6180xInfo->tca9548aChannel);
+			}
+			taskEXIT_CRITICAL();
+		}
+
+		vTaskDelay(pdMS_TO_TICKS(LEGO_PARKING_REFRESH_MS));
+	}
+}
+
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -607,7 +638,10 @@ bool LEGO_RTOSInit(void)
 	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &LEGO_ROLLER_COASTER_INFO()->taskHandle);
 	BaseType_t autoTask	= xTaskCreate(LEGO_AutoModeTask, LEGO_TASK_AUTO_MODE_NAME, LEGO_TASK_AUTO_MODE_STACK, NULL, LEGO_TASK_AUTO_MODE_PRIO, &LEGO_AUTO_MODE_INFO()->taskHandle);
 
-	if (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS) {
+	/* Parking task */
+	BaseType_t parkingTask = xTaskCreate(LEGO_ParkingTask, LEGO_TASK_PARKING_NAME, LEGO_TASK_PARKING_STACK, NULL, LEGO_TASK_PARKING_PRIO, NULL);
+
+	if (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS && parkingTask == pdPASS) {
 		/* Task suspended on startup */
 		vTaskSuspend(LEGO_PALACE_CINEMA_INFO()->taskHandle);
 		vTaskSuspend(LEGO_ROLLER_COASTER_INFO()->taskHandle);

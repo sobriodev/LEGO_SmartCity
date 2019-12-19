@@ -144,4 +144,17 @@ VL6180X_Response_t VL6180X_StartRangeMesurements(const VL6180X_Devices_t *dev, u
  */
 VL6180X_Response_t VL6180X_ClearIntStatus(const VL6180X_Devices_t *dev, uint8_t devNum);
 
+/*!
+ * \brief Read range measurement
+ *
+ * \param dev : Devices info
+ * \param devNum : The number of device in the chain
+ * \param range : Range output buffer
+ * \return Instance of VL6180X_Response_t
+ */
+static inline VL6180X_Response_t VL6180X_ReadRange(const VL6180X_Devices_t *dev, uint8_t devNum, uint8_t *range)
+{
+	return VL6180X_ReceiveGeneric(dev, devNum, VL6180X_RESULT_RANGE_VAL, range, 1);
+}
+
 #endif /* DRIVERS_VL6180X_H_ */

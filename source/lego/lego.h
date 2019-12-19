@@ -31,6 +31,11 @@
 #define LEGO_TASK_AUTO_MODE_STACK			0x400
 #define LEGO_TASK_AUTO_MODE_PRIO			(tskIDLE_PRIORITY + 2)
 
+/* Parking FreeRTOS */
+#define LEGO_TASK_PARKING_NAME				"TASK-LEGO-PARKING"
+#define LEGO_TASK_PARKING_STACK				0x400
+#define LEGO_TASK_PARKING_PRIO				(tskIDLE_PRIORITY + 2)
+
 /* Animation delays valid ranges in ms */
 #define LEGO_AUTO_MODE_DELAY_MIN			2000
 #define LEGO_AUTO_MODE_DELAY_MAX			60000
@@ -38,6 +43,10 @@
 #define LEGO_PALACE_CINEMA_DELAY_MAX		5000
 #define LEGO_ROLLER_COASTER_DELAY_MIN		150
 #define LEGO_ROLLER_COASTER_DELAY_MAX		5000
+
+/* Parking related */
+#define LEGO_PARKING_TRESHOLD				40 /* 4cm */
+#define LEGO_PARKING_REFRESH_MS				2000
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- DATA TYPES --------------------------------- */

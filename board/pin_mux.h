@@ -104,6 +104,8 @@ void BOARD_InitPins(void); /* Function assigned for the Cortex-M4F */
  */
 void BOARD_InitUserPins(void); /* Function assigned for the Cortex-M4F */
 
+void BOARD_InitBootPins(void);
+
 #if defined(__cplusplus)
 }
 #endif
