@@ -19,11 +19,40 @@
 extern "C" {
 #endif
 
+#define PIO013_DIGIMODE_DIGITAL 0x01u
 /*!
- * @brief Calls initialization functions.
- *
+* @brief Controls input glitch filter.: Filter enabled. Noise pulses below approximately 10 ns are filtered out. */
+#define PIO013_FILTEROFF_ENABLED 0x00u
+/*!
+* @brief Selects pin function.: Alternative connection 1. */
+#define PIO013_FUNC_ALT1 0x01u
+
+#define PIO013_I2CDRIVE_HIGH 0x01u
+/*!
+ * @brief Controls slew rate of I2C pad.: I2C mode. */
+#define PIO013_I2CSLEW_I2C_MODE 0x00u
+/*!
+ * @brief Select Analog/Digital mode.: Digital mode. */
+#define PIO014_DIGIMODE_DIGITAL 0x01u
+/*!
+ * @brief Controls input glitch filter.: Filter enabled. Noise pulses below approximately 10 ns are filtered out. */
+#define PIO014_FILTEROFF_ENABLED 0x00u
+/*!
+ * @brief Selects pin function.: Alternative connection 1. */
+#define PIO014_FUNC_ALT1 0x01u
+/*!
+ * @brief
+ * Controls the current sink capability of the pin.
+ * : High drive.
+ * Output drive sink is 20 mA.
+ * This is needed for Fast Mode Plus I 2C.
+ * Refer to the appropriate specific device data sheet for details.
  */
-void BOARD_InitBootPins(void);
+#define PIO014_I2CDRIVE_HIGH 0x01u
+/*!
+ * @brief Controls slew rate of I2C pad.: I2C mode. */
+#define PIO014_I2CSLEW_I2C_MODE 0x00u
+
 
 #define IOCON_PIO_DIGITAL_EN 0x0100u    /*!<@brief Enables digital function */
 #define IOCON_PIO_FUNC0 0x00u           /*!<@brief Selects pin function 0 */

@@ -1689,29 +1689,63 @@ void BOARD_InitUserPins(void)
     /* Enables the clock for the IOCON block. 0 = Disable; 1 = Enable.: 0x01u */
     CLOCK_EnableClock(kCLOCK_Iocon);
 
-    IOCON->PIO[0][13] = ((IOCON->PIO[0][13] &
-                          /* Mask bits to zero which are setting */
-                          (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_DIGIMODE_MASK)))
+    IOCON->PIO[0][13] =
+            ((IOCON->PIO[0][13] &
+              /* Mask bits to zero which are setting */
+              (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_I2CSLEW_MASK | IOCON_PIO_DIGIMODE_MASK | IOCON_PIO_FILTEROFF_MASK | IOCON_PIO_I2CDRIVE_MASK)))
 
-                         /* Selects pin function.
-                          * : PORT013 (pin F11) is configured as FC1_CTS_SDA_SSEL0. */
-                         | IOCON_PIO_FUNC(PIO013_FUNC_ALT1)
+             /* Selects pin function.
+              * : PORT013 (pin F11) is configured as FC1_CTS_SDA_SSEL0. */
+             | IOCON_PIO_FUNC(PIO013_FUNC_ALT1)
 
-                         /* Select Analog/Digital mode.
-                          * : Digital mode. */
-                         | IOCON_PIO_DIGIMODE(PIO013_DIGIMODE_DIGITAL));
+             /* Controls slew rate of I2C pad.
+              * : I2C mode. */
+             | IOCON_PIO_I2CSLEW(PIO013_I2CSLEW_I2C_MODE)
 
-    IOCON->PIO[0][14] = ((IOCON->PIO[0][14] &
-                          /* Mask bits to zero which are setting */
-                          (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_DIGIMODE_MASK)))
+             /* Select Analog/Digital mode.
+              * : Digital mode. */
+             | IOCON_PIO_DIGIMODE(PIO013_DIGIMODE_DIGITAL)
 
-                         /* Selects pin function.
-                          * : PORT014 (pin E13) is configured as FC1_RTS_SCL_SSEL1. */
-                         | IOCON_PIO_FUNC(PIO014_FUNC_ALT1)
+             /* Controls input glitch filter.
+              * : Filter enabled.
+              * Noise pulses below approximately 10 ns are filtered out. */
+             | IOCON_PIO_FILTEROFF(PIO013_FILTEROFF_ENABLED)
 
-                         /* Select Analog/Digital mode.
-                          * : Digital mode. */
-                         | IOCON_PIO_DIGIMODE(PIO014_DIGIMODE_DIGITAL));
+             /* Controls the current sink capability of the pin.
+              * : High drive.
+              * Output drive sink is 20 mA.
+              * This is needed for Fast Mode Plus I 2C.
+              * Refer to the appropriate specific device data sheet for details. */
+             | IOCON_PIO_I2CDRIVE(PIO013_I2CDRIVE_HIGH));
+
+        IOCON->PIO[0][14] =
+            ((IOCON->PIO[0][14] &
+              /* Mask bits to zero which are setting */
+              (~(IOCON_PIO_FUNC_MASK | IOCON_PIO_I2CSLEW_MASK | IOCON_PIO_DIGIMODE_MASK | IOCON_PIO_FILTEROFF_MASK | IOCON_PIO_I2CDRIVE_MASK)))
+
+             /* Selects pin function.
+              * : PORT014 (pin E13) is configured as FC1_RTS_SCL_SSEL1. */
+             | IOCON_PIO_FUNC(PIO014_FUNC_ALT1)
+
+             /* Controls slew rate of I2C pad.
+              * : I2C mode. */
+             | IOCON_PIO_I2CSLEW(PIO014_I2CSLEW_I2C_MODE)
+
+             /* Select Analog/Digital mode.
+              * : Digital mode. */
+             | IOCON_PIO_DIGIMODE(PIO014_DIGIMODE_DIGITAL)
+
+             /* Controls input glitch filter.
+              * : Filter enabled.
+              * Noise pulses below approximately 10 ns are filtered out. */
+             | IOCON_PIO_FILTEROFF(PIO014_FILTEROFF_ENABLED)
+
+             /* Controls the current sink capability of the pin.
+              * : High drive.
+              * Output drive sink is 20 mA.
+              * This is needed for Fast Mode Plus I 2C.
+              * Refer to the appropriate specific device data sheet for details. */
+             | IOCON_PIO_I2CDRIVE(PIO014_I2CDRIVE_HIGH));
 
     IOCON->PIO[3][31] = ((IOCON->PIO[3][31] &
                           /* Mask bits to zero which are setting */

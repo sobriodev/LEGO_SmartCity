@@ -250,7 +250,7 @@ static const LEGO_Light_t legoLights[] = {
 		{ 114, LEGO_CH1_DEV2_PA, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #2 */
 		{ 115, LEGO_CH1_DEV2_PA, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #3 */
 		{ 116, LEGO_CH1_DEV2_PA, 6, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #4 */
-		{ 117, LEGO_CH1_DEV2_PB, 7, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #5 */
+		{ 117, LEGO_CH1_DEV2_PA, 7, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #5 */
 		{ 118, LEGO_CH1_DEV2_PB, 2, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #6 */
 		{ 119, LEGO_CH1_DEV2_PB, 1, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #7 */
 		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #8 */
@@ -708,13 +708,13 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 			/* Palace cinema - drive pins low */
 			vTaskSuspend(LEGO_PALACE_CINEMA_INFO()->taskHandle);
 			LEGO_PALACE_CINEMA_INFO()->onOff = false;
-			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_PALACE_CINEMA, LEGO_LIGHT_OFF);
+			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_PALACE_CINEMA, LEGO_LIGHT_ON);
 			break;
 		case LEGO_ANIM_ROLLER_COASTER:
 			/* Roller Coaster - drive pins high */
 			vTaskSuspend(LEGO_ROLLER_COASTER_INFO()->taskHandle);
 			LEGO_ROLLER_COASTER_INFO()->onOff = false;
-			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_ROLLER_COASTER, LEGO_LIGHT_ON);
+			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_ROLLER_COASTER, LEGO_LIGHT_OFF);
 			break;
 		default:
 			res = LEGO_ID_NOT_FOUND;
