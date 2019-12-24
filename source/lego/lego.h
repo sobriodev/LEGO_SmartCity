@@ -280,4 +280,12 @@ LEGO_LightOpRes_t LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs);
  */
 LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp);
 
+/*!
+ * \brief Get parking places status
+ *
+ * \param stat : Output buffer
+ * \param numOfPlaces : The number of parking places found
+ */
+void LEGO_GetParkingPlacesStatus(const LEGO_ParkingPlace_t **stat, uint8_t *numOfPlaces);
+
 #endif /* LEGO_LEGO_H_ */

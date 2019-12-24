@@ -128,7 +128,7 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 };
 
 /* VL6180X devices */
-static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 2, VL6180X_I2C_ADDR + 1 } };
+static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 1, VL6180X_I2C_ADDR + 1 } };
 
 /* Smart parking places. Occupied flag is changed during runtime so it cannot be const */
 static LEGO_ParkingPlace_t parkingPlaces[] = {
@@ -917,4 +917,10 @@ LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp
 	}
 
 	return LEGO_OP_PERFORMED;
+}
+
+void LEGO_GetParkingPlacesStatus(const LEGO_ParkingPlace_t **stat, uint8_t *numOfPlaces)
+{
+	*stat = parkingPlaces;
+	*numOfPlaces = GUI_COUNTOF(parkingPlaces);
 }

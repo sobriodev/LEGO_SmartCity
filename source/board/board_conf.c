@@ -233,7 +233,6 @@ void BOARD_Init(void)
 	BOARD_BootClockPLL220M();
 	BOARD_InitDebugConsole();
 	BOARD_InitSDRAM();
-	BOARD_InitQSPI();
 
 	/* Attach main clock to SDIF */
 	CLOCK_AttachClk(BOARD_SDIF_CLK_ATTACH);

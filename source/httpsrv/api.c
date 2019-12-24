@@ -37,6 +37,7 @@ const HTTPSRV_CGI_LINK_STRUCT HTTPSRV_ApiTable[] = {
 	{ API_LIGHT_CONTROL_NAME, API_LightControl },
 	{ API_ANIM_STATUS_NAME, API_AnimStatus },
 	{ API_ANIM_DELAY_NAME, API_AnimDelay },
+	{ API_PARKING_STATUS_NAME, API_ParkingStatus },
     {0, 0} /* Do not remove */
 };
 
@@ -320,6 +321,54 @@ bool API_AnimDelayParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_Anim_t *animId
 	return success;
 }
 
+/* Parse GET method of parking status api function */
+bool API_ParkingStatusParseGet(char *qs, const LEGO_ParkingPlace_t **place, uint8_t *numPlaces)
+{
+	/* Parse query string */
+//	QS_Param_t params[1];
+//	uint8_t paramsFound = QS_Parse(qs, params, 1);
+//	const QS_Param_t *id = QS_GetParam("placeId", params, paramsFound);
+//
+//	if (!QS_PARAM_EXISTS(id) || !QS_PARAM_IS_INT(id)) {
+//		return false;
+//	}
+
+	LEGO_GetParkingPlacesStatus(place, numPlaces);
+	return true;
+}
+
+/* Create JSON when using GET method of parking status api function  */
+char *API_ParkingStatusMakeJsonGet(const LEGO_ParkingPlace_t *place, uint8_t numPlaces)
+{
+	char *outputStr = NULL;
+	cJSON *json = cJSON_CreateObject();
+	API_CJSON_APPEND_HOOK(json);
+
+	/* Add status field */
+	API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(json, "status", HTTPSRV_CODE_OK));
+
+	/* Add status array */
+	cJSON *statusArray = cJSON_AddArrayToObject(json, "parkingStatus");
+	API_CJSON_APPEND_HOOK(statusArray);
+
+	for (uint8_t i = 0; i < numPlaces; i++) {
+		cJSON *row = cJSON_CreateObject();
+		API_CJSON_APPEND_HOOK(row);
+
+		/* Id */
+		API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(row, "placeId", place[i].placeId));
+		/* State */
+		API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(row, "occupied", place[i].occupied));
+
+		cJSON_AddItemToArray(statusArray, row);
+	}
+
+	outputStr = cJSON_Print(json);
+
+	end:
+	cJSON_Delete(json);
+	return outputStr;
+}
 
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- API FUNCTIONS ------------------------------ */
@@ -569,5 +618,39 @@ int32_t API_AnimDelay(HTTPSRV_CGI_REQ_STRUCT *request)
 		}
 		default:
 			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET/POST methods are supported here");
+		}
+}
+
+int32_t API_ParkingStatus(HTTPSRV_CGI_REQ_STRUCT *request)
+{
+    HTTPSRV_CGI_RES_STRUCT response = {0};
+    response.ses_handle = request->ses_handle;
+
+    switch (request->request_method) {
+		case HTTPSRV_REQ_GET: {
+
+			/* Parse qs */
+			const LEGO_ParkingPlace_t *place;
+			uint8_t numPlaces;
+			if (!API_ParkingStatusParseGet(request->query_string, &place, &numPlaces)) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Missing/invalid query string parameters");
+			}
+
+			/* Return json output */
+			char *jsonOutput;
+			jsonOutput = API_ParkingStatusMakeJsonGet(place, numPlaces);
+			if (jsonOutput != NULL) {
+				/* Write response and free cJSON allocated string */
+				API_MakeJsonResponse(&response, 200, jsonOutput);
+				HTTPSRV_cgi_write(&response);
+				free(jsonOutput);
+				return response.content_length;
+			}
+
+			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Missing/invalid query string parameters");
+			break;
+		}
+		default:
+			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET method is supported here");
 		}
 }
