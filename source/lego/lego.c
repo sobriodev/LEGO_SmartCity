@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "assert.h"
 #include "stdlib.h"
+#include "oled.h"
 
 /* emWin */
 #include "GUI.h"
@@ -96,7 +97,7 @@ static LEGO_AnimInfo_t animInfo[] = {
 static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
 		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } },
-		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR + 1 } }
+		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR } }
 };
 
 /* MCP23017 devices */
@@ -128,7 +129,7 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 };
 
 /* VL6180X devices */
-static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 10, VL6180X_I2C_ADDR + 1 } };
+static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 1, VL6180X_I2C_ADDR + 1 } };
 
 /* Smart parking places. Occupied flag is changed during runtime so it cannot be const */
 static LEGO_ParkingPlace_t parkingPlaces[] = {
@@ -510,6 +511,19 @@ static void LEGO_SearchLights(const LEGO_Light_t *lights, uint8_t lightsCnt, LEG
  	}
 }
 
+/* Draw parking place flag */
+static void LEGO_DrawParkingPlaceFlag(uint8_t place)
+{
+	uint8_t xBase = 20;
+	uint8_t yBase = 8;
+
+	uint8_t x = (place > 4) ? xBase + 42 : xBase;
+	uint8_t y = yBase + ((place % 5) * 12);
+
+	OLED_Draw_Line(x - 3, y - 3, x + 3, y + 3, parkingPlaces[place].occupied);
+	OLED_Draw_Line(x + 3, y - 3, x - 3, y + 3, parkingPlaces[place].occupied);
+}
+
 /* ----------------------------------------------------------------------------- */
 /* -------------------------------- FREERTOS TASKS ----------------------------- */
 /* ----------------------------------------------------------------------------- */
@@ -599,6 +613,9 @@ static void LEGO_AutoModeTask(void *pvParameters)
 /* Task for parking places */
 static void LEGO_ParkingTask(void *pvParameters)
 {
+	/* Buffer for sprintf usage */
+	static char oledBuff[10];
+
 	while (1) {
 		LEGO_ParkingPlace_t *place;
 		for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
@@ -619,8 +636,25 @@ static void LEGO_ParkingTask(void *pvParameters)
 				/* Clear int status */
 				VL6180X_ClearIntStatus(&place->vl6180xInfo->devices, place->vl6180xInfo->tca9548aChannel);
 			}
+
 			taskEXIT_CRITICAL();
 		}
+
+		/* Update OLED */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL) == TCA9548A_SUCCESS) {
+			uint8_t freePlaces = 0;
+			for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
+				freePlaces += !parkingPlaces[i].occupied;
+				LEGO_DrawParkingPlaceFlag(i);
+			}
+			OLED_Puts(85, 2, " Free");
+			OLED_Puts(85, 3, "Places");
+			sprintf(oledBuff, "  %02d", freePlaces);
+			OLED_Puts(85, 5, oledBuff);
+			OLED_Refresh_Gram();
+		}
+		taskEXIT_CRITICAL();
 
 		vTaskDelay(pdMS_TO_TICKS(LEGO_PARKING_REFRESH_MS));
 	}
@@ -692,6 +726,15 @@ bool LEGO_PerformStartup(void)
 
 	/* VL6180x init */
 	LEGO_SmartParkingStartup();
+
+	/* OLED init */
+	TCA9548A_Response_t tcaRes = TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL);
+	if (tcaRes != TCA9548A_SUCCESS) {
+		LOGGER_WRITELN(("Cannot initialize OLED (TCA9548A)"));
+		return false;
+	}
+	OLED_Init(I2C1);
+	OLED_Draw_Bitmap(parkingBackground);
 
 	return response;
 }
