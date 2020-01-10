@@ -133,7 +133,7 @@ VL6180X_Response_t VL6180X_DevInit(const VL6180X_Devices_t *dev)
 			return VL6180X_CE_ERROR;
 		}
 
-		/* Wait some time */
+		/* Wait some time according to the VL6180X user manual */
 		for (uint32_t i = 0; i < 10000; i++) {
 			__asm("NOP");
 		}

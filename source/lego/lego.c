@@ -96,7 +96,7 @@ static LEGO_AnimInfo_t animInfo[] = {
 static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
 		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } },
-		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR } }
+		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR + 1 } }
 };
 
 /* MCP23017 devices */
@@ -128,20 +128,20 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 };
 
 /* VL6180X devices */
-static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 1, VL6180X_I2C_ADDR + 1 } };
+static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 10, VL6180X_I2C_ADDR + 1 } };
 
 /* Smart parking places. Occupied flag is changed during runtime so it cannot be const */
 static LEGO_ParkingPlace_t parkingPlaces[] = {
-		{ 0, &vl6180xDevices, 0, LEGO_CH2_DEV0_PA, 0 },
-		{ 1, &vl6180xDevices, 1, LEGO_CH2_DEV0_PA, 1 },
-		{ 2, &vl6180xDevices, 2, LEGO_CH2_DEV0_PA, 2 },
-		{ 3, &vl6180xDevices, 3, LEGO_CH2_DEV0_PA, 3 },
-		{ 4, &vl6180xDevices, 4, LEGO_CH2_DEV0_PA, 4 },
-		{ 5, &vl6180xDevices, 5, LEGO_CH2_DEV0_PA, 5 },
-		{ 6, &vl6180xDevices, 6, LEGO_CH2_DEV0_PA, 6 },
-		{ 7, &vl6180xDevices, 7, LEGO_CH2_DEV0_PA, 7 },
-		{ 8, &vl6180xDevices, 8, LEGO_CH2_DEV0_PB, 7 },
-		{ 9, &vl6180xDevices, 9, LEGO_CH2_DEV0_PB, 6 }
+		{ 0, &vl6180xDevices, 0, LEGO_CH2_DEV0_PA, 7 },
+		{ 1, &vl6180xDevices, 1, LEGO_CH2_DEV0_PA, 6 },
+		{ 2, &vl6180xDevices, 2, LEGO_CH2_DEV0_PA, 5 },
+		{ 3, &vl6180xDevices, 3, LEGO_CH2_DEV0_PA, 4 },
+		{ 4, &vl6180xDevices, 4, LEGO_CH2_DEV0_PA, 3 },
+		{ 5, &vl6180xDevices, 5, LEGO_CH2_DEV0_PB, 7 },
+		{ 6, &vl6180xDevices, 6, LEGO_CH2_DEV0_PB, 6 },
+		{ 7, &vl6180xDevices, 7, LEGO_CH2_DEV0_PB, 5 },
+		{ 8, &vl6180xDevices, 8, LEGO_CH2_DEV0_PB, 4 },
+		{ 9, &vl6180xDevices, 9, LEGO_CH2_DEV0_PB, 3 }
 };
 
 /* The table containing information about lights */
@@ -342,12 +342,12 @@ static void LEGO_SmartParkingStartup()
 
 		taskENTER_CRITICAL();
 		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
-			LOGGER_WRITELN(("VL6180X initializing error"));
+			LOGGER_WRITELN(("VL6180X initializing error (TCA9548A)"));
 			return;
 			taskEXIT_CRITICAL();
 		}
 		if (MCP23017_PinWrite(&place->mcp23017CEInfo->i2cDevInfo->chain, place->mcp23017CEInfo->mcp23017DevNum, place->mcp23017CEInfo->mcp23017Port, place->mcp23017CEPin, MCP23017_PIN_LOW)) {
-			LOGGER_WRITELN(("VL6180X initializing error"));
+			LOGGER_WRITELN(("VL6180X initializing error (MCP23017)"));
 			taskEXIT_CRITICAL();
 			return;
 		}
@@ -615,7 +615,6 @@ static void LEGO_ParkingTask(void *pvParameters)
 					} else {
 						place->occupied = true;
 					}
-					LOGGER_WRITELN(("Place id %d, status: %d", place->placeId, place->occupied));
 				}
 				/* Clear int status */
 				VL6180X_ClearIntStatus(&place->vl6180xInfo->devices, place->vl6180xInfo->tca9548aChannel);

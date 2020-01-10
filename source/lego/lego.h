@@ -76,7 +76,7 @@ typedef struct {
 typedef enum {
 	LEGO_ANIM_AUTO_MODE,  		//!< Auto mode
 	LEGO_ANIM_PALACE_CINEMA, 	//!< Palace cinema
-	LEGO_ANIM_ROLLER_COASTER 	//!< Roller Coaster
+	LEGO_ANIM_ROLLER_COASTER, 	//!< Roller Coaster
 } LEGO_Anim_t;
 
 /*!
