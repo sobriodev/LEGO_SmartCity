@@ -31,6 +31,10 @@
 #define LEGO_TASK_AUTO_MODE_STACK			0x400
 #define LEGO_TASK_AUTO_MODE_PRIO			(tskIDLE_PRIORITY + 2)
 
+#define LEGO_TASK_TRAFFIC_LIGHTS_NAME		"TASK-TRAFFIC"
+#define LEGO_TASK_TRAFFIC_LIGHTS_STACK		0x200
+#define LEGO_TASK_TRAFFIC_LIGHTS_PRIO		(tskIDLE_PRIORITY + 2)
+
 /* Parking FreeRTOS */
 #define LEGO_TASK_PARKING_NAME				"TASK-LEGO-PARKING"
 #define LEGO_TASK_PARKING_STACK				0x400
@@ -43,6 +47,8 @@
 #define LEGO_PALACE_CINEMA_DELAY_MAX		5000
 #define LEGO_ROLLER_COASTER_DELAY_MIN		150
 #define LEGO_ROLLER_COASTER_DELAY_MAX		5000
+#define LEGO_TRAFFIC_LIGHTS_TIME_MIN		5000
+#define LEGO_TRAFFIC_LIGHTS_TIME_MAX		20000
 
 /* Parking related */
 #define LEGO_PARKING_TRESHOLD				40 /* 4cm */
@@ -80,6 +86,7 @@ typedef enum {
 	LEGO_ANIM_AUTO_MODE,  		//!< Auto mode
 	LEGO_ANIM_PALACE_CINEMA, 	//!< Palace cinema
 	LEGO_ANIM_ROLLER_COASTER, 	//!< Roller Coaster
+	LEGO_ANIM_TRAFFIC_LIGHTS	//!< Traffic lights
 } LEGO_Anim_t;
 
 /*!
@@ -97,7 +104,7 @@ typedef enum {
 	LEGO_GROUP_F, 					//!< Corner Garage (10264)
 	LEGO_GROUP_G, 					//!< Pet Shop #1 (10218)
 	LEGO_GROUP_H, 					//!< Pet Shop #2 (10218)
-	LEGO_GROUP_I, 						//!< Detective's Office (10246)
+	LEGO_GROUP_I, 					//!< Detective's Office (10246)
 	LEGO_GROUP_J, 					//!< Downtown dinner (10260)
 	LEGO_GROUP_K, 					//!< Park Street Townhouse #1 (31065)
 	LEGO_GROUP_L, 					//!< Park Street Townhouse #2 (31065)
@@ -109,7 +116,8 @@ typedef enum {
 	LEGO_GROUP_EXTERIOR,			//!< Exterior lights
 	/* Animations */
 	LEGO_GROUP_ANIM_PALACE_CINEMA,	//!< Palace cinema animations
-	LEGO_GROUP_ANIM_ROLLER_COASTER  //!< Roller Coaster animations
+	LEGO_GROUP_ANIM_ROLLER_COASTER, //!< Roller Coaster animations
+	LEGO_GROUP_ANIM_TRAFFIC_LIGHTS  //!< Traffic lights
 } LEGO_LightGroup_t;
 
 /*!
@@ -289,6 +297,6 @@ LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp
  * \param stat : Output buffer
  * \param numOfPlaces : The number of parking places found
  */
-void LEGO_GetParkingPlacesStatus(const LEGO_ParkingPlace_t **stat, uint8_t *numOfPlaces);
+void LEGO_GetParkingPlacesStatus(uint8_t **stat, uint8_t *numOfPlaces);
 
 #endif /* LEGO_LEGO_H_ */

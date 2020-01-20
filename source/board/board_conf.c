@@ -100,7 +100,7 @@ void BOARD_InitQSPI(void)
 			{1, false, kSPIFI_DataOutput, 0, kSPIFI_CommandAllSerial, kSPIFI_CommandOpcodeOnly, 0x61}};
 #endif
 
-	BOARD_BootClockFROHF96M(); /* Boot up FROHF96M for SPIFI to use*/
+	//BOARD_BootClockFROHF96M(); /* Boot up FROHF96M for SPIFI to use*/
 	CLOCK_AttachClk(kFRO_HF_to_SPIFI_CLK);
 	sourceClockFreq = CLOCK_GetFroHfFreq();
 	/* Set the clock divider */
@@ -167,12 +167,12 @@ static void BOARD_StartupTask(void *pvParameters)
     GUI_StartupChangeStep("Initializing HTTP server. Plug in Ethernet cable");
     HTTPSRV_Init();
 
-    /* Initialize I2C devices */
-    LOGGER_WRITELN(("Performing LEGO startup. Initializing I2C devices"));
-    GUI_StartupChangeStep("Performing LEGO startup. Initializing I2C devices");
-    if (!LEGO_PerformStartup()) {
-    	LOGGER_WRITELN(("LEGO startup failure"));
-    }
+//    /* Initialize I2C devices */
+//    LOGGER_WRITELN(("Performing LEGO startup. Initializing I2C devices"));
+//    GUI_StartupChangeStep("Performing LEGO startup. Initializing I2C devices");
+//    if (!LEGO_PerformStartup()) {
+//    	LOGGER_WRITELN(("LEGO startup failure"));
+//    }
 
     LOGGER_WRITELN(("Initializing LEGO RTOS"));
     GUI_StartupChangeStep("Initializing LEGO RTOS");
@@ -233,6 +233,7 @@ void BOARD_Init(void)
 	BOARD_BootClockPLL220M();
 	BOARD_InitDebugConsole();
 	BOARD_InitSDRAM();
+	BOARD_InitQSPI();
 
 	/* Attach main clock to SDIF */
 	CLOCK_AttachClk(BOARD_SDIF_CLK_ATTACH);

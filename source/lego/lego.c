@@ -57,6 +57,7 @@
 #define LEGO_AUTO_MODE_INFO()		(&animInfo[0])
 #define LEGO_PALACE_CINEMA_INFO()	(&animInfo[1])
 #define LEGO_ROLLER_COASTER_INFO()	(&animInfo[2])
+#define LEGO_TRAFFIC_LIGHTS_INFO()	(&animInfo[3])
 
 /* VL6180X related */
 #define VL6180X_DEV0				0x00
@@ -91,13 +92,15 @@ static LEGO_AnimInfo_t animInfo[] = {
 		{ NULL, 150, false },
 		/* Roller coaster */
 		{ NULL, 150, false },
+		/* Traffic lights */
+		{ NULL, 10000, false },
 };
 
 /* MCP23017 device chains */
 static const LEGO_I2CDev_t mcp23017Chains[] = {
 		{ TCA9548A_CHANNEL0, { LEGO_MCP23017_CHAIN0, LEGO_MCP23017_CHAIN0_DEV, MCP23017_BASE_ADDR } },
 		{ TCA9548A_CHANNEL1, { LEGO_MCP23017_CHAIN1, LEGO_MCP23017_CHAIN1_DEV, MCP23017_BASE_ADDR } },
-		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR } }
+		{ TCA9548A_CHANNEL2, { LEGO_MCP23017_CHAIN2, LEGO_MCP23017_CHAIN2_DEV, MCP23017_BASE_ADDR + 1 } }
 };
 
 /* MCP23017 devices */
@@ -129,7 +132,7 @@ static const LEGO_MCP23017Info_t mcp23017Devices[] = {
 };
 
 /* VL6180X devices */
-static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 1, VL6180X_I2C_ADDR + 1 } };
+static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 10, VL6180X_I2C_ADDR + 1 } };
 
 /* Smart parking places. Occupied flag is changed during runtime so it cannot be const */
 static LEGO_ParkingPlace_t parkingPlaces[] = {
@@ -287,6 +290,12 @@ static const LEGO_Light_t legoLights[] = {
 		{ 120, LEGO_CH1_DEV2_PB, 0, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #8 */
 		{ 121, LEGO_CH1_DEV2_PB, 5, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #9 */
 		{ 122, LEGO_CH1_DEV2_PB, 4, { LEGO_GROUP_ANIM_ROLLER_COASTER } }, /* Frame #10 */
+		/* Animation #3 - Traffic lights */
+		{ 123, LEGO_CH0_DEV4_PA, 3, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
+		{ 124, LEGO_CH0_DEV4_PA, 4, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
+		{ 125, LEGO_CH0_DEV4_PA, 5, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
+		{ 126, LEGO_CH0_DEV4_PA, 6, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
+		{ 127, LEGO_CH0_DEV4_PA, 7, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
 };
 
 /* ----------------------------------------------------------------------------- */
@@ -660,6 +669,46 @@ static void LEGO_ParkingTask(void *pvParameters)
 	}
 }
 
+/* Task for traffic lights */
+static void LEGO_TrafficLightsTask(void *pvParameters)
+{
+	uint8_t mask = 0b11111000;
+	//static uint8_t trafficStates[4] = {0b10110111, 0b11010111, 0b01101111, 0b01011111};
+	while (1) {
+		/* State 1 - RED */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b10110111);
+		}
+		taskEXIT_CRITICAL();
+		vTaskDelay(pdMS_TO_TICKS(LEGO_TRAFFIC_LIGHTS_INFO()->delayMs));
+
+		/* State 2 - RED|YELLOW */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b11010111);
+		}
+		taskEXIT_CRITICAL();
+		vTaskDelay(pdMS_TO_TICKS(2000));
+
+		/* State 3 - GREEN */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b01101111);
+		}
+		taskEXIT_CRITICAL();
+		vTaskDelay(pdMS_TO_TICKS(LEGO_TRAFFIC_LIGHTS_INFO()->delayMs));
+
+		/* State 4 - YELLOW */
+		taskENTER_CRITICAL();
+		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b01011111);
+		}
+		taskEXIT_CRITICAL();
+		vTaskDelay(pdMS_TO_TICKS(2000));
+	}
+}
+
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------- PUBLIC FUNCTIONS ------------------------------ */
 /* ----------------------------------------------------------------------------- */
@@ -670,15 +719,17 @@ bool LEGO_RTOSInit(void)
 	BaseType_t cinemaTask = xTaskCreate(LEGO_PalaceCinemaTask, LEGO_TASK_PALACE_CINEMA_NAME, LEGO_TASK_PALACE_CINEMA_STACK, NULL, LEGO_TASK_PALACE_CINEMA_PRIO, &LEGO_PALACE_CINEMA_INFO()->taskHandle);
 	BaseType_t coasterTask = xTaskCreate(LEGO_RollerCoasterTask, LEGO_TASK_ROLLER_COASTER_NAME, LEGO_TASK_ROLLER_COASTER_STACK, NULL, LEGO_TASK_ROLLER_COASTER_PRIO, &LEGO_ROLLER_COASTER_INFO()->taskHandle);
 	BaseType_t autoTask	= xTaskCreate(LEGO_AutoModeTask, LEGO_TASK_AUTO_MODE_NAME, LEGO_TASK_AUTO_MODE_STACK, NULL, LEGO_TASK_AUTO_MODE_PRIO, &LEGO_AUTO_MODE_INFO()->taskHandle);
+	BaseType_t trafficTask = xTaskCreate(LEGO_TrafficLightsTask, LEGO_TASK_TRAFFIC_LIGHTS_NAME, LEGO_TASK_TRAFFIC_LIGHTS_STACK, NULL, LEGO_TASK_TRAFFIC_LIGHTS_PRIO, &LEGO_TRAFFIC_LIGHTS_INFO()->taskHandle);
 
 	/* Parking task */
 	BaseType_t parkingTask = xTaskCreate(LEGO_ParkingTask, LEGO_TASK_PARKING_NAME, LEGO_TASK_PARKING_STACK, NULL, LEGO_TASK_PARKING_PRIO, NULL);
 
-	if (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS && parkingTask == pdPASS) {
+	if (cinemaTask == pdPASS && coasterTask == pdPASS && autoTask == pdPASS && trafficTask == pdPASS && parkingTask == pdPASS) {
 		/* Task suspended on startup */
 		vTaskSuspend(LEGO_PALACE_CINEMA_INFO()->taskHandle);
 		vTaskSuspend(LEGO_ROLLER_COASTER_INFO()->taskHandle);
 		vTaskSuspend(LEGO_AUTO_MODE_INFO()->taskHandle);
+		vTaskSuspend(LEGO_TRAFFIC_LIGHTS_INFO()->taskHandle);
 		return true;
 	}
 
@@ -867,6 +918,9 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 		case LEGO_ANIM_ROLLER_COASTER:
 			info = LEGO_ROLLER_COASTER_INFO();
 			break;
+		case LEGO_ANIM_TRAFFIC_LIGHTS:
+			info = LEGO_TRAFFIC_LIGHTS_INFO();
+			break;
 		default:
 			return LEGO_ID_NOT_FOUND;
 		}
@@ -897,6 +951,12 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 			vTaskSuspend(LEGO_ROLLER_COASTER_INFO()->taskHandle);
 			LEGO_ROLLER_COASTER_INFO()->onOff = false;
 			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_ROLLER_COASTER, LEGO_LIGHT_OFF);
+			break;
+		case LEGO_ANIM_TRAFFIC_LIGHTS:
+			/* Traffic lights - drive pin high */
+			vTaskSuspend(LEGO_TRAFFIC_LIGHTS_INFO()->taskHandle);
+			LEGO_TRAFFIC_LIGHTS_INFO()->onOff = false;
+			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_TRAFFIC_LIGHTS, LEGO_LIGHT_OFF);
 			break;
 		default:
 			res = LEGO_ID_NOT_FOUND;
@@ -961,8 +1021,13 @@ LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp
 	return LEGO_OP_PERFORMED;
 }
 
-void LEGO_GetParkingPlacesStatus(const LEGO_ParkingPlace_t **stat, uint8_t *numOfPlaces)
+void LEGO_GetParkingPlacesStatus(uint8_t **stat, uint8_t *numOfPlaces)
 {
-	*stat = parkingPlaces;
+	static uint8_t status[GUI_COUNTOF(parkingPlaces)];
 	*numOfPlaces = GUI_COUNTOF(parkingPlaces);
+
+	for (uint8_t i = 0; i < *numOfPlaces; i++) {
+		status[i] = parkingPlaces[i].occupied;
+	}
+	*stat = status;
 }

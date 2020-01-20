@@ -321,24 +321,8 @@ bool API_AnimDelayParsePost(HTTPSRV_CGI_REQ_STRUCT *request, LEGO_Anim_t *animId
 	return success;
 }
 
-/* Parse GET method of parking status api function */
-bool API_ParkingStatusParseGet(char *qs, const LEGO_ParkingPlace_t **place, uint8_t *numPlaces)
-{
-	/* Parse query string */
-//	QS_Param_t params[1];
-//	uint8_t paramsFound = QS_Parse(qs, params, 1);
-//	const QS_Param_t *id = QS_GetParam("placeId", params, paramsFound);
-//
-//	if (!QS_PARAM_EXISTS(id) || !QS_PARAM_IS_INT(id)) {
-//		return false;
-//	}
-
-	LEGO_GetParkingPlacesStatus(place, numPlaces);
-	return true;
-}
-
-/* Create JSON when using GET method of parking status api function  */
-char *API_ParkingStatusMakeJsonGet(const LEGO_ParkingPlace_t *place, uint8_t numPlaces)
+/* Create JSON when using GET method of parking status api function */
+char *API_ParkingStatusMakeJsonGet(uint8_t *stat, uint8_t numPlaces)
 {
 	char *outputStr = NULL;
 	cJSON *json = cJSON_CreateObject();
@@ -356,9 +340,9 @@ char *API_ParkingStatusMakeJsonGet(const LEGO_ParkingPlace_t *place, uint8_t num
 		API_CJSON_APPEND_HOOK(row);
 
 		/* Id */
-		API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(row, "placeId", place[i].placeId));
+		API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(row, "placeId", i));
 		/* State */
-		API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(row, "occupied", place[i].occupied));
+		API_CJSON_APPEND_HOOK(cJSON_AddNumberToObject(row, "occupied", stat[i]));
 
 		cJSON_AddItemToArray(statusArray, row);
 	}
@@ -628,29 +612,23 @@ int32_t API_ParkingStatus(HTTPSRV_CGI_REQ_STRUCT *request)
 
     switch (request->request_method) {
 		case HTTPSRV_REQ_GET: {
-
-			/* Parse qs */
-			const LEGO_ParkingPlace_t *place;
+			uint8_t *parkingStat;
 			uint8_t numPlaces;
-			if (!API_ParkingStatusParseGet(request->query_string, &place, &numPlaces)) {
-				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Missing/invalid query string parameters");
-			}
-
-			/* Return json output */
-			char *jsonOutput;
-			jsonOutput = API_ParkingStatusMakeJsonGet(place, numPlaces);
-			if (jsonOutput != NULL) {
+			/* Get status */
+			LEGO_GetParkingPlacesStatus(&parkingStat, &numPlaces);
+			char *jsonOutput = API_ParkingStatusMakeJsonGet(parkingStat, numPlaces);
+			if (jsonOutput == NULL) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+			} else {
 				/* Write response and free cJSON allocated string */
 				API_MakeJsonResponse(&response, 200, jsonOutput);
 				HTTPSRV_cgi_write(&response);
 				free(jsonOutput);
 				return response.content_length;
 			}
-
-			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_BAD_REQ, "Missing/invalid query string parameters");
 			break;
 		}
 		default:
 			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Only GET method is supported here");
-		}
+    }
 }
