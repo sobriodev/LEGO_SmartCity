@@ -136,16 +136,16 @@ static const LEGO_VL6180XInfo_t vl6180xDevices = { TCA9548A_CHANNEL2, { 10, VL61
 
 /* Smart parking places. Occupied flag is changed during runtime so it cannot be const */
 static LEGO_ParkingPlace_t parkingPlaces[] = {
-		{ 0, &vl6180xDevices, 0, LEGO_CH2_DEV0_PA, 7 },
-		{ 1, &vl6180xDevices, 1, LEGO_CH2_DEV0_PA, 6 },
-		{ 2, &vl6180xDevices, 2, LEGO_CH2_DEV0_PA, 5 },
-		{ 3, &vl6180xDevices, 3, LEGO_CH2_DEV0_PA, 4 },
-		{ 4, &vl6180xDevices, 4, LEGO_CH2_DEV0_PA, 3 },
-		{ 5, &vl6180xDevices, 5, LEGO_CH2_DEV0_PB, 7 },
-		{ 6, &vl6180xDevices, 6, LEGO_CH2_DEV0_PB, 6 },
+		{ 0, &vl6180xDevices, 0, LEGO_CH2_DEV0_PA, 6 },
+		{ 1, &vl6180xDevices, 1, LEGO_CH2_DEV0_PA, 7 },
+		{ 2, &vl6180xDevices, 2, LEGO_CH2_DEV0_PA, 3 },
+		{ 3, &vl6180xDevices, 3, LEGO_CH2_DEV0_PA, 5 },
+		{ 4, &vl6180xDevices, 4, LEGO_CH2_DEV0_PA, 4 },
+		{ 5, &vl6180xDevices, 5, LEGO_CH2_DEV0_PB, 4 },
+		{ 6, &vl6180xDevices, 6, LEGO_CH2_DEV0_PB, 3 },
 		{ 7, &vl6180xDevices, 7, LEGO_CH2_DEV0_PB, 5 },
-		{ 8, &vl6180xDevices, 8, LEGO_CH2_DEV0_PB, 4 },
-		{ 9, &vl6180xDevices, 9, LEGO_CH2_DEV0_PB, 3 }
+		{ 8, &vl6180xDevices, 8, LEGO_CH2_DEV0_PB, 7 },
+		{ 9, &vl6180xDevices, 9, LEGO_CH2_DEV0_PB, 6 }
 };
 
 /* The table containing information about lights */

@@ -1,5 +1,6 @@
 #include "vl6180x.h"
 #include "assert.h"
+#include "logger.h"
 
 /* ----------------------------------------------------------------------------- */
 /* ------------------------------- PRIVATE MACROS ------------------------------ */
@@ -134,7 +135,7 @@ VL6180X_Response_t VL6180X_DevInit(const VL6180X_Devices_t *dev)
 		}
 
 		/* Wait some time according to the VL6180X user manual */
-		for (uint32_t i = 0; i < 10000; i++) {
+		for (uint32_t i = 0; i < 1000000; i++) {
 			__asm("NOP");
 		}
 
@@ -149,12 +150,15 @@ VL6180X_Response_t VL6180X_DevInit(const VL6180X_Devices_t *dev)
 
 		/* Write recommended settings */
 		VL6180X_WriteRecommendedSettings();
+
 		/* Change I2C address */
 		uint8_t i2cAddr = dev->baseAddr + i;
 		VL6180X_SEND_HOOK_B(i2cSendFn(VL6180X_I2C_ADDR, VL6180X_I2C_SLAVE_DEVICE_ADDRESS, &i2cAddr, 1));
-		/* Clear reset bit using new i2c address */
+
+		/* Clear reset bit using new I2C address */
 		uint8_t regData = 0x00;
 		VL6180X_SEND_HOOK(VL6180X_SendGeneric(dev, i, VL6180X_SYSTEM_FRESH_OUT_OF_RESET, &regData, 1));
+		LOGGER_WRITELN(("VL6180x device #%d OK", i));
 	}
 
 	return VL6180X_SUCCESS;

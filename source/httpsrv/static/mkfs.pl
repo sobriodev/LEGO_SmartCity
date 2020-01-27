@@ -204,7 +204,7 @@ sub process_file
     print($output "extern const unsigned char " . $fvar . "[];\n\n");
     print($output "const unsigned char " . $fvar . "[] = {\n");
   } else {
-    print($output "static const unsigned char " . $fvar . "[] = {\n");
+    print($output "__RODATA(BOARD_FLASH) static const unsigned char " . $fvar . "[] = {\n");
   }
 
   print($output "\t/* $file */\n");

@@ -1,9 +1,98 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Lego Smart City</title>
-    </head>
-    <body>
-	Lego Smart City home page
-    </body>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>LEGO Smart City</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body ng-app="LegoApp" ng-controller="LegoCtrl" ng-cloak>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+
+<!-- AngularJS -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="lego.js"></script>
+<script src="controller.js"></script>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" id="nav">
+    <a class="navbar-brand" href="#">
+        <img src="ki.svg" width="30" height="30" alt="Logo">
+        LEGO Smart City
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Strona główna</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="#">Inteligentne miasto</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Inteligentne parkingi</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div id="carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+    <div class="carousel-inner">
+        <div class="carousel-item" ng-repeat="building in lego.buildings">
+            <div class="carousel-caption d-md-block"><h4 class="display-4">{{ building.namePL }}</h4></div>
+            <div class="container" id="outerContainer">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <img src="{{ imgDir(building.legoId) }}" alt="{{ building.legoId }}" class="img-fluid"/>
+                    </div>
+                    <div class="w-100"></div>
+                    <div class="col">
+                        <div class="container">
+                            <div ng-if="building.hasOwnProperty('streetLights')" class="row">
+                                <div class="col">
+                                    <button ng-repeat="btn in building.streetLights" class="btn btn-primary btn-sm" ng-click="toggleLight(btn.uniqueId)">{{ btn.namePL }}</button>
+                                </div>
+                            </div>
+                            <div ng-if="building.hasOwnProperty('exteriorLights')" class="row">
+                                <div class="col">
+                                    <button ng-repeat="btn in building.exteriorLights" class="btn btn-info btn-sm" ng-click="toggleLight(btn.uniqueId)">{{ btn.namePL }}</button>
+                                </div>
+                            </div>
+                            <div ng-if="building.hasOwnProperty('interiorLights')" class="row">
+                                <div class="col">
+                                    <button ng-repeat="btn in building.interiorLights" class="btn btn-success btn-sm" ng-click="toggleLight(btn.uniqueId)">{{ btn.namePL }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a class="carousel-control-prev" href="#carousel" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#carousel" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.carousel-item').first().addClass('active');
+    })
+</script>
+
+</body>
 </html>

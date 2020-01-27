@@ -167,12 +167,12 @@ static void BOARD_StartupTask(void *pvParameters)
     GUI_StartupChangeStep("Initializing HTTP server. Plug in Ethernet cable");
     HTTPSRV_Init();
 
-//    /* Initialize I2C devices */
-//    LOGGER_WRITELN(("Performing LEGO startup. Initializing I2C devices"));
-//    GUI_StartupChangeStep("Performing LEGO startup. Initializing I2C devices");
-//    if (!LEGO_PerformStartup()) {
-//    	LOGGER_WRITELN(("LEGO startup failure"));
-//    }
+    /* Initialize I2C devices */
+    LOGGER_WRITELN(("Performing LEGO startup. Initializing I2C devices"));
+    GUI_StartupChangeStep("Performing LEGO startup. Initializing I2C devices");
+    if (!LEGO_PerformStartup()) {
+    	LOGGER_WRITELN(("LEGO startup failure"));
+    }
 
     LOGGER_WRITELN(("Initializing LEGO RTOS"));
     GUI_StartupChangeStep("Initializing LEGO RTOS");

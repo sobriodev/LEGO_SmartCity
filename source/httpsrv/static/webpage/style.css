@@ -1,0 +1,28 @@
+.carousel-control-next,
+.carousel-control-prev {
+    filter: invert(100%);
+}
+
+@media screen and (min-width: 992px) {
+    .w-100 {
+        display: none;
+    }
+}
+
+.carousel-caption {
+    top: 0;
+    bottom: auto;
+}
+
+.display-4 {
+    color: black;
+}
+
+.btn {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+#outerContainer {
+    margin-top: 100px;
+}
