@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <!-- Scripts -->
+    <script src="lego.js"></script>
+    <script src="controller.js"></script>
 </head>
 <body ng-app="LegoApp" ng-controller="LegoCtrl" ng-cloak>
 
@@ -16,11 +21,6 @@
 <!-- Bootstrap JS -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-
-<!-- AngularJS -->
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
-<script src="lego.js"></script>
-<script src="controller.js"></script>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark" id="nav">
     <a class="navbar-brand" href="#">
@@ -32,15 +32,14 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="#">Strona główna</a>
-            </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="#">Inteligentne miasto</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Inteligentne parkingi</a>
-            </li>
+            <li><i class="far fa-check-circle fa-2x" ng-click="groupStatus([1], 1)"></i></li>
+            <i class="far fa-times-circle fa-2x" ng-click="groupStatus([1], 0)"></i>
+            <li class="navbar-spacer"></li>
+            <li><i class="fab fa-artstation fa-2x" ng-class="animData[0] == true ? 'fas-enabled' : 'fas-disabled'" ng-click="animStatus(0)"></i></li>
+            <li><i class="fas fa-building fa-2x" ng-class="animData[1] == true ? 'fas-enabled' : 'fas-disabled'" ng-click="animStatus(1)"></i></li>
+            <li><i class="fas fa-bacon fa-2x" ng-class="animData[2] == true ? 'fas-enabled' : 'fas-disabled'" ng-click="animStatus(2)"></i></li>
+            <li><i class="fas fa-traffic-light fa-2x" ng-class="animData[3] == true ? 'fas-enabled' : 'fas-disabled'" ng-click="animStatus(3)"></i></li>
+            <li><i class="fas fa-fan fa-2x" ng-class="animData[4] == true ? 'fas-enabled' : 'fas-disabled'" ng-click="animStatus(4)"></i></li>
         </ul>
     </div>
 </nav>
@@ -52,7 +51,11 @@
             <div class="container" id="outerContainer">
                 <div class="row align-items-center">
                     <div class="col">
-                        <img src="{{ imgDir(building.legoId) }}" alt="{{ building.legoId }}" class="img-fluid"/>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-dark" ng-click="groupStatus(building.groupId, 1)">Włącz</button>
+                            <button type="button" class="btn btn-dark" ng-click="groupStatus(building.groupId, 0)">Wyłącz</button>
+                        </div>
+                        <img ng-src="{{ imgDir(building.legoId) }}" alt="{{ building.legoId }}" class="img-fluid"/>
                     </div>
                     <div class="w-100"></div>
                     <div class="col">

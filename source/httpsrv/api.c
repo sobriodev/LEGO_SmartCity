@@ -616,17 +616,16 @@ int32_t API_ParkingStatus(HTTPSRV_CGI_REQ_STRUCT *request)
 			uint8_t numPlaces;
 			/* Get status */
 			LEGO_GetParkingPlacesStatus(&parkingStat, &numPlaces);
-			API_MAKE_JSON_STAT(response, HTTPSRV_CODE_METHOD_NOT_ALLOWED, "Success");
-//			char *jsonOutput = API_ParkingStatusMakeJsonGet(parkingStat, numPlaces);
-//			if (jsonOutput == NULL) {
-//				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
-//			} else {
-//				/* Write response and free cJSON allocated string */
-//				API_MakeJsonResponse(&response, 200, jsonOutput);
-//				HTTPSRV_cgi_write(&response);
-//				free(jsonOutput);
-//				return response.content_length;
-//			}
+			char *jsonOutput = API_ParkingStatusMakeJsonGet(parkingStat, numPlaces);
+			if (jsonOutput == NULL) {
+				API_MAKE_JSON_STAT(response, HTTPSRV_CODE_INTERNAL_ERROR, "Internal server error");
+			} else {
+				/* Write response and free cJSON allocated string */
+				API_MakeJsonResponse(&response, 200, jsonOutput);
+				HTTPSRV_cgi_write(&response);
+				free(jsonOutput);
+				return response.content_length;
+			}
 			break;
 		}
 		default:

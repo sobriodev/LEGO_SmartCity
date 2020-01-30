@@ -90,7 +90,8 @@ find (\&get_files, $INPUT_DIR);
 # Open httpsrv_fs_data.tmp for writing
 
 open(OUTPUT, "> httpsrv_fs_data.tmp") or die "Can't create temporary file httpsrv_fs_data.tmp!\n";
-print(OUTPUT "#include <httpsrv_fs.h>\n\n");
+print(OUTPUT "#include <httpsrv_fs.h>\n");
+print(OUTPUT "#include <cr_section_macros.h>\n\n");
 print(OUTPUT "extern const HTTPSRV_FS_DIR_ENTRY httpsrv_fs_data[];\n\n");
 foreach $file (@INPUT_FILES)
 {

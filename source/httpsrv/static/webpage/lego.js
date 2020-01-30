@@ -2,6 +2,7 @@ const LegoData = {
     buildings: [
         {
             id: 0,
+            groupId: [2],
             legoId: 10251,
             namePL: 'Bank',
             streetLights: [
@@ -19,6 +20,7 @@ const LegoData = {
         },
         {
             id: 1,
+            groupId: [3, 4],
             legoId: 10255,
             namePL: 'Plac zgromadzeń',
             streetLights: [
@@ -55,6 +57,7 @@ const LegoData = {
         },
         {
             id: 2,
+            groupId: [5],
             legoId: 10243,
             namePL: 'Paryska restauracja',
             streetLights: [
@@ -76,6 +79,7 @@ const LegoData = {
         },
         {
             id: 3,
+            groupId: [6],
             legoId: 10232,
             namePL: 'Kino Palace',
             streetLights: [
@@ -95,6 +99,7 @@ const LegoData = {
         },
         {
             id: 4,
+            groupId: [7],
             legoId: 60050,
             namePL: 'Peron 1',
             exteriorLights: [
@@ -108,6 +113,7 @@ const LegoData = {
         },
         {
             id: 5,
+            groupId: [8],
             legoId: 10264,
             namePL: 'Warsztat na rogu',
             streetLights: [
@@ -131,6 +137,7 @@ const LegoData = {
         },
         {
             id: 6,
+            groupId: [9, 10],
             legoId: 10218,
             namePL: 'Sklep zoologiczny',
             streetLights: [
@@ -151,6 +158,7 @@ const LegoData = {
         },
         {
             id: 7,
+            groupId: [11],
             legoId: 10246,
             namePL: 'Biuro detektywa',
             streetLights: [
@@ -173,6 +181,7 @@ const LegoData = {
         },
         {
             id: 8,
+            groupId: [12],
             legoId: 10260,
             namePL: 'Bistro w śródmieściu',
             streetLights: [
@@ -194,6 +203,7 @@ const LegoData = {
         },
         {
             id: 9,
+            groupId: [13],
             legoId: 310650,
             namePL: 'Dom na wsi 1',
             exteriorLights: [
@@ -206,6 +216,7 @@ const LegoData = {
         },
         {
             id: 10,
+            groupId: [14],
             legoId: 310651,
             namePL: 'Dom na wsi 2',
             streetLights: [
@@ -220,6 +231,7 @@ const LegoData = {
         },
         {
             id: 11,
+            groupId: [15],
             legoId: 7997,
             namePL: 'Peron 2',
             exteriorLights: [
@@ -231,6 +243,19 @@ const LegoData = {
                 { uniqueId: 98, namePL: 'Pomieszczenie 1' },
                 { uniqueId: 99, namePL: 'Pomieszczenie - 1 piętro' },
                 { uniqueId: 101, namePL: 'Pomieszczenie 2' },
+            ]
+        },
+        {
+            id: 14,
+            groupId: [16],
+            legoId: 10261,
+            namePL: 'Kolejka górska',
+            exteriorLights: [
+                { uniqueId: 104, namePL: 'Bramki'},
+                { uniqueId: 105, namePL: 'Kasa biletowa'},
+                { uniqueId: 106, namePL: 'Sklep z lodami'},
+                { uniqueId: 107, namePL: 'Sklep z watą cukrową'},
+                { uniqueId: 108, namePL: 'Reflektory'},
             ]
         }
     ]

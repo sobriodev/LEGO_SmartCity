@@ -58,6 +58,7 @@
 #define LEGO_PALACE_CINEMA_INFO()	(&animInfo[1])
 #define LEGO_ROLLER_COASTER_INFO()	(&animInfo[2])
 #define LEGO_TRAFFIC_LIGHTS_INFO()	(&animInfo[3])
+#define LEGO_WIND_TURBINE_INFO()	(&animInfo[4])
 
 /* VL6180X related */
 #define VL6180X_DEV0				0x00
@@ -94,6 +95,8 @@ static LEGO_AnimInfo_t animInfo[] = {
 		{ NULL, 150, false },
 		/* Traffic lights */
 		{ NULL, 10000, false },
+		/* Wind turbine */
+		{ NULL, 0, false }
 };
 
 /* MCP23017 device chains */
@@ -296,6 +299,8 @@ static const LEGO_Light_t legoLights[] = {
 		{ 125, LEGO_CH0_DEV4_PA, 5, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
 		{ 126, LEGO_CH0_DEV4_PA, 6, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
 		{ 127, LEGO_CH0_DEV4_PA, 7, { LEGO_GROUP_ANIM_TRAFFIC_LIGHTS } }, /* Control #1 */
+		/* Animation #4 - Wind turbine */
+		{ 128, LEGO_CH1_DEV0_PA, 7, { LEGO_GROUP_ANIM_WIND_TURBINE } } /* Control #0 */
 };
 
 /* ----------------------------------------------------------------------------- */
@@ -673,7 +678,6 @@ static void LEGO_ParkingTask(void *pvParameters)
 static void LEGO_TrafficLightsTask(void *pvParameters)
 {
 	uint8_t mask = 0b11111000;
-	//static uint8_t trafficStates[4] = {0b10110111, 0b11010111, 0b01101111, 0b01011111};
 	while (1) {
 		/* State 1 - RED */
 		taskENTER_CRITICAL();
@@ -786,6 +790,11 @@ bool LEGO_PerformStartup(void)
 	}
 	OLED_Init(I2C1);
 	OLED_Draw_Bitmap(parkingBackground);
+
+	/* Turn off cinema and wind turbine states */
+	LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_PALACE_CINEMA, LEGO_LIGHT_ON);
+	LEGO_AnimControl(LEGO_ANIM_WIND_TURBINE, false);
+
 
 	return response;
 }
@@ -907,7 +916,6 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 	LEGO_AnimInfo_t *info;
 
 	if (onOff) {
-		/* If animation should be turned on just resume specific task */
 		switch (animId) {
 		case LEGO_ANIM_AUTO_MODE:
 			info = LEGO_AUTO_MODE_INFO();
@@ -921,6 +929,10 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 		case LEGO_ANIM_TRAFFIC_LIGHTS:
 			info = LEGO_TRAFFIC_LIGHTS_INFO();
 			break;
+		case LEGO_ANIM_WIND_TURBINE:
+			/* Wind turbine does not have own rtos task! */
+			LEGO_WIND_TURBINE_INFO()->onOff = true;
+			return LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_WIND_TURBINE, LEGO_LIGHT_OFF);
 		default:
 			return LEGO_ID_NOT_FOUND;
 		}
@@ -958,6 +970,10 @@ LEGO_LightOpRes_t LEGO_AnimControl(LEGO_Anim_t animId, bool onOff)
 			LEGO_TRAFFIC_LIGHTS_INFO()->onOff = false;
 			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_TRAFFIC_LIGHTS, LEGO_LIGHT_OFF);
 			break;
+		case LEGO_ANIM_WIND_TURBINE:
+			LEGO_WIND_TURBINE_INFO()->onOff = false;
+			res = LEGO_LightsControl(LEGO_SEARCH_GROUP, LEGO_GROUP_ANIM_WIND_TURBINE, LEGO_LIGHT_ON);
+			break;
 		default:
 			res = LEGO_ID_NOT_FOUND;
 			break;
@@ -989,6 +1005,13 @@ LEGO_LightOpRes_t LEGO_SetAnimDelay(LEGO_Anim_t animId, uint32_t delayMs)
 		min = LEGO_ROLLER_COASTER_DELAY_MIN;
 		max = LEGO_ROLLER_COASTER_DELAY_MAX;
 		break;
+	case LEGO_ANIM_TRAFFIC_LIGHTS:
+		info = LEGO_TRAFFIC_LIGHTS_INFO();
+		min = LEGO_TRAFFIC_LIGHTS_TIME_MIN;
+		max = LEGO_TRAFFIC_LIGHTS_TIME_MAX;
+		break;
+	case LEGO_ANIM_WIND_TURBINE:
+		return LEGO_UNSUPPORTED;
 	default:
 		return LEGO_ID_NOT_FOUND;
 	}
@@ -1013,6 +1036,12 @@ LEGO_LightOpRes_t LEGO_GetAnimInfo(LEGO_Anim_t anim, const LEGO_AnimInfo_t **otp
 		break;
 	case LEGO_ANIM_ROLLER_COASTER:
 		*otp = LEGO_ROLLER_COASTER_INFO();
+		break;
+	case LEGO_ANIM_TRAFFIC_LIGHTS:
+		*otp = LEGO_TRAFFIC_LIGHTS_INFO();
+		break;
+	case LEGO_ANIM_WIND_TURBINE:
+		*otp = LEGO_WIND_TURBINE_INFO();
 		break;
 	default:
 		return LEGO_ID_NOT_FOUND;

@@ -23,6 +23,37 @@
     margin-bottom: 5px;
 }
 
+.fas, .fab {
+    margin-right: 20px;
+}
+
+.fas:hover, .fab:hover {
+    cursor: pointer;
+}
+
 #outerContainer {
     margin-top: 100px;
+}
+
+i.fas-enabled {
+    color: #ffffff;
+}
+
+i.fas-disabled {
+    color: #A7A1A0;
+}
+
+.navbar-spacer {
+    margin-right: 50px;
+}
+
+.fa-check-circle {
+    color: #ffffff;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.fa-times-circle {
+    color: #ffffff;
+    cursor: pointer;
 }

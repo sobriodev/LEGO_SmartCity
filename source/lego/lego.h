@@ -86,7 +86,8 @@ typedef enum {
 	LEGO_ANIM_AUTO_MODE,  		//!< Auto mode
 	LEGO_ANIM_PALACE_CINEMA, 	//!< Palace cinema
 	LEGO_ANIM_ROLLER_COASTER, 	//!< Roller Coaster
-	LEGO_ANIM_TRAFFIC_LIGHTS	//!< Traffic lights
+	LEGO_ANIM_TRAFFIC_LIGHTS,	//!< Traffic lights
+	LEGO_ANIM_WIND_TURBINE		//!< Wind turbine
 } LEGO_Anim_t;
 
 /*!
@@ -117,7 +118,8 @@ typedef enum {
 	/* Animations */
 	LEGO_GROUP_ANIM_PALACE_CINEMA,	//!< Palace cinema animations
 	LEGO_GROUP_ANIM_ROLLER_COASTER, //!< Roller Coaster animations
-	LEGO_GROUP_ANIM_TRAFFIC_LIGHTS  //!< Traffic lights
+	LEGO_GROUP_ANIM_TRAFFIC_LIGHTS, //!< Traffic lights
+	LEGO_GROUP_ANIM_WIND_TURBINE	//!< Wind turbine
 } LEGO_LightGroup_t;
 
 /*!
@@ -178,7 +180,8 @@ typedef enum {
 	LEGO_ID_NOT_FOUND,	//!< Id not found
 	LEGO_I2C_ERR,		//!< I2C error
 	LEGO_OP_PERFORMED,  //!< Success
-	LEGO_RANGE_ERROR	//!< Value outside the valid range
+	LEGO_RANGE_ERROR,	//!< Value outside the valid range
+	LEGO_UNSUPPORTED	//!< Unsupported operation
 } LEGO_LightOpRes_t;
 
 /*!
@@ -213,8 +216,8 @@ typedef struct {
 	uint8_t placeId;							//!< Unique ID
 	const LEGO_VL6180XInfo_t *vl6180xInfo;		//!< VL6810X info
 	uint8_t vl6180xDevNum;						//!< VL6180X device number
-	const LEGO_MCP23017Info_t *mcp23017CEInfo;	//!< MCP23017 info */
-	uint8_t mcp23017CEPin;						//!< MCP23017 chip-enable pin */
+	const LEGO_MCP23017Info_t *mcp23017CEInfo;	//!< MCP23017 info
+	uint8_t mcp23017CEPin;						//!< MCP23017 chip-enable pin
 	bool occupied;								//!< True if place is occupied, false otherwise
 } LEGO_ParkingPlace_t;
 
