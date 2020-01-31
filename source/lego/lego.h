@@ -127,7 +127,7 @@ typedef enum {
  */
 typedef enum {
 	LEGO_PERC_DISABLE = 0,		//!< Disabled in auto-mode
-	LEGO_PERC_STREET = 80,   	//!< Street objects
+	LEGO_PERC_STREET = 98,   	//!< Street objects
 	LEGO_PERC_EXTERIOR = 70, 	//!< Exterior lights
 	LEGO_PERC_ROOMS = 50,    	//!< Rooms
 	LEGO_PERC_CAFES = 70,    	//!< Cafes/restaurants

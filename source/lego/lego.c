@@ -207,7 +207,7 @@ static const LEGO_Light_t legoLights[] = {
 		/* Group E - Train Station #1 (60050) */
 		{ 46,  LEGO_CH0_DEV6_PA, 6, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_INTERIOR }, LEGO_PERC_CAFES }, /* Train station #1 */
 		{ 47,  LEGO_CH0_DEV6_PA, 5, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_INTERIOR }, LEGO_PERC_CAFES }, /* Train station #2 */
-		{ 48,  LEGO_CH0_DEV6_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_EXTERIOR }, LEGO_PERC_FAST_OBJ }, /* Cash machine */
+		{ 48,  LEGO_CH0_DEV6_PA, 4, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_EXTERIOR }, LEGO_PERC_STREET }, /* Cash machine */
 		{ 49,  LEGO_CH0_DEV6_PA, 3, { LEGO_GROUP_BROADCAST, LEGO_GROUP_E, LEGO_GROUP_EXTERIOR }, LEGO_PERC_LONG }, /* Train depot */
 		/* Group F - Corner Garage (10264) */
 		{ 50,  LEGO_CH0_DEV5_PB, 0, { LEGO_GROUP_BROADCAST, LEGO_GROUP_F, LEGO_GROUP_EXTERIOR }, LEGO_PERC_EXTERIOR }, /* Exterior light - front */
@@ -331,7 +331,7 @@ static bool LEGO_VL6180XEnablePin(const VL6180X_Devices_t *dev, uint8_t devNum)
 
 	/* Drive CE pin high - vl6180x device wake up */
 	taskENTER_CRITICAL();
-	if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
+	if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
 		taskEXIT_CRITICAL();
 		return false;
 	}
@@ -356,7 +356,7 @@ static void LEGO_SmartParkingStartup()
 		place = &parkingPlaces[i];
 
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, place->mcp23017CEInfo->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
 			LOGGER_WRITELN(("VL6180X initializing error (TCA9548A)"));
 			return;
 			taskEXIT_CRITICAL();
@@ -458,16 +458,16 @@ static void LEGO_AutoModeUpdate(const LEGO_Light_t **autoModeLights, uint8_t aut
 			devInfo[status->devUsed].mcp23017Info = light->mcp23017Info;
 			devInfo[status->devUsed].mask = MCP23017_UINT8_BIT(light->mcp23017Pin);
 
-			/* Update status */
-			status->devUsed++;
-			status->pinsUsed++;
-
 			/* Save valid pin state */
 			if (onOff) {
 				devInfo[status->devUsed].portState = MCP23017_UINT8_BIT(light->mcp23017Pin);
 			} else {
 				devInfo[status->devUsed].portState = 0x00;
 			}
+
+			/* Update status */
+			status->devUsed++;
+			status->pinsUsed++;
 		}
 	}
 }
@@ -546,12 +546,27 @@ static void LEGO_DrawParkingPlaceFlag(uint8_t place)
 static void LEGO_PalaceCinemaTask(void *pvParameters)
 {
 	uint8_t mask = 0x07;
-	uint8_t states[4] = {0b00000000, 0b00000100, 0b00000110, 0b00000111};
+
+	uint8_t states[] = {
+	  /* Animation 0 (queue) */
+	  0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04, 0x01, 0x02, 0x04,
+	  /* Animation 1 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+	  /* Animation 2 (queue on) */
+	  0x01, 0x03, 0x07, 0x00, 0x01, 0x03, 0x07, 0x00, 0x01, 0x03, 0x07, 0x00, 0x01, 0x03, 0x07, 0x00, 0x01, 0x03, 0x07, 0x00, 0x01, 0x03, 0x07, 0x00, 0x01, 0x03, 0x07, 0x00,
+	  /* Animation 3 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+	  /* Animation 4 (queue off) */
+	  0x07, 0x03, 0x01, 0x00, 0x07, 0x03, 0x01, 0x00, 0x07, 0x03, 0x01, 0x00, 0x07, 0x03, 0x01, 0x00, 0x07, 0x03, 0x01, 0x00, 0x07, 0x03, 0x01, 0x00, 0x07, 0x03, 0x01, 0x00,
+	  /* Animation 5 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00
+	 };
+
 	uint8_t i;
 	while (1) {
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < GUI_COUNTOF(states); i++) {
 			taskENTER_CRITICAL();
-			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+			if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
 				MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, states[i]);
 			}
 			taskEXIT_CRITICAL();
@@ -563,16 +578,49 @@ static void LEGO_PalaceCinemaTask(void *pvParameters)
 /* Task for Roller Coaster Animation */
 static void LEGO_RollerCoasterTask(void *pvParameters)
 {
-	uint8_t mask1 = 0b11111000;
-	uint8_t mask2 = 0b00110111;
-	uint8_t states[2] = {0x00, 0xFF};
+	uint8_t maskA = 0b11111000;
+	uint8_t maskB = 0b00110111;
+
+	uint8_t statesA[] = {
+	  /* Animation 0 (queue) */
+	  0xF7, 0xEF, 0xDF, 0xBF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+	  /* Animation 1 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+	  /* Animation 3 (queue off) */
+	  0x00, 0x20, 0x20, 0x28, 0x28, 0x38, 0x38, 0x78, 0x78, 0xFF,
+	  /* Animation 4 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF,
+	  /* Animation 5 (half) */
+	  0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+	  /* Animation 6 (queue on) */
+	  0xFF, 0xDF, 0xDF, 0xD7, 0xD7, 0xC7, 0xC7, 0x87, 0x87, 0x00,
+	  /* Animation 7 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF
+	 };
+	uint8_t statesB[] = {
+	  /* Animation 0 (queue) */
+	  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB, 0xFD, 0xFE, 0xDF, 0xEF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB, 0xFD, 0xFE, 0xDF, 0xEF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB, 0xFD, 0xFE, 0xDF, 0xEF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB, 0xFD, 0xFE, 0xDF, 0xEF,
+	  /* Animation 1 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+	  /* Animation 3 (queue off) */
+	  0x04, 0x04, 0x14, 0x14, 0x15, 0x15, 0x35, 0x35, 0xFF, 0xFF,
+	  /* Animation 4 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF,
+	  /* Animation 5 (half) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF,
+	  /* Animation 6 (queue on) */
+	  0xFB, 0xFB, 0xEB, 0xEB, 0xEA, 0xEA, 0xCA, 0xCA, 0x00, 0x00,
+	  /* Animation 7 (on-off) */
+	  0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF
+	};
+
 	uint8_t i = 0;
 	while (1) {
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < GUI_COUNTOF(statesA); i++) {
 			taskENTER_CRITICAL();
-			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH1_DEV2_PA->i2cDevInfo->channel)) {
-				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_A, mask1, states[i]);
-				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_B, mask2, states[i]);
+			if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_CH1_DEV2_PA->i2cDevInfo->channel)) {
+				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_A, maskA, statesA[i]);
+				MCP23017_PortWriteMasked(&LEGO_CH1_DEV2_PA->i2cDevInfo->chain, LEGO_CH1_DEV2_PA->mcp23017DevNum, MCP23017_PORT_B, maskB, statesB[i]);
 			}
 			taskEXIT_CRITICAL();
 			vTaskDelay(pdMS_TO_TICKS(LEGO_ROLLER_COASTER_INFO()->delayMs));
@@ -614,7 +662,7 @@ static void LEGO_AutoModeTask(void *pvParameters)
 
 			/* Update MCP23017 port data */
 			taskENTER_CRITICAL();
-			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, dev->mcp23017Info->i2cDevInfo->channel)) {
+			if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, dev->mcp23017Info->i2cDevInfo->channel)) {
 				MCP23017_PortWriteMasked(&dev->mcp23017Info->i2cDevInfo->chain, dev->mcp23017Info->mcp23017DevNum, dev->mcp23017Info->mcp23017Port, dev->mask, dev->portState);
 			}
 			taskEXIT_CRITICAL();
@@ -636,7 +684,7 @@ static void LEGO_ParkingTask(void *pvParameters)
 			place = &parkingPlaces[i];
 
 			taskENTER_CRITICAL();
-			if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, place->vl6180xInfo->tca9548aChannel) == TCA9548A_SUCCESS) {
+			if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, place->vl6180xInfo->tca9548aChannel) == TCA9548A_SUCCESS) {
 				/* Read range */
 				uint8_t range;
 				if (VL6180X_ReadRange(&place->vl6180xInfo->devices, place->vl6180xDevNum, &range) == VL6180X_SUCCESS) {
@@ -656,7 +704,7 @@ static void LEGO_ParkingTask(void *pvParameters)
 
 		/* Update OLED */
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL) == TCA9548A_SUCCESS) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL) == TCA9548A_SUCCESS) {
 			uint8_t freePlaces = 0;
 			for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
 				freePlaces += !parkingPlaces[i].occupied;
@@ -681,7 +729,7 @@ static void LEGO_TrafficLightsTask(void *pvParameters)
 	while (1) {
 		/* State 1 - RED */
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
 			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b10110111);
 		}
 		taskEXIT_CRITICAL();
@@ -689,7 +737,7 @@ static void LEGO_TrafficLightsTask(void *pvParameters)
 
 		/* State 2 - RED|YELLOW */
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
 			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b11010111);
 		}
 		taskEXIT_CRITICAL();
@@ -697,7 +745,7 @@ static void LEGO_TrafficLightsTask(void *pvParameters)
 
 		/* State 3 - GREEN */
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
 			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b01101111);
 		}
 		taskEXIT_CRITICAL();
@@ -705,7 +753,7 @@ static void LEGO_TrafficLightsTask(void *pvParameters)
 
 		/* State 4 - YELLOW */
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_CH0_DEV4_PA->i2cDevInfo->channel)) {
 			MCP23017_PortWriteMasked(&LEGO_CH0_DEV4_PA->i2cDevInfo->chain, LEGO_CH0_DEV4_PA->mcp23017DevNum, MCP23017_PORT_A, mask, 0b01011111);
 		}
 		taskEXIT_CRITICAL();
@@ -752,7 +800,7 @@ bool LEGO_PerformStartup(void)
 	for (uint8_t i = 0; i < GUI_COUNTOF(mcp23017Chains); i++) {
 
 		/* Select correct I2C channel */
-		TCA9548A_Response_t tcaRes = TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, mcp23017Chains[i].channel);
+		TCA9548A_Response_t tcaRes = TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, mcp23017Chains[i].channel);
 		if (tcaRes != TCA9548A_SUCCESS) {
 			LOGGER_WRITELN(("LEGO startup problem. Cannot choose TCA9548A channel (mask #%d). Response code %d", mcp23017Chains[i].channel, tcaRes));
 			response = false;
@@ -783,7 +831,7 @@ bool LEGO_PerformStartup(void)
 	LEGO_SmartParkingStartup();
 
 	/* OLED init */
-	TCA9548A_Response_t tcaRes = TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL);
+	TCA9548A_Response_t tcaRes = TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL);
 	if (tcaRes != TCA9548A_SUCCESS) {
 		LOGGER_WRITELN(("Cannot initialize OLED (TCA9548A)"));
 		return false;
@@ -882,7 +930,7 @@ LEGO_LightOpRes_t LEGO_GetLightsStatus(LEGO_SearchPattern_t searchPattern, uint3
 		/* Read port status */
 		uint8_t portStatus;
 		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannelsOptimized(TCA9548A_DEFAULT_ADDR, searchRow->mcp23017Info->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
+		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, searchRow->mcp23017Info->i2cDevInfo->channel) != TCA9548A_SUCCESS) {
 			taskEXIT_CRITICAL();
 			return LEGO_I2C_ERR;
 		}
