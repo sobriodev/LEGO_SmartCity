@@ -678,7 +678,13 @@ static void LEGO_ParkingTask(void *pvParameters)
 	/* Buffer for sprintf usage */
 	static char oledBuff[10];
 
+	/* Refresh flag */
+	bool refresh = false;
+
 	while (1) {
+		/* Clear refresh flag */
+		refresh = false;
+
 		LEGO_ParkingPlace_t *place;
 		for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
 			place = &parkingPlaces[i];
@@ -688,11 +694,19 @@ static void LEGO_ParkingTask(void *pvParameters)
 				/* Read range */
 				uint8_t range;
 				if (VL6180X_ReadRange(&place->vl6180xInfo->devices, place->vl6180xDevNum, &range) == VL6180X_SUCCESS) {
+					/* Update previous state */
+					place->prevState = place->occupied;
+
 					/* Update status */
 					if (range > LEGO_PARKING_TRESHOLD) {
 						place->occupied = false;
 					} else {
 						place->occupied = true;
+					}
+
+					/* Set refresh flag if needed */
+					if (place->occupied != place->prevState) {
+						refresh = true;
 					}
 				}
 				/* Clear int status */
@@ -703,20 +717,22 @@ static void LEGO_ParkingTask(void *pvParameters)
 		}
 
 		/* Update OLED */
-		taskENTER_CRITICAL();
-		if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL) == TCA9548A_SUCCESS) {
-			uint8_t freePlaces = 0;
-			for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
-				freePlaces += !parkingPlaces[i].occupied;
-				LEGO_DrawParkingPlaceFlag(i);
+		if (refresh) {
+			taskENTER_CRITICAL();
+			if (TCA9548A_SelectChannels(TCA9548A_DEFAULT_ADDR, LEGO_OLED_CHANNEL) == TCA9548A_SUCCESS) {
+				uint8_t freePlaces = 0;
+				for (uint8_t i = 0; i < GUI_COUNTOF(parkingPlaces); i++) {
+					freePlaces += !parkingPlaces[i].occupied;
+					LEGO_DrawParkingPlaceFlag(i);
+				}
+				OLED_Puts(85, 2, " Free");
+				OLED_Puts(85, 3, "Places");
+				sprintf(oledBuff, "  %02d", freePlaces);
+				OLED_Puts(85, 5, oledBuff);
+				OLED_Refresh_Gram();
 			}
-			OLED_Puts(85, 2, " Free");
-			OLED_Puts(85, 3, "Places");
-			sprintf(oledBuff, "  %02d", freePlaces);
-			OLED_Puts(85, 5, oledBuff);
-			OLED_Refresh_Gram();
+			taskEXIT_CRITICAL();
 		}
-		taskEXIT_CRITICAL();
 
 		vTaskDelay(pdMS_TO_TICKS(LEGO_PARKING_REFRESH_MS));
 	}

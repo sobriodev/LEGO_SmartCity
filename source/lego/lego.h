@@ -219,6 +219,7 @@ typedef struct {
 	const LEGO_MCP23017Info_t *mcp23017CEInfo;	//!< MCP23017 info
 	uint8_t mcp23017CEPin;						//!< MCP23017 chip-enable pin
 	bool occupied;								//!< True if place is occupied, false otherwise
+	bool prevState;								//!< Previous occupation state
 } LEGO_ParkingPlace_t;
 
 /* ----------------------------------------------------------------------------- */
