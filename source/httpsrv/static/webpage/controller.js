@@ -4,9 +4,15 @@ legoApp.controller('LegoCtrl', ['$scope', function($scope) {
     $scope.lego = LegoData;
 
     $scope.imgPath = './lego_img/';
+    $scope.imgImgurPath = 'https://i.imgur.com/';
+
     $scope.imgDir = function (id) {
         return $scope.imgPath + id + '.jpg';
     };
+
+    $scope.imgImgurSrc = function (id) {
+        return $scope.imgImgurPath + id + '.jpg';
+    }
 
     $scope.toggleLight = function (id) {
         $.ajax({

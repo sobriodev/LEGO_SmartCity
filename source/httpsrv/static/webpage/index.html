@@ -27,6 +27,7 @@
         <img src="ki.svg" width="30" height="30" alt="Logo">
         LEGO Smart City
     </a>
+    <a href="./index_static.html"><button class="btn btn-secondary btn-sm" type="button" name="button">Wybierz wersję statyczną</button></a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -55,7 +56,7 @@
                             <button type="button" class="btn btn-dark" ng-click="groupStatus(building.groupId, 1)">Włącz</button>
                             <button type="button" class="btn btn-dark" ng-click="groupStatus(building.groupId, 0)">Wyłącz</button>
                         </div>
-                        <img ng-src="{{ imgDir(building.legoId) }}" alt="{{ building.legoId }}" class="img-fluid"/>
+                        <img ng-src="{{ imgImgurSrc(building.legoImgurId) }}" alt="{{ building.legoImgurId }}" class="img-fluid"/>
                     </div>
                     <div class="w-100"></div>
                     <div class="col">
