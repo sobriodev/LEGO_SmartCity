@@ -4,6 +4,7 @@ const LegoData = {
             id: 0,
             groupId: [2],
             legoId: 10251,
+            legoImgurId: '5SiQz9s',
             namePL: 'Bank',
             streetLights: [
                 { uniqueId: 0, namePL: 'Lampa uliczna' }
@@ -22,6 +23,7 @@ const LegoData = {
             id: 1,
             groupId: [3, 4],
             legoId: 10255,
+            legoImgurId: 'LECKyrR',
             namePL: 'Plac zgromadzeń',
             streetLights: [
                 { uniqueId: 6, namePL: 'Lampa uliczna 1' },
@@ -59,6 +61,7 @@ const LegoData = {
             id: 2,
             groupId: [5],
             legoId: 10243,
+            legoImgurId: 'Us3xqgI',
             namePL: 'Paryska restauracja',
             streetLights: [
                 { uniqueId: 40, namePL: 'Lampa uliczna' }
@@ -81,6 +84,7 @@ const LegoData = {
             id: 3,
             groupId: [6],
             legoId: 10232,
+            legoImgurId: 'eR2hQ6I',
             namePL: 'Kino Palace',
             streetLights: [
                 { uniqueId: 42, namePL: 'Lampa uliczna' },
@@ -101,6 +105,7 @@ const LegoData = {
             id: 4,
             groupId: [7],
             legoId: 60050,
+            legoImgurId: 'rO1IF9n',
             namePL: 'Peron 1',
             exteriorLights: [
                 { uniqueId: 48, namePL: 'Bankomat' },
@@ -115,6 +120,7 @@ const LegoData = {
             id: 5,
             groupId: [8],
             legoId: 10264,
+            legoImgurId: '4ZIca0L',
             namePL: 'Warsztat na rogu',
             streetLights: [
                 { uniqueId: 60, namePL: 'Lampa uliczna' }
@@ -139,6 +145,7 @@ const LegoData = {
             id: 6,
             groupId: [9, 10],
             legoId: 10218,
+            legoImgurId: 'OqJCKGD',
             namePL: 'Sklep zoologiczny',
             streetLights: [
                 { uniqueId: 68, namePL: 'Lampa uliczna' },
@@ -160,6 +167,7 @@ const LegoData = {
             id: 7,
             groupId: [11],
             legoId: 10246,
+            legoImgurId: '1FRy9Gw',
             namePL: 'Biuro detektywa',
             streetLights: [
                 { uniqueId: 81, namePL: 'Lampa uliczna' }
@@ -183,6 +191,7 @@ const LegoData = {
             id: 8,
             groupId: [12],
             legoId: 10260,
+            legoImgurId: 'DJ2snce',
             namePL: 'Bistro w śródmieściu',
             streetLights: [
                 { uniqueId: 83, namePL: 'Lampa uliczna' }
@@ -205,6 +214,7 @@ const LegoData = {
             id: 9,
             groupId: [13],
             legoId: 310650,
+            legoImgurId: 'AFrPyJv',
             namePL: 'Dom na wsi 1',
             exteriorLights: [
                 { uniqueId: 93, namePL: 'Altana - lampa 1' },
@@ -218,6 +228,7 @@ const LegoData = {
             id: 10,
             groupId: [14],
             legoId: 310651,
+            legoImgurId: 'dPQAlpA',
             namePL: 'Dom na wsi 2',
             streetLights: [
                 { uniqueId: 96, namePL: 'Lampa uliczna' },
@@ -233,6 +244,7 @@ const LegoData = {
             id: 11,
             groupId: [15],
             legoId: 7997,
+            legoImgurId: 'oLjCvHw',
             namePL: 'Peron 2',
             exteriorLights: [
                 { uniqueId: 100, namePL: 'Tablica informacyjna' },
@@ -249,6 +261,7 @@ const LegoData = {
             id: 14,
             groupId: [16],
             legoId: 10261,
+            legoImgurId: 'ylvbgpk',
             namePL: 'Kolejka górska',
             exteriorLights: [
                 { uniqueId: 104, namePL: 'Bramki'},
